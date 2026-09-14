@@ -18,7 +18,10 @@ abstract public class Nave {
     public TipoNave getTipo() { return tipo; }
     public Recursos getRecursos() { return recursos; }
     public MotorWarp getMotorWarp() { return motorWarp; }
-
+    
+    public void agregarTripulante(Tripulante t) {
+        tripulacion.add(t);
+    }
 
 
 
