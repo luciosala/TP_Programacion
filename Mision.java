@@ -1,4 +1,4 @@
-abstract Mision {
+    abstract public  Class Mision {
     protected String nombre;
     protected String descripcion;
 
@@ -7,5 +7,16 @@ abstract Mision {
         this.descripcion = descripcion;
     }
 
-    public abstract void ejecutarMision();
+    /*metodos protected para que los hijos puedan accedrr */
+  
+    protected abstract void preparar() 
+
+    protected abstract void ejecutar() 
+
+   
+    protected abstract boolean evaluarResultado();
+
+   
+    protected abstract InformeMision cerrar(boolean exito);
+
 }

@@ -1,7 +1,7 @@
 public class MotorWarp{
     private Estado estadoActual;
 
-    public MotorWarp{
+    public MotorWarp(){
         estadoActual=new Disponible();
     }
     public void prepararSalto() {estadoActual = estadoActual.prepararSalto(); }
@@ -10,5 +10,5 @@ public class MotorWarp{
     public void completarEnfriamiento() { estadoActual = estadoActual.completarEnfriamiento(); }
 
     public String getEstadoActual() { return estadoActual.nombre(); }
-    }
+    
 }

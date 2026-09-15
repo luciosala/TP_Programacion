@@ -1,13 +1,13 @@
 
 abstract public class Nave {
     private final String id;
-    private final TipoNave tipo;
+    private final String tipo;
     private final Recursos recursos;
     private final MotorWarp motorWarp;
     private int desgasteInicial = 0;
     private final List<Tripulante> tripulacion = new ArrayList<>();
 
-    public Nave(String id, TipoNave tipo, Recursos recursos, MotorWarp motorWarp) {
+    public Nave(String id, String tipo, Recursos recursos, MotorWarp motorWarp) {
         this.id = id;
         this.tipo = tipo;
         this.recursos = recursos;
@@ -15,7 +15,7 @@ abstract public class Nave {
     }
 
     public String getId() { return id; }
-    public TipoNave getTipo() { return tipo; }
+    public tipo getTipo() { return tipo; }
     public Recursos getRecursos() { return recursos; }
     public MotorWarp getMotorWarp() { return motorWarp; }
     
