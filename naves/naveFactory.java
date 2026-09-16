@@ -1,7 +1,7 @@
-import <java.util.ArrayList>
+
     public class naveFactory {
 
-        public static Nave createNave(String tipo) {
+        public static Nave createNave(String id, String tipo) {
             MotorWarp motorWarp = new MotorWarp();
             if (tipo.equalsIgnoreCase("combate")) {
                 Recursos recursos = new Recursos(80, 100, 0);

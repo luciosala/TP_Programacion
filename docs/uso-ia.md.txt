@@ -1,2 +1,3 @@
 -Explicacion libreria java.time.instant.
 -Explicacion excepciones previa a la formal en la teoria.
+-Explicacion del tipo enum

@@ -1,5 +1,6 @@
 import java.time.Instant;
-public class EventoBitacora(){
+
+public class EventoBitacora{
 
 
     /**
@@ -7,7 +8,8 @@ public class EventoBitacora(){
      * categoria: tipo de evento. motor, error , mision existosa o fallida
      * 
      */
-   private String categoria, descripcion;
+private String categoria, descripcion;
+private final Instant timestamp;
       
    
 public EventoBitacora(String categoria,String descripcion){

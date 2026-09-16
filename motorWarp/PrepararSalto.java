@@ -1,16 +1,20 @@
 public class PrepararSalto extends Estado{
 
     @Override
+    public String nombre() {
+        return "Preparando salto";
+    }
+
+    @Override
     public Estado prepararSalto() {
          throw new IllegalStateException(
             "Ya esta preparando salto"
+         );
     }
 
     @Override
     public Estado iniciarSalto() {
-        throw new IllegalStateException(
-            "No se puede iniciar el salto mientras esta preparando"
-        );
+        return new EnWarp();
     }
     @Override
     public Estado completarEnfriamiento(){
@@ -24,3 +28,4 @@ public class PrepararSalto extends Estado{
             "No se puede finalizar el salto mientras se esta preparando"
         );
     }
+}

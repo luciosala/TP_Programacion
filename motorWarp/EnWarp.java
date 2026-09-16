@@ -1,9 +1,15 @@
 public class EnWarp extends Estado {
 
     @Override
+    public String nombre() {
+        return "En warp";
+    }
+
+    @Override
     public Estado prepararSalto() {
          throw new IllegalStateException(
             "No se puede preparar salto si esta en salto"
+         );
     }
 
     @Override

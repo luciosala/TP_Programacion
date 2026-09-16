@@ -1,6 +1,11 @@
 public class Enfriando extends Estado{
 
     @Override
+    public String nombre() {
+        return "Enfriamiento";
+    }
+
+    @Override
     public Estado prepararSalto() {
          throw new IllegalStateException(
             "No se puede preparar salto si esta enfriando"
@@ -15,7 +20,7 @@ public class Enfriando extends Estado{
     }
     @Override
     public Estado completarEnfriamiento(){
-        return new Disponible()
+        return new Disponible();
     }
     @Override
     public Estado finalizarSalto(){

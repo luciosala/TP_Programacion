@@ -1,8 +1,13 @@
 public class Disponible extends Estado {
 
     @Override
+    public String nombre() {
+        return "Disponible";
+    }
+
+    @Override
     public Estado prepararSalto() {
-        return new Preparando();
+        return new PrepararSalto();
     }
 
     @Override

@@ -1,16 +1,19 @@
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.ArrayList;
+import java.util.List;
+
 public class Tripulante {
 
     private final String id;
     private final String nombre;
     private final String apellido;
-    private final String rango;
     private final Cargo cargo;
     private final Origen origen;
     private int antiguedadAnios;
+    private final List<Consejo> consejos = new ArrayList<>();
 
-    public Tripulante(String id, String nombre, String apellido,
-                      String rango, Cargo cargo, Origen origen,
-                      int antiguedadAnios) {
+    public Tripulante(String id, String nombre, String apellido, Cargo cargo, Origen origen, int antiguedadAnios) {
 
         if (antiguedadAnios < 0) {
             throw new IllegalArgumentException(
@@ -18,10 +21,29 @@ public class Tripulante {
             );
         }
 
+        if (cargo == null){
+            throw new IllegalArgumentException("El cargo es inválido");
+        }
+
+        if (origen == null) {
+            throw new IllegalArgumentException("El origen es inválido");
+        }
+
+        if (id == null || id.isBlank()) {
+            throw new IllegalArgumentException("El id no puede ser nulo ni vacío");
+        }
+
+        if (nombre == null || nombre.isBlank()) {
+            throw new IllegalArgumentException("El nombre no puede ser nulo ni vacío");
+        }
+
+        if (apellido == null || apellido.isBlank()) {
+            throw new IllegalArgumentException("El apellido no puede ser nulo ni vacío");
+        }
+
         this.id = id;
         this.nombre = nombre;
         this.apellido = apellido;
-        this.rango = rango;
         this.cargo = cargo;
         this.origen = origen;
         this.antiguedadAnios = antiguedadAnios;
@@ -39,29 +61,44 @@ public class Tripulante {
         return apellido;
     }
 
-    public String getRango() {
-        return rango;
+    public Cargo getCargo() {
+        return cargo;
     }
 
-    public Tripulante crear(Cargo cargo, String nombre, String apellido, Origen origen, int antiguedadAnios) {
+    public Origen getOrigen() {
+        return origen;
+    }
 
-        switch (cargo) {
-            case CAPITAN:
-                return new Capitan(nombre, apellido, origen, antiguedadAnios);
+    public int getAntiguedadAnios() {
+        return antiguedadAnios;
+    }
 
-            case CONSEJERO:
-                return new Consejero(nombre, apellido, origen, antiguedadAnios);
-
-            case TENIENTE:
-                return new Teniente(nombre, apellido, origen, antiguedadAnios);
-
-            case ALFEREZ:
-                return new Alferez(nombre, apellido, origen, antiguedadAnios);
-
-            default:
-                throw new IllegalArgumentException(
-                    "Cargo desconocido: " + cargo
-                );
+    public void registrarConsejo(LocalDate fecha, String descripcion) {
+        if (!(cargo instanceof Consejero)) {
+            throw new IllegalStateException("Solo los consejeros pueden registrar consejos");
         }
+        consejos.add(new Consejo(fecha, descripcion));
+    }
+
+    public int cantidadConsejos() {
+        return consejos.size();
+    }
+
+    public int cantidadConsejos(YearMonth periodo) {
+        if (periodo == null) {
+            throw new IllegalArgumentException("El período no puede ser nulo");
+        }
+
+        int cantidad = 0;
+        for (Consejo consejo : consejos) {
+            if (YearMonth.from(consejo.getFecha()).equals(periodo)) {
+                cantidad++;
+            }
+        }
+        return cantidad;
+    }
+
+    public Consejo consultarConsejo(int indice) {
+        return consejos.get(indice);
     }
 }
