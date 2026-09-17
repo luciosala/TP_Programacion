@@ -2,6 +2,18 @@ public abstract class DecoratorHaber extends Haber {
 
     protected final Haber haber;
 
+    /**
+     * Construye un decorador sobre un haber existente.
+     *
+     * Precondiciones:
+     * - haber no es nulo.
+     *
+     * Postcondiciones:
+     * - El componente almacenado es el haber recibido y no es nulo.
+     *
+     * @param haber haber al que se agrega un concepto
+     * @throws IllegalArgumentException si el haber es nulo
+     */
     protected DecoratorHaber(Haber haber) {
         if (haber == null) {
             throw new IllegalArgumentException("El haber a decorar no puede ser nulo");
@@ -10,9 +22,29 @@ public abstract class DecoratorHaber extends Haber {
         this.haber = haber;
     }
 
+    /**
+     * Calcula el total del haber incluyendo el concepto adicional.
+     *
+     * Precondiciones:
+     * - El importe del concepto adicional es finito y no negativo.
+     * - El haber envuelto cumple su contrato de cálculo de importes válidos.
+     *
+     * Postcondiciones:
+     * - Devuelve el total del haber envuelto más el importe del concepto adicional.
+     * - El total devuelto es finito y no negativo.
+     *
+     * @return total del haber en PG
+     * @throws IllegalStateException si el importe adicional o el total
+     *         no es finito o es negativo
+     */
     @Override
     public double calcularTotal() {
-        double total = haber.calcularTotal() + importeConcepto();
+        double importe = importeConcepto();
+        if (!Double.isFinite(importe) || importe < 0) {
+            throw new IllegalStateException("El concepto debe tener un importe válido no negativo");
+        }
+
+        double total = haber.calcularTotal() + importe;
         if (!Double.isFinite(total) || total < 0) {
             throw new IllegalStateException("El total del haber debe ser un importe válido no negativo");
         }

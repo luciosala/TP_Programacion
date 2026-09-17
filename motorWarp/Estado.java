@@ -1,6 +1,6 @@
 public abstract class Estado {
 
-    abstract Estado  prepararSalto();
+    abstract Estado prepararSalto();
 
     abstract Estado iniciarSalto();
 

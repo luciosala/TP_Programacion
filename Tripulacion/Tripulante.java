@@ -13,6 +13,28 @@ public class Tripulante {
     private int antiguedadAnios;
     private final List<Consejo> consejos = new ArrayList<>();
 
+    /**
+     * Construye un tripulante.
+     *
+     * Precondiciones de antigüedad:
+     * - antiguedadAnios es mayor o igual a 0.
+     * - El cargo no puede ser nulo.
+     * - El origen no puede ser nulo.
+     * - El id no puede ser nulo ni vacio.
+     * - El apellido no puede ser nulo ni vacio.
+     * - El nombre no puede ser nulo ni vacio.
+     *
+     * Postcondiciones de antigüedad:
+     * - La antigüedad, el id, el nombre, el apellido, el cargo y el origen queda inicializado con lo ingresado.
+     *
+     * @param id identificador del tripulante
+     * @param nombre nombre del tripulante
+     * @param apellido apellido del tripulante
+     * @param cargo cargo del tripulante
+     * @param origen origen del tripulante
+     * @param antiguedadAnios antigüedad en años
+     * @throws IllegalArgumentException si incumple alguna precondición.
+     */
     public Tripulante(String id, String nombre, String apellido, Cargo cargo, Origen origen, int antiguedadAnios) {
 
         if (antiguedadAnios < 0) {

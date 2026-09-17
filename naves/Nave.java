@@ -9,7 +9,42 @@ abstract public class Nave {
     private final MotorWarp motorWarp;
     private final List<Tripulante> tripulacion = new ArrayList<>();
 
+    /**
+     * Construye una nave con identidad, tipo, recursos y motor Warp.
+     *
+     * Precondiciones:
+     * - id y tipo no son nulos, vacíos ni contienen solo espacios.
+     * - recursos y motorWarp no son nulos.
+     *
+     * Postcondiciones:
+     * - La nave conserva el id y el tipo recibidos.
+     * - La nave utiliza los recursos y el motorWarp recibidos.
+     * - La tripulación comienza vacía.
+     *
+     * @param id identificador de la nave
+     * @param tipo tipo de nave
+     * @param recursos recursos que utilizará la nave
+     * @param motorWarp motor Warp que utilizará la nave
+     * @throws IllegalArgumentException si se incumple alguna precondición
+     */
     public Nave(String id, String tipo, Recursos recursos, MotorWarp motorWarp) {
+        
+        if (id == null || id.isBlank()){
+            throw new IllegalArgumentException("El id no puede ser nulo ni vacio");
+        }
+
+        if (tipo == null || tipo.isBlank()){
+            throw new IllegalArgumentException("El tipo no puede ser nulo ni vacio");
+        }
+
+        if (recursos == null){
+            throw new IllegalArgumentException("Los recursos no pueden ser nulos");
+        }
+
+        if (motorWarp == null){
+            throw new IllegalArgumentException("El motor no puede ser nulo");
+        }
+
         this.id = id;
         this.tipo = tipo;
         this.recursos = recursos;
@@ -20,6 +55,7 @@ abstract public class Nave {
     public String getTipo() { return tipo; }
     public Recursos getRecursos() { return recursos; }
     public MotorWarp getMotorWarp() { return motorWarp; }
+    
     
     public void agregarTripulante(Tripulante t) {
         if (t == null) {
