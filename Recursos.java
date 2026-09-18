@@ -86,13 +86,34 @@ final public class Recursos{
     public void cargarEnergia(int cantidad) {
         if (cantidad <= 0) {
             throw new IllegalArgumentException("La cantidad de energía debe ser positiva");
-        }
+        
 
-        if (cantidad > 100 - energia) {
+        if (cantidad > 100 - energia) 
             throw new IllegalStateException("La carga de energía supera la capacidad máxima de 100");
-        }
+        
 
         energia += cantidad;
+    }
+    public void consumirEnergia(int cantidad){
+        if (cantidad <= 0) 
+            throw new IllegalArgumentException("La cantidad a consumir debe ser positiva");
+        if (cantidad > energia)
+            throw new IllegalStateException("No hay energia suficiente para consumir");
+        energia-=cantidad;
+    }
+    public void consumirCombustible(int cantidad){          //valida que no se haga negativo aunque los llamados en Mision lo chequeen , pero se confirma por si se llega a llamar desde otro lado que no valide
+         if (cantidad <= 0) 
+            throw new IllegalArgumentException("La cantidad a consumir debe ser positiva");
+        if (cantidad > combustible)
+            throw new IllegalStateException("No hay combustible suficiente para consumir");
+        combustible-=cantidad;
+    }
+    public void agregarDesgaste(int cantidad){
+            if (cantidad <= 0) 
+                throw new IllegalArgumentException("La cantidad a desgastar debe ser positiva");
+             if (cantidad +desgaste >100 )
+                throw new IllegalStateException("Se llego al limite de desgaste");
+            desgaste+=cantidad;
     }
 
     /**
