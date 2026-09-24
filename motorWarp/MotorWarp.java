@@ -4,7 +4,6 @@ public class MotorWarp{
     public MotorWarp(){
         estadoActual=new Disponible();
     }
-
     /**
      * Prepara el motor para realizar un salto.
      *
@@ -15,9 +14,11 @@ public class MotorWarp{
      * - El motor queda en estado Preparando salto.
      * - Si la operación se rechaza, el estado del motor permanece sin cambios.
      *
-     * @throws IllegalStateException si el motor no está en estado Disponible
+     * @throws TransicionInvalidaException si el motor no está en estado Disponible
      */
-    public void prepararSalto() {estadoActual = estadoActual.prepararSalto(); }
+    public void prepararSalto() throws TransicionInvalidaException {
+        estadoActual = estadoActual.prepararSalto();
+    }
 
     /**
      * Inicia el salto del motor.
@@ -29,9 +30,11 @@ public class MotorWarp{
      * - El motor queda en estado En warp.
      * - Si la operación se rechaza, el estado del motor permanece sin cambios.
      *
-     * @throws IllegalStateException si el motor no está en estado Preparando salto
+     * @throws TransicionInvalidaException si el motor no está en estado Preparando salto
      */
-    public void iniciarSalto() { estadoActual = estadoActual.iniciarSalto(); }
+    public void iniciarSalto() throws TransicionInvalidaException {
+        estadoActual = estadoActual.iniciarSalto();
+    }
 
     /**
      * Finaliza el salto e inicia el enfriamiento del motor.
@@ -43,9 +46,11 @@ public class MotorWarp{
      * - El motor queda en estado Enfriamiento.
      * - Si la operación se rechaza, el estado del motor permanece sin cambios.
      *
-     * @throws IllegalStateException si el motor no está en estado En warp
+     * @throws TransicionInvalidaException si el motor no está en estado En warp
      */
-    public void finalizarSalto() { estadoActual = estadoActual.finalizarSalto(); }
+    public void finalizarSalto() throws TransicionInvalidaException {
+        estadoActual = estadoActual.finalizarSalto();
+    }
 
     /**
      * Completa el enfriamiento del motor.
@@ -57,9 +62,11 @@ public class MotorWarp{
      * - El motor queda en estado Disponible.
      * - Si la operación se rechaza, el estado del motor permanece sin cambios.
      *
-     * @throws IllegalStateException si el motor no está en estado Enfriamiento
+     * @throws TransicionInvalidaException si el motor no está en estado Enfriamiento
      */
-    public void completarEnfriamiento() { estadoActual = estadoActual.completarEnfriamiento(); }
+    public void completarEnfriamiento() throws TransicionInvalidaException {
+        estadoActual = estadoActual.completarEnfriamiento();
+    }
 
     public String getEstadoActual() { return estadoActual.nombre(); }
     

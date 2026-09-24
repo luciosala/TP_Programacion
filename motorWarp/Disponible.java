@@ -11,20 +11,20 @@ public class Disponible extends Estado {
     }
 
     @Override
-    public Estado iniciarSalto() {
-        throw new IllegalStateException(
+    public Estado iniciarSalto() throws TransicionInvalidaException {
+        throw new TransicionInvalidaException(
             "No se puede iniciar el salto desde Disponible"
         );
     }
     @Override
-    public Estado completarEnfriamiento(){
-        throw new IllegalStateException(
+    public Estado completarEnfriamiento() throws TransicionInvalidaException {
+        throw new TransicionInvalidaException(
             "No se puede enfriar desde disponible"
         );
     }
     @Override
-    public Estado finalizarSalto(){
-        throw new IllegalStateException(
+    public Estado finalizarSalto() throws TransicionInvalidaException {
+        throw new TransicionInvalidaException(
             "No se puede finalizar salto desde disponible"
         );
     }

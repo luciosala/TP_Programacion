@@ -6,8 +6,8 @@ public class PrepararSalto extends Estado{
     }
 
     @Override
-    public Estado prepararSalto() {
-         throw new IllegalStateException(
+    public Estado prepararSalto() throws TransicionInvalidaException {
+         throw new TransicionInvalidaException(
             "Ya esta preparando salto"
          );
     }
@@ -17,14 +17,14 @@ public class PrepararSalto extends Estado{
         return new EnWarp();
     }
     @Override
-    public Estado completarEnfriamiento(){
-        throw new IllegalStateException(
+    public Estado completarEnfriamiento() throws TransicionInvalidaException {
+        throw new TransicionInvalidaException(
             "No se puede completar enfriamiento si se esta preparando"
         );
     }
     @Override
-    public Estado finalizarSalto(){
-         throw new IllegalStateException(
+    public Estado finalizarSalto() throws TransicionInvalidaException {
+         throw new TransicionInvalidaException(
             "No se puede finalizar el salto mientras se esta preparando"
         );
     }

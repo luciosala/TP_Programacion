@@ -103,9 +103,9 @@ abstract public class Nave {
         return false;
     }
 
-    public void validarTripulacionMinima() {
+    public void validarTripulacionMinima() throws TripulacionInvalidaException {
         if (!tieneTripulacionMinima()) {
-            throw new IllegalStateException(
+            throw new TripulacionInvalidaException(
                 "La nave requiere al menos un capitán y cuatro tripulantes adicionales"
             );
         }

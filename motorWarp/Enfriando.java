@@ -6,15 +6,15 @@ public class Enfriando extends Estado{
     }
 
     @Override
-    public Estado prepararSalto() {
-         throw new IllegalStateException(
+    public Estado prepararSalto() throws TransicionInvalidaException {
+         throw new TransicionInvalidaException(
             "No se puede preparar salto si esta enfriando"
          );
     }
 
     @Override
-    public Estado iniciarSalto() {
-        throw new IllegalStateException(
+    public Estado iniciarSalto() throws TransicionInvalidaException {
+        throw new TransicionInvalidaException(
             "No se puede iniciar el salto mientras esta enfriando"
         );
     }
@@ -23,8 +23,8 @@ public class Enfriando extends Estado{
         return new Disponible();
     }
     @Override
-    public Estado finalizarSalto(){
-         throw new IllegalStateException(
+    public Estado finalizarSalto() throws TransicionInvalidaException {
+         throw new TransicionInvalidaException(
             "No se puede finalizar el salto mientras se enfria"
         );
     }
