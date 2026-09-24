@@ -4,10 +4,10 @@ public class MotorWarp{
     public MotorWarp(){
         estadoActual=new Disponible();
     }
-    public void prepararSalto() {estadoActual = estadoActual.prepararSalto(); }
-    public void iniciarSalto() { estadoActual = estadoActual.iniciarSalto(); }
-    public void finalizarSalto() { estadoActual = estadoActual.finalizarSalto(); }
-    public void completarEnfriamiento() { estadoActual = estadoActual.completarEnfriamiento(); }
+    public void prepararSalto() throws TransicionInvalidaException {estadoActual = estadoActual.prepararSalto(); }
+    public void iniciarSalto() throws TransicionInvalidaException { estadoActual = estadoActual.iniciarSalto(); }
+    public void finalizarSalto() throws TransicionInvalidaException { estadoActual = estadoActual.finalizarSalto(); }
+    public void completarEnfriamiento() throws TransicionInvalidaException { estadoActual = estadoActual.completarEnfriamiento(); }
 
     public String getEstadoActual() { return estadoActual.nombre(); }
     

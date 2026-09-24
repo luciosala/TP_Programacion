@@ -1,12 +1,12 @@
 public abstract class Estado {
 
-    abstract Estado  prepararSalto();
+    abstract Estado  prepararSalto() throws TransicionInvalidaException;
 
-    abstract Estado iniciarSalto();
+    abstract Estado iniciarSalto() throws TransicionInvalidaException;
 
-    abstract Estado finalizarSalto();
+    abstract Estado finalizarSalto() throws TransicionInvalidaException;
 
-    abstract Estado completarEnfriamiento();
+    abstract Estado completarEnfriamiento() throws TransicionInvalidaException;
 
     abstract String nombre();
 }

@@ -6,26 +6,26 @@ public class EnWarp extends Estado {
     }
 
     @Override
-    public Estado prepararSalto() {
-         throw new IllegalStateException(
+    public Estado prepararSalto() throws TransicionInvalidaException {
+         throw new TransicionInvalidaException(
             "No se puede preparar salto si esta en salto"
          );
     }
 
     @Override
-    public Estado iniciarSalto() {
-        throw new IllegalStateException(
+    public Estado iniciarSalto() throws TransicionInvalidaException {
+        throw new TransicionInvalidaException(
             "No se puede iniciar el salto desde Warp"
         );
     }
     @Override
-    public Estado completarEnfriamiento(){
-        throw new IllegalStateException(
+    public Estado completarEnfriamiento() throws TransicionInvalidaException {
+        throw new TransicionInvalidaException(
             "No se puede enfriar desde el salto"
         );
     }
     @Override
-    public Estado finalizarSalto(){
+    public Estado finalizarSalto() {
         return new Enfriando();
     }
     

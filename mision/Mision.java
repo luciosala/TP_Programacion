@@ -38,7 +38,8 @@ abstract public class Mision{
     
     //Ejecuta el ciclo común sin permitir que las subclases alteren su orden.
      //PATRON Template METHOD
-    public final InformeMision realizarMision() {
+    //Las fallas del dominio suben al Asistente de Comando, que las registra.
+    public final InformeMision realizarMision() throws NaveException {
         preparar();
 
         ejecutar();
@@ -48,17 +49,17 @@ abstract public class Mision{
 
     /*metodos protected para que los hijos puedan accedrr */
   
-    protected void preparar() {
+    protected void preparar() throws MisionNoViableException {
         if (nave.getRecursos().getCombustible() < 4) {
             bitacora.registrar("MISION", "Rechazada: combustible insuficiente para " + nombre);
-            throw new IllegalStateException("Recursos insuficientes para iniciar " + nombre);
+            throw new MisionNoViableException("Recursos insuficientes para iniciar " + nombre);
         }
         else if (nave.getRecursos().getDesgaste()+4 > 100) {
                 bitacora.registrar("MISION", "Rechazada: por Demasiado desgaste " + nombre);
-                throw new IllegalStateException("Demasiado Desgaste " + nombre);
+                throw new MisionNoViableException("Demasiado Desgaste " + nombre);
         }
     }           
-   protected final void ejecutar(){
+   protected final void ejecutar() throws NaveException {
 
         nave.getRecursos().consumirCombustible(4);
         combustibleConsumido+=4;
@@ -72,7 +73,7 @@ abstract public class Mision{
  * nada: la misión se cierra como fallida.
  
  */
-protected boolean evaluarResultado() {
+protected boolean evaluarResultado() throws NaveException {
     if (!condicionDeExito()) {
         registrarAccion("Objetivo no alcanzado");
         return false;
@@ -106,10 +107,27 @@ protected final void registrarAccion(String detalle) {
     acciones.add(detalle);
     bitacora.registrar("MISION", nombre + ": " + detalle);
 }
+
+
+protected InformeMision cerrar(boolean exito) {
+    bitacora.registrar("MISION", nombre + " finalizada: " + (exito ? "EXITOSA" : "FALLIDA"));
+
+    return new InformeMision(
+        nombre,
+        descripcion,
+        descripcionObjetivo(),
+        acciones,
+        combustibleConsumido,
+        energiaConsumida,
+        desgasteAcumulado,
+        exito,
+        nave
+    );
+}
 /** Energía que cuesta la acción final de esta misión (0 si no tiene costo). */
 protected abstract int costoAccionFinal();
-   
-protected abstract InformeMision cerrar(boolean exito);
-protected abstract void ejecutaMision();    
+/** Describe el objetivo que persigue esta misión. */
+protected abstract String descripcionObjetivo();
+protected abstract void ejecutaMision() throws NaveException;    
 protected abstract boolean condicionDeExito();
 }
