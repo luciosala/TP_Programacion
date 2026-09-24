@@ -1,6 +1,6 @@
 public abstract class Estado {
 
-    abstract Estado  prepararSalto() throws TransicionInvalidaException;
+    abstract Estado prepararSalto() throws TransicionInvalidaException;
 
     abstract Estado iniciarSalto() throws TransicionInvalidaException;
 

@@ -49,21 +49,25 @@ abstract public class Mision{
 
     /*metodos protected para que los hijos puedan accedrr */
   
-    protected void preparar() throws MisionNoViableException {
-        if (nave.getRecursos().getCombustible() < 4) {
-            bitacora.registrar("MISION", "Rechazada: combustible insuficiente para " + nombre);
-            throw new MisionNoViableException("Recursos insuficientes para iniciar " + nombre);
-        }
-        else if (nave.getRecursos().getDesgaste()+4 > 100) {
-                bitacora.registrar("MISION", "Rechazada: por Demasiado desgaste " + nombre);
-                throw new MisionNoViableException("Demasiado Desgaste " + nombre);
+    protected final void preparar() throws MisionNoViableException {
+        try {
+            nave.validarTripulacionMinima();
+
+            nave.getRecursos().verificarDisponibilidad(4,costoAccionFinal(),4);
+
+            registrarAccion("Preparación completada");
+        } catch (NaveException error) {
+            bitacora.registrar("MISION", nombre + ": preparación rechazada: " + error.getMessage());
+
+            throw new MisionNoViableException(
+                "No se puede iniciar " + nombre + ": " + error.getMessage()
+            );
         }
     }           
    protected final void ejecutar() throws NaveException {
 
-        nave.getRecursos().consumirCombustible(4);
+        nave.getRecursos().consumirParaMision(4,0,4);
         combustibleConsumido+=4;
-        nave.getRecursos().agregarDesgaste(4);
         desgasteAcumulado+=4;
         ejecutaMision();
    }
@@ -73,7 +77,7 @@ abstract public class Mision{
  * nada: la misión se cierra como fallida.
  
  */
-protected boolean evaluarResultado() throws NaveException {
+protected final boolean evaluarResultado() throws NaveException {
     if (!condicionDeExito()) {
         registrarAccion("Objetivo no alcanzado");
         return false;
@@ -109,7 +113,7 @@ protected final void registrarAccion(String detalle) {
 }
 
 
-protected InformeMision cerrar(boolean exito) {
+protected final InformeMision cerrar(boolean exito) {
     bitacora.registrar("MISION", nombre + " finalizada: " + (exito ? "EXITOSA" : "FALLIDA"));
 
     return new InformeMision(
