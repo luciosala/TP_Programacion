@@ -110,4 +110,20 @@ abstract public class Nave {
             );
         }
     }
+
+    /**
+     * Indica si la nave conserva un estado operativo válido para E1.
+     *
+     * @return {@code true} si tiene la tripulación mínima y sus recursos
+     *         permanecen dentro de los rangos permitidos
+     */
+    public boolean estaOperativa() {
+        return tieneTripulacionMinima()
+            && recursos.getCombustible() >= 0
+            && recursos.getCombustible() <= 100
+            && recursos.getEnergia() >= 0
+            && recursos.getEnergia() <= 100
+            && recursos.getDesgaste() >= 0
+            && recursos.getDesgaste() <= 100;
+    }
 }

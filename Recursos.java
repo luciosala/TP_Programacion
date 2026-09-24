@@ -109,11 +109,11 @@ final public class Recursos{
         combustible-=cantidad;
     }
     public void agregarDesgaste(int cantidad) throws LimiteRecursoExcedidoException {
-            if (cantidad <= 0)
-                throw new IllegalArgumentException("La cantidad a desgastar debe ser positiva");
-             if (cantidad +desgaste >100 )
-                throw new LimiteRecursoExcedidoException("Se llego al limite de desgaste");
-            desgaste+=cantidad;
+        if (cantidad <= 0)
+            throw new IllegalArgumentException("La cantidad a desgastar debe ser positiva");
+        if (cantidad > 100 - desgaste)
+            throw new LimiteRecursoExcedidoException("Se llego al limite de desgaste");
+        desgaste += cantidad;
     }
 
     /**
@@ -136,5 +136,38 @@ final public class Recursos{
      */
     public void realizarMantenimiento() {
         desgaste = 0;
+    }
+
+
+
+    public void consumirParaMision(int combustibleConsumido, int energiaConsumida, int desgasteAgregado)
+            throws RecursoInsuficienteException, LimiteRecursoExcedidoException {
+        verificarDisponibilidad(combustibleConsumido, energiaConsumida, desgasteAgregado);
+
+        combustible -= combustibleConsumido;
+        energia -= energiaConsumida;
+        desgaste += desgasteAgregado;
+    }
+
+    public void verificarDisponibilidad(int combustibleNecesario, int energiaNecesaria, int desgasteAgregado)
+            throws RecursoInsuficienteException, LimiteRecursoExcedidoException {
+
+        if (combustibleNecesario < 0 || energiaNecesaria < 0 || desgasteAgregado < 0) {
+            throw new IllegalArgumentException("Las cantidades necesarias no pueden ser negativas");
+        }
+
+        if (combustibleNecesario > combustible) {
+            throw new RecursoInsuficienteException("Combustible insuficiente");
+        }
+
+        if (energiaNecesaria > energia) {
+            throw new RecursoInsuficienteException("Energía insuficiente");
+        }
+
+        if (desgasteAgregado > 100 - desgaste) {
+            throw new LimiteRecursoExcedidoException(
+                "El desgaste superaría el límite permitido"
+            );
+        }
     }
 }
