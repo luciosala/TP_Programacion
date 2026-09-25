@@ -6,9 +6,9 @@ public class MisionRecoleccion extends Mision{
     private boolean elementoObtenido;
     private boolean elementoRegistrado;
 
-    public MisionRecoleccion(Nave nave, Bitacora bitacora, String puntoInteres, String elemento) {
+    public MisionRecoleccion(AsistenteDeComando asistente, String puntoInteres, String elemento) {
 
-        super("M-02 - Recolección", "Recolectar datos o una muestra en un punto de interés", nave, bitacora);
+        super("M-02 - Recolección", "Recolectar datos o una muestra en un punto de interés", asistente);
 
         if (puntoInteres == null || puntoInteres.isBlank()) {
             throw new IllegalArgumentException("El punto de interés no puede ser nulo ni vacío");

@@ -5,9 +5,9 @@ public class MisionRetornoSeguro extends Mision {
     private boolean regresoCompletado;
     private boolean estadoOperativoValido;
 
-    public MisionRetornoSeguro(Nave nave, Bitacora bitacora, String zonaDestino) {
+    public MisionRetornoSeguro(AsistenteDeComando asistente, String zonaDestino) {
 
-        super("M-03 - Retorno seguro", "Completar el regreso simulado a una zona designada", nave, bitacora);
+        super("M-03 - Retorno seguro", "Completar el regreso simulado a una zona designada", asistente);
 
         if (zonaDestino == null || zonaDestino.isBlank()) {
             throw new IllegalArgumentException("La zona de destino no puede ser nula ni vacía");
@@ -24,7 +24,7 @@ public class MisionRetornoSeguro extends Mision {
 
         registrarAccion("Arribo confirmado en " + zonaDestino);
 
-        estadoOperativoValido = nave.estaOperativa();
+        estadoOperativoValido = asistente.naveEstaOperativa();
 
         registrarAccion("Estado operativo final verificado: " + estadoOperativoValido);
     }

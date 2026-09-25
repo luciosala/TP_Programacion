@@ -4,38 +4,36 @@ abstract public class Mision{
     protected String nombre;
     protected String descripcion;
     int energiaConsumida =0,combustibleConsumido=0,desgasteAcumulado=0 ; //acumuladores de energia y combustible
-    protected final Nave nave;
-    protected final Bitacora bitacora;
+    protected final AsistenteDeComando asistente;
 
     /**
-     * Construye una misión 
+     * Construye una misión
+     *
+     * La misión no conoce la nave ni la bitácora: todo lo que necesita
+     * (consultar recursos, consumirlos, registrar lo ocurrido) se lo pide
+     * al Asistente de Comando.
      *
      * @param nombre nombre identificatorio de la misión; no puede ser nulo
      * @param descripcion descripción de la misión; no puede ser nula
-     * @param nave nave asignada a la misión; no puede ser nula
-     * @param bitacora bitácora donde se registran los eventos de la misión; no puede ser nula
-     * @throws IllegalArgumentException si {@code nombre}, {@code descripcion}, {@code nave} o {@code bitacora} son nulos
+     * @param asistente asistente que coordina la misión; no puede ser nulo
+     * @throws IllegalArgumentException si {@code nombre}, {@code descripcion} o {@code asistente} son nulos
      */
-    protected Mision(String nombre, String descripcion, Nave nave, Bitacora bitacora) {
+    protected Mision(String nombre, String descripcion, AsistenteDeComando asistente) {
         if (nombre == null)
             throw new IllegalArgumentException("El nombre de la misión no puede ser nulo");
-        
+
         if (descripcion == null)
             throw new IllegalArgumentException("La descripción de la misión no puede ser nula ");
-        
-        if (nave == null) 
-            throw new IllegalArgumentException("La misión requiere una nave");
-        
-        if (bitacora == null) 
-            throw new IllegalArgumentException("La misión requiere una bitácora");
+
+        if (asistente == null)
+            throw new IllegalArgumentException("La misión requiere un asistente de comando");
 
 
         this.nombre = nombre;
         this.descripcion = descripcion;
-        this.nave = nave;
-        this.bitacora = bitacora;
+        this.asistente = asistente;
     }
-    
+
     //Ejecuta el ciclo común sin permitir que las subclases alteren su orden.
      //PATRON Template METHOD
     //Las fallas del dominio suben al Asistente de Comando, que las registra.
@@ -48,25 +46,25 @@ abstract public class Mision{
     }
 
     /*metodos protected para que los hijos puedan accedrr */
-  
+
     protected final void preparar() throws MisionNoViableException {
         try {
-            nave.validarTripulacionMinima();
+            asistente.validarTripulacionMinima();
 
-            nave.getRecursos().verificarDisponibilidad(4,costoAccionFinal(),4);
+            asistente.verificarRecursos(4,costoAccionFinal(),4);
 
             registrarAccion("Preparación completada");
         } catch (NaveException error) {
-            bitacora.registrar("MISION", nombre + ": preparación rechazada: " + error.getMessage());
+            asistente.registrarEvento("MISION", nombre + ": preparación rechazada: " + error.getMessage());
 
             throw new MisionNoViableException(
                 "No se puede iniciar " + nombre + ": " + error.getMessage()
             );
         }
-    }           
+    }
    protected final void ejecutar() throws NaveException {
 
-        nave.getRecursos().consumirParaMision(4,0,4);
+        asistente.consumirParaMision(4,0,4);
         combustibleConsumido+=4;
         desgasteAcumulado+=4;
         ejecutaMision();
@@ -75,7 +73,7 @@ abstract public class Mision{
  * Determina si la misión cumplió su objetivo y cobra el costo de la acción
  * final. Si la energía no alcanza, la acción no se realiza y no se consume
  * nada: la misión se cierra como fallida.
- 
+
  */
 protected final boolean evaluarResultado() throws NaveException {
     if (!condicionDeExito()) {
@@ -86,11 +84,11 @@ protected final boolean evaluarResultado() throws NaveException {
     int costo = costoAccionFinal();
 
     if (costo > 0) {
-        if (nave.getRecursos().getEnergia() < costo) {
+        if (asistente.energiaDisponible() < costo) {
             registrarAccion("Energía insuficiente para completar la acción final");
             return false;
         }
-        nave.getRecursos().consumirEnergia(costo);
+        asistente.consumirEnergia(costo);
         energiaConsumida += costo;
     }
 
@@ -100,7 +98,8 @@ protected final boolean evaluarResultado() throws NaveException {
 private final List<String> acciones = new ArrayList<>();
 
 /**
- * Deja constancia de una acción tanto en el informe como en la Bitácora.
+ * Deja constancia de una acción tanto en el informe como en la Bitácora,
+ * a través del Asistente de Comando.
  *
  * @param detalle descripción de la acción realizada; no puede ser nulo ni vacío
  */
@@ -109,14 +108,23 @@ protected final void registrarAccion(String detalle) {
         throw new IllegalArgumentException("El detalle de la acción no puede ser nulo ni vacío");
     }
     acciones.add(detalle);
-    bitacora.registrar("MISION", nombre + ": " + detalle);
+    asistente.registrarEvento("MISION", nombre + ": " + detalle);
 }
 
 
+/**
+ * Cierra la misión: deja constancia del resultado, manda el motor a enfriarse
+ * y pide al asistente el informe con lo acumulado durante el ciclo.
+ *
+ * @param exito resultado devuelto por la evaluación
+ * @return el informe de la misión ejecutada
+ */
 protected final InformeMision cerrar(boolean exito) {
-    bitacora.registrar("MISION", nombre + " finalizada: " + (exito ? "EXITOSA" : "FALLIDA"));
+    asistente.registrarEvento("MISION", nombre + " finalizada: " + (exito ? "EXITOSA" : "FALLIDA"));
 
-    return new InformeMision(
+    asistente.enfriarMotorTrasMision();
+
+    return asistente.crearInforme(
         nombre,
         descripcion,
         descripcionObjetivo(),
@@ -124,14 +132,13 @@ protected final InformeMision cerrar(boolean exito) {
         combustibleConsumido,
         energiaConsumida,
         desgasteAcumulado,
-        exito,
-        nave
+        exito
     );
 }
 /** Energía que cuesta la acción final de esta misión (0 si no tiene costo). */
 protected abstract int costoAccionFinal();
 /** Describe el objetivo que persigue esta misión. */
 protected abstract String descripcionObjetivo();
-protected abstract void ejecutaMision() throws NaveException;    
+protected abstract void ejecutaMision() throws NaveException;
 protected abstract boolean condicionDeExito();
 }

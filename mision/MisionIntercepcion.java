@@ -5,8 +5,8 @@ public class MisionIntercepcion extends Mision {
     private final String objetivo;
     private final String estadoObjetivo;
 
-    public MisionIntercepcion(Nave nave, Bitacora bitacora, String objetivo, String estadoObjetivo){
-        super("M-01 - Intercepción y asistencia", "Interceptar un objetivo y completar su asistencia", nave, bitacora);
+    public MisionIntercepcion(AsistenteDeComando asistente, String objetivo, String estadoObjetivo){
+        super("M-01 - Intercepción y asistencia", "Interceptar un objetivo y completar su asistencia", asistente);
 
         if (objetivo == null || objetivo.isBlank()) {
             throw new IllegalArgumentException(
