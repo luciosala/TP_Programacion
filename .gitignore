@@ -1,2 +1,24 @@
+# Maven
+/target/
+
+# Compilados
+*.class
+*.jar
+
+# IDEs (IntelliJ, NetBeans, VS Code, JDeveloper)
+.idea/
+*.iml
+nbproject/private/
+nbbuild/
+nbactions.xml
+.vscode/
+*.jws
+*.jpr
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Locales del equipo
 /.contexto-local/
 /guia-tpg-programacion-c-2026-v4.1.md
