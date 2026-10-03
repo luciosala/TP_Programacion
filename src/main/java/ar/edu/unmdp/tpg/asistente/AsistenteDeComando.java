@@ -23,7 +23,7 @@ import java.time.YearMonth;
  * ordenes a una nave. Quien use asistentes depende de esta interfaz y no
  * de una clase concreta, asi una nueva variante se agrega sin modificarlos.
  */
-public interface AsistenteDeComando implements AsistenteDeComando {
+public interface AsistenteDeComando {
 
     String idNave();
 
@@ -33,8 +33,10 @@ public interface AsistenteDeComando implements AsistenteDeComando {
     void cargarCombustible(int cantidad) throws LimiteRecursoExcedidoException;
     void cargarEnergia(int cantidad) throws LimiteRecursoExcedidoException;
     void realizarMantenimiento();
-    void verificarRecursos(int combustibleNecesario, int energiaNecesaria, int desgasteAgregado);
-    void consumirParaMision(int combustibleConsumido, int energiaConsumida, int desgasteAgregado);
+    void verificarRecursos(int combustibleNecesario, int energiaNecesaria, int desgasteAgregado) 
+        throws RecursoInsuficienteException, LimiteRecursoExcedidoException;
+    void consumirParaMision(int combustibleConsumido, int energiaConsumida, int desgasteAgregado)
+        throws RecursoInsuficienteException, LimiteRecursoExcedidoException;
     void consumirEnergia(int cantidad) throws RecursoInsuficienteException;
     void prepararSalto() throws TransicionInvalidaException;
     void iniciarSalto() throws TransicionInvalidaException;

@@ -27,7 +27,7 @@ import java.time.YearMonth;
  */
 
 
-public class AsistenteDeComandoBascio{
+public class AsistenteDeComandoBascio implements AsistenteDeComando {
 
     private final Nave nave;
     private final Bitacora bitacora;
