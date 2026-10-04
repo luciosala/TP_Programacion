@@ -127,7 +127,7 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
     @Override
     public void cargarCombustible(int cantidad) throws LimiteRecursoExcedidoException {
         try {
-            nave.getRecursos().cargarCombustible(cantidad);
+            nave.cargarCombustible(cantidad);
             bitacora.registrar("RECURSOS",
                 "Nave " + nave.getId() + ": combustible cargado (+" + cantidad + ")");
         } catch (LimiteRecursoExcedidoException error) {
@@ -144,7 +144,7 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
     @Override
     public void cargarEnergia(int cantidad) throws LimiteRecursoExcedidoException {
         try {
-            nave.getRecursos().cargarEnergia(cantidad);
+            nave.cargarEnergia(cantidad);
             bitacora.registrar("RECURSOS",
                 "Nave " + nave.getId() + ": energía cargada (+" + cantidad + ")");
         } catch (LimiteRecursoExcedidoException error) {
@@ -162,7 +162,7 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
      */
     @Override
     public void realizarMantenimiento() {
-        nave.getRecursos().realizarMantenimiento();
+        nave.realizarMantenimiento();
         bitacora.registrar("RECURSOS", "Nave " + nave.getId() + ": mantenimiento realizado (desgaste reiniciado)");
     }
 
@@ -182,7 +182,7 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
     @Override
     public void verificarRecursos(int combustibleNecesario, int energiaNecesaria, int desgasteAgregado)
             throws RecursoInsuficienteException, LimiteRecursoExcedidoException {
-        nave.getRecursos().verificarDisponibilidad(combustibleNecesario, energiaNecesaria, desgasteAgregado);
+        nave.verificarDisponibilidad(combustibleNecesario, energiaNecesaria, desgasteAgregado);
     }
 
     /**
@@ -200,7 +200,7 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
     @Override
     public void consumirParaMision(int combustibleConsumido, int energiaConsumida, int desgasteAgregado)
             throws RecursoInsuficienteException, LimiteRecursoExcedidoException {
-        nave.getRecursos().consumirParaMision(combustibleConsumido, energiaConsumida, desgasteAgregado);
+        nave.consumirParaMision(combustibleConsumido, energiaConsumida, desgasteAgregado);
     }
 
     /**
@@ -209,7 +209,7 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
      */
     @Override
     public void consumirEnergia(int cantidad) throws RecursoInsuficienteException {
-        nave.getRecursos().consumirEnergia(cantidad);
+        nave.consumirEnergia(cantidad);
     }
 
 
@@ -364,22 +364,22 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
 
     @Override
     public int combustibleDisponible() {
-        return nave.getRecursos().getCombustible();
+        return nave.getCombustible();
     }
 
     @Override
     public int energiaDisponible() {
-        return nave.getRecursos().getEnergia();
+        return nave.getEnergia();
     }
 
     @Override
     public int desgasteActual() {
-        return nave.getRecursos().getDesgaste();
+        return nave.getDesgaste();
     }
 
     @Override
     public boolean requiereMantenimiento() {
-        return nave.getRecursos().requiereMantenimiento();
+        return nave.requiereMantenimiento();
     }
 
     @Override
