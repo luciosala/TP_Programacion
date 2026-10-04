@@ -23,13 +23,13 @@ public class Disponible extends Estado {
     @Override
     public Estado completarEnfriamiento() throws TransicionInvalidaException {
         throw new TransicionInvalidaException(
-            "No se puede enfriar desde disponible"
+            "No se puede enfriar desde Disponible"
         );
     }
     @Override
     public Estado finalizarSalto() throws TransicionInvalidaException {
         throw new TransicionInvalidaException(
-            "No se puede finalizar salto desde disponible"
+            "No se puede finalizar salto desde Disponible"
         );
     }
     
