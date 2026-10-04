@@ -46,10 +46,10 @@ public final class InformeMision {
         this.exito = exito;
 
         this.idNave = nave.getId();
-        this.combustibleFinal = nave.getRecursos().getCombustible();
-        this.energiaFinal = nave.getRecursos().getEnergia();
-        this.desgasteFinal = nave.getRecursos().getDesgaste();
-        this.requiereMantenimiento = nave.getRecursos().requiereMantenimiento();
+        this.combustibleFinal = nave().getCombustible();
+        this.energiaFinal = nave().getEnergia();
+        this.desgasteFinal = nave().getDesgaste();
+        this.requiereMantenimiento = nave().requiereMantenimiento();
     }
 
     public String getMision() { return mision; }

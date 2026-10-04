@@ -227,8 +227,8 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
     public void prepararSalto() throws TransicionInvalidaException {
         bitacora.registrar("COMANDO", "Orden recibida: preparar salto");
         try {
-            nave.getMotorWarp().prepararSalto();
-            bitacora.registrar("MOTOR", "Motor Warp en " + nave.getMotorWarp().getEstadoActual());
+            nave.prepararSalto();
+            bitacora.registrar("MOTOR", "Motor Warp en " + nave.getEstadoMotor());
         } catch (TransicionInvalidaException error) {
             bitacora.registrar("ERROR", "Motor Warp: " + error.getMessage());
             throw error;
@@ -242,8 +242,8 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
     public void iniciarSalto() throws TransicionInvalidaException {
         bitacora.registrar("COMANDO", "Orden recibida: iniciar salto");
         try {
-            nave.getMotorWarp().iniciarSalto();
-            bitacora.registrar("MOTOR", "Motor Warp en " + nave.getMotorWarp().getEstadoActual());
+            nave.iniciarSalto();
+            bitacora.registrar("MOTOR", "Motor Warp en " + nave.getEstadoMotor());
         } catch (TransicionInvalidaException error) {
             bitacora.registrar("ERROR", "Motor Warp: " + error.getMessage());
             throw error;
@@ -257,8 +257,8 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
     public void finalizarSalto() throws TransicionInvalidaException {
         bitacora.registrar("COMANDO", "Orden recibida: finalizar salto");
         try {
-            nave.getMotorWarp().finalizarSalto();
-            bitacora.registrar("MOTOR", "Motor Warp en " + nave.getMotorWarp().getEstadoActual());
+            nave.finalizarSalto();
+            bitacora.registrar("MOTOR", "Motor Warp en " + nave.getEstadoMotor());
         } catch (TransicionInvalidaException error) {
             bitacora.registrar("ERROR", "Motor Warp: " + error.getMessage());
             throw error;
@@ -272,8 +272,8 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
     public void completarEnfriamiento() throws TransicionInvalidaException {
         bitacora.registrar("COMANDO", "Orden recibida: completar enfriamiento");
         try {
-            nave.getMotorWarp().completarEnfriamiento();
-            bitacora.registrar("MOTOR", "Motor Warp en " + nave.getMotorWarp().getEstadoActual());
+            nave.completarEnfriamiento();
+            bitacora.registrar("MOTOR", "Motor Warp en " + nave.getEstadoMotor());
         } catch (TransicionInvalidaException error) {
             bitacora.registrar("ERROR", "Motor Warp: " + error.getMessage());
             throw error;
@@ -285,11 +285,11 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
      */
     @Override
     public String estadoDelMotor() {
-        return nave.getMotorWarp().getEstadoActual();
+        return nave.getEstadoMotor();
     }
     @Override
     public boolean motorDisponible() {
-        return nave.getMotorWarp().estaDisponible();
+        return nave.motorDisponible();
     }
 
     //Misiones (M-01, M-02, M-03)

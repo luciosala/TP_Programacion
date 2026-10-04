@@ -4,6 +4,9 @@ import ar.edu.unmdp.tpg.tripulacion.Capitan;
 import ar.edu.unmdp.tpg.motorwarp.MotorWarp;
 import ar.edu.unmdp.tpg.excepciones.TripulacionInvalidaException;
 import ar.edu.unmdp.tpg.tripulacion.Tripulante;
+import ar.edu.unmdp.tpg.excepciones.LimiteRecursoExcedidoException;
+import ar.edu.unmdp.tpg.excepciones.RecursoInsuficienteException;
+import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,10 +62,7 @@ abstract public class Nave {
     }
 
     public String getId() { return id; }
-    public String getTipo() { return tipo; }
-    public Recursos getRecursos() { return recursos; }
-    public MotorWarp getMotorWarp() { return motorWarp; }
-    
+    public String getTipo() { return tipo; }    
     
     public void agregarTripulante(Tripulante t) {
         if (t == null) {
@@ -132,5 +132,64 @@ abstract public class Nave {
             && recursos.getEnergia() <= 100
             && recursos.getDesgaste() >= 0
             && recursos.getDesgaste() <= 100;
+    }
+
+        // ---------- Recursos: la nave delega en su objeto Recursos ----------
+
+    public int getCombustible() { return recursos.getCombustible(); }
+    public int getEnergia() { return recursos.getEnergia(); }
+    public int getDesgaste() { return recursos.getDesgaste(); }
+    public boolean requiereMantenimiento() { return recursos.requiereMantenimiento(); }
+
+    public void cargarCombustible(int cantidad) throws LimiteRecursoExcedidoException {
+        recursos.cargarCombustible(cantidad);
+    }
+
+    public void cargarEnergia(int cantidad) throws LimiteRecursoExcedidoException {
+        recursos.cargarEnergia(cantidad);
+    }
+
+    public void realizarMantenimiento() {
+        recursos.realizarMantenimiento();
+    }
+
+    public void verificarDisponibilidad(int combustibleNecesario, int energiaNecesaria, int desgasteAgregado)
+            throws RecursoInsuficienteException, LimiteRecursoExcedidoException {
+        recursos.verificarDisponibilidad(combustibleNecesario, energiaNecesaria, desgasteAgregado);
+    }
+
+    public void consumirParaMision(int combustibleConsumido, int energiaConsumida, int desgasteAgregado)
+            throws RecursoInsuficienteException, LimiteRecursoExcedidoException {
+        recursos.consumirParaMision(combustibleConsumido, energiaConsumida, desgasteAgregado);
+    }
+
+    public void consumirEnergia(int cantidad) throws RecursoInsuficienteException {
+        recursos.consumirEnergia(cantidad);
+    }
+    
+    // ---------- Motor Warp: la nave delega en su MotorWarp ----------
+
+    public void prepararSalto() throws TransicionInvalidaException {
+        motorWarp.prepararSalto();
+    }
+
+    public void iniciarSalto() throws TransicionInvalidaException {
+        motorWarp.iniciarSalto();
+    }
+
+    public void finalizarSalto() throws TransicionInvalidaException {
+        motorWarp.finalizarSalto();
+    }
+
+    public void completarEnfriamiento() throws TransicionInvalidaException {
+        motorWarp.completarEnfriamiento();
+    }
+
+    public String getEstadoMotor() {
+        return motorWarp.getEstadoActual();
+    }
+
+    public boolean motorDisponible() {
+        return motorWarp.estaDisponible();
     }
 }
