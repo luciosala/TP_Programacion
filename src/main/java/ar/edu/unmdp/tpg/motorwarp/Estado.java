@@ -13,4 +13,8 @@ public abstract class Estado {
     abstract Estado completarEnfriamiento() throws TransicionInvalidaException;
 
     abstract String nombre();
+    
+    boolean estaDisponible() {
+        return false;
+    }
 }

@@ -72,6 +72,13 @@ public class MotorWarp{
         estadoActual = estadoActual.completarEnfriamiento();
     }
 
-    public String getEstadoActual() { return estadoActual.nombre(); }
+    public String getEstadoActual() { 
+        return estadoActual.nombre(); 
+    }
+    
+    /** @return si el motor está en condiciones de iniciar una operación. */
+    public boolean estaDisponible() {
+        return estadoActual.estaDisponible();
+    }
     
 }

@@ -55,6 +55,10 @@ abstract public class Mision{
 
     protected final void preparar() throws MisionNoViableException {
         try {
+            if (!asistente.motorDisponible()) {
+                throw new MisionNoViableException(
+                    "el Motor Warp no está disponible (estado: " + asistente.estadoDelMotor() + ")");
+            }
             asistente.validarTripulacionMinima();
 
             asistente.verificarRecursos(4,costoAccionFinal(),4);

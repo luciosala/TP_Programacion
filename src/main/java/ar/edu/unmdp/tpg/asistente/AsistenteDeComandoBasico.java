@@ -311,7 +311,10 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
     public String estadoDelMotor() {
         return nave.getMotorWarp().getEstadoActual();
     }
-
+    @Override
+    public boolean motorDisponible() {
+        return nave.getMotorWarp().estaDisponible();
+    }
 
     //Misiones (M-01, M-02, M-03)
 

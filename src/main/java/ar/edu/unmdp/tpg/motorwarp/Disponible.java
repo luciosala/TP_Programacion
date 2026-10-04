@@ -33,4 +33,9 @@ public class Disponible extends Estado {
         );
     }
     
+    @Override
+    boolean estaDisponible() {
+        return true;
+    }
+    
 }

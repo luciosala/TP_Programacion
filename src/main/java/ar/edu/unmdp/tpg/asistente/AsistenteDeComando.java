@@ -44,6 +44,7 @@ public interface AsistenteDeComando {
     void completarEnfriamiento() throws TransicionInvalidaException;
     void enfriarMotorTrasMision();
     String estadoDelMotor();
+    boolean motorDisponible(); 
     InformeMision ejecutarMision(Mision mision) throws NaveException;
     InformeMision crearInforme(String mision, String descripcion, String objetivo,List<String> acciones,
                                             int combustibleConsumido, int energiaConsumida, int desgasteGenerado,boolean exito);
