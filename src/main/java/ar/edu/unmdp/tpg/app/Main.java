@@ -22,8 +22,11 @@ import ar.edu.unmdp.tpg.mision.Mision;
 import ar.edu.unmdp.tpg.mision.MisionIntercepcion;
 import ar.edu.unmdp.tpg.mision.MisionRecoleccion;
 import ar.edu.unmdp.tpg.mision.MisionRetornoSeguro;
+import ar.edu.unmdp.tpg.haberes.Haber;
 
 import java.util.List;
+import java.time.LocalDate;
+import java.time.YearMonth;
 
 /**
  * Programa de demostracion: simula al usuario del sistema (R6).
@@ -32,15 +35,6 @@ import java.util.List;
  * en la Entrega 2 se reemplaza por pantallas sin cambiar ninguna clase del modelo.
  */
 public class Main {
-
-    public static void main(String[] args) {
-        Universo universo = crearUniverso();
-
-        titulo("Naves registradas en el universo");
-        mostrarEstado(universo.obtener("EXP-1"));
-        mostrarEstado(universo.obtener("CAR-1"));
-        mostrarEstado(universo.obtener("COM-1"));
-    }
         // ---------- Escenario A: ejecucion correcta ----------
 
     private static void escenarioA(Universo universo) {
@@ -203,6 +197,36 @@ public class Main {
         mostrarBitacoraDesde(nave, eventosAntes);
     }
 
+    // ---------- Haberes: 4 cargos, 3 origenes, decoradores combinados ----------
+
+    private static void escenarioHaberes(Universo universo) {
+        titulo("HABERES - Liquidacion de octubre 2026");
+
+        universo.seleccionarNave("COM-1");
+        AsistenteDeComando nave = universo.getNaveActiva();
+        System.out.println("Nave seleccionada: " + nave.idNave());
+        YearMonth periodo = YearMonth.of(2026, 10);
+
+        // Un tripulante por cargo, cubriendo los tres origenes.
+        Tripulante capitan = new Tripulante("COM-1-H1", "Ines", "Garcia", new Capitan(), Origen.TERRICOLA, 10);
+        Tripulante consejero = new Tripulante("COM-1-H2", "Tuvok", "Vulc", new Consejero(), Origen.VULCANO, 5);
+        Tripulante teniente = new Tripulante("COM-1-H3", "Rex", "Olimpo", new Teniente(), Origen.MARCIANO, 3);
+        Tripulante alferez = new Tripulante("COM-1-H4", "Luz", "Perez", new Alferez(), Origen.TERRICOLA, 1);
+
+        // El consejero registra 3 consejos en octubre y 1 en septiembre (no entra en el periodo).
+        consejero.registrarConsejo(LocalDate.of(2026, 10, 2), "Evitar la nebulosa K-7");
+        consejero.registrarConsejo(LocalDate.of(2026, 10, 9), "Reducir velocidad ante tormentas");
+        consejero.registrarConsejo(LocalDate.of(2026, 10, 20), "Hacer mantenimiento antes del salto");
+        consejero.registrarConsejo(LocalDate.of(2026, 9, 28), "Recalcular la ruta de retorno");
+
+        Tripulante[] tripulantes = {capitan, consejero, teniente, alferez};
+        for (Tripulante tripulante : tripulantes) {
+            nave.asignarTripulante(tripulante);
+            Haber haber = nave.liquidarHaberes(periodo, tripulante);
+            mostrarHaber(tripulante, haber);
+        }
+    }
+
     // ---------- Armado del universo ----------
 
     private static Universo crearUniverso() {
@@ -249,6 +273,19 @@ public class Main {
         }
     } 
 
+    private static void mostrarHaber(Tripulante tripulante, Haber haber) {
+        System.out.println();
+        System.out.println(tripulante.getNombre() + " " + tripulante.getApellido()
+            + " - " + tripulante.getCargo().getNombre()
+            + ", " + tripulante.getOrigen()
+            + ", " + tripulante.getAntiguedadAnios() + " anios");
+        for (int i = 0; i < haber.cantidadConceptos(); i++) {
+            System.out.println(String.format("  %-35s %8.2f PG",
+                haber.consultarNombreConcepto(i), haber.consultarImporteConcepto(i)));
+        }
+        System.out.println(String.format("  %-35s %8.2f PG", "TOTAL", haber.calcularTotal()));
+    }
+
     private static void titulo(String texto) {
         System.out.println();
         System.out.println("=== " + texto + " ===");
@@ -265,5 +302,6 @@ public class Main {
         escenarioB(universo);
         escenarioC(universo);
         escenarioD(universo);
+        escenarioHaberes(universo);
     }
 }
