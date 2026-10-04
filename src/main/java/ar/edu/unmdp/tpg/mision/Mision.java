@@ -12,6 +12,7 @@ abstract public class Mision{
     protected String descripcion;
     int energiaConsumida =0,combustibleConsumido=0,desgasteAcumulado=0 ; //acumuladores de energia y combustible
     protected final AsistenteDeComando asistente;
+    private boolean realizada = false;
 
     /**
      * Construye una misión
@@ -45,8 +46,11 @@ abstract public class Mision{
      //PATRON Template METHOD
     //Las fallas del dominio suben al Asistente de Comando, que las registra.
     public final InformeMision realizarMision() throws NaveException {
+        if (realizada) {
+        throw new MisionNoViableException(nombre + " ya fue realizada; para repetirla hay que crear otra misión");
+        }
         preparar();
-
+        realizada = true;
         ejecutar();
         boolean exito = evaluarResultado();
         return cerrar(exito);
@@ -62,7 +66,7 @@ abstract public class Mision{
             }
             asistente.validarTripulacionMinima();
 
-            asistente.verificarRecursos(4,costoAccionFinal(),4);
+            asistente.verificarRecursos(combustibleNecesario(),costoAccionFinal(),desgasteQueGenera());
 
             registrarAccion("Preparación completada");
         } catch (NaveException error) {
@@ -75,9 +79,9 @@ abstract public class Mision{
     }
    protected final void ejecutar() throws NaveException {
 
-        asistente.consumirParaMision(4,0,4);
-        combustibleConsumido+=4;
-        desgasteAcumulado+=4;
+        asistente.consumirParaMision(combustibleNecesario(),0,desgasteQueGenera());
+        combustibleConsumido+=combustibleNecesario();
+        desgasteAcumulado+=desgasteQueGenera();
         ejecutaMision();
    }
    /**
@@ -136,8 +140,6 @@ protected final InformeMision cerrar(boolean exito) throws TransicionInvalidaExc
     }
     asistente.registrarEvento("MISION", nombre + " finalizada: " + (exito ? "EXITOSA" : "FALLIDA"));
 
-    asistente.enfriarMotorTrasMision();
-
     return asistente.crearInforme(
         nombre,
         descripcion,
@@ -169,4 +171,12 @@ protected abstract int costoAccionFinal();
 protected abstract String descripcionObjetivo();
 protected abstract void ejecutaMision() throws NaveException;
 protected abstract boolean condicionDeExito();
+/** Combustible que consume la operación de esta misión. Por defecto, 4 (ficha E1). */
+protected int combustibleNecesario() {
+    return 4;
+}
+/** Desgaste que genera la operación de esta misión. Por defecto, 4 (ficha E1). */
+protected int desgasteQueGenera() {
+    return 4;
+}
 }
