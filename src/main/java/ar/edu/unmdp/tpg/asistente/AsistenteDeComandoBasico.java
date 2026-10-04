@@ -281,30 +281,6 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
     }
 
     /**
-     * Manda el motor a enfriarse al cerrarse una mision.
-     *
-     * En la Entrega 1 la mision no lleva el motor a warp, asi que la transicion
-     * casi siempre no corresponde: en ese caso queda registrada y el cierre de la
-     * mision sigue igual. En la Entrega 2, con el motor en warp durante el recorrido,
-     * esta orden si se va a completar.
-     *
-     * Postcondiciones:
-     * - El resultado, se haya aplicado o no, queda registrado en la bitacora.
-     * - Nunca interrumpe el cierre de la mision.
-     */
-    @Override
-    public void enfriarMotorTrasMision() {
-        try {
-            nave.getMotorWarp().finalizarSalto();
-            bitacora.registrar("MOTOR",
-                "Motor Warp en " + nave.getMotorWarp().getEstadoActual() + " al cerrar la misión");
-        } catch (TransicionInvalidaException error) {
-            bitacora.registrar("MOTOR",
-                "No corresponde enfriar el motor al cerrar la misión: " + error.getMessage());
-        }
-    }
-
-    /**
      * @return el nombre del estado actual del Motor Warp
      */
     @Override

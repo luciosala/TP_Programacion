@@ -42,7 +42,6 @@ public interface AsistenteDeComando {
     void iniciarSalto() throws TransicionInvalidaException;
     void finalizarSalto() throws TransicionInvalidaException;
     void completarEnfriamiento() throws TransicionInvalidaException;
-    void enfriarMotorTrasMision();
     String estadoDelMotor();
     boolean motorDisponible(); 
     InformeMision ejecutarMision(Mision mision) throws NaveException;

@@ -3,6 +3,7 @@ package ar.edu.unmdp.tpg.mision;
 import ar.edu.unmdp.tpg.asistente.AsistenteDeComando;
 import ar.edu.unmdp.tpg.excepciones.MisionNoViableException;
 import ar.edu.unmdp.tpg.excepciones.NaveException;
+import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -129,7 +130,10 @@ protected final void registrarAccion(String detalle) {
  * @param exito resultado devuelto por la evaluación
  * @return el informe de la misión ejecutada
  */
-protected final InformeMision cerrar(boolean exito) {
+protected final InformeMision cerrar(boolean exito) throws TransicionInvalidaException{
+    if (exito){
+        saltar();
+    }
     asistente.registrarEvento("MISION", nombre + " finalizada: " + (exito ? "EXITOSA" : "FALLIDA"));
 
     asistente.enfriarMotorTrasMision();
@@ -144,6 +148,20 @@ protected final InformeMision cerrar(boolean exito) {
         desgasteAcumulado,
         exito
     );
+}
+
+/**
+ * Hace saltar a la nave al completarse la misión con éxito.
+ * Como todavía no se modela el paso del tiempo, el enfriamiento se completa
+ * en el momento y la nave queda nuevamente Disponible.
+ *
+ * Precondición: el motor está Disponible (lo verificó preparar()).
+ */
+private void saltar() throws TransicionInvalidaException {
+    asistente.prepararSalto();
+    asistente.iniciarSalto();
+    asistente.finalizarSalto();
+    asistente.completarEnfriamiento();
 }
 /** Energía que cuesta la acción final de esta misión (0 si no tiene costo). */
 protected abstract int costoAccionFinal();
