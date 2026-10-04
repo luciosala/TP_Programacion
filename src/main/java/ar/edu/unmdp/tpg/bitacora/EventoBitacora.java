@@ -2,7 +2,7 @@ package ar.edu.unmdp.tpg.bitacora;
 
 import java.time.Instant;
 
-public class EventoBitacora{
+public final class EventoBitacora{
 
 
     /**
@@ -10,11 +10,14 @@ public class EventoBitacora{
      * categoria: tipo de evento. motor, error , mision existosa o fallida
      * 
      */
-private String categoria, descripcion;
+private final String categoria, descripcion;
 private final Instant timestamp;
       
    
 public EventoBitacora(String categoria,String descripcion){
+    if (categoria == null || categoria.isBlank()) {
+        throw new IllegalArgumentException("La categoría del evento no puede ser nula ni vacía");
+    }
     if (descripcion == null || descripcion.isBlank()) {
             throw new IllegalArgumentException("La Bitacora no acepta eventos nulos o vacios");
         }

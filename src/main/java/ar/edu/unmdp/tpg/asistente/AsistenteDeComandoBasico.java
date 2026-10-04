@@ -130,7 +130,7 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
             nave.cargarCombustible(cantidad);
             bitacora.registrar("RECURSOS",
                 "Nave " + nave.getId() + ": combustible cargado (+" + cantidad + ")");
-        } catch (LimiteRecursoExcedidoException error) {
+        } catch (LimiteRecursoExcedidoException | IllegalArgumentException error) {
             bitacora.registrar("ERROR",
                 "Nave " + nave.getId() + ": no se pudo cargar combustible: " + error.getMessage());
             throw error;
@@ -147,7 +147,7 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
             nave.cargarEnergia(cantidad);
             bitacora.registrar("RECURSOS",
                 "Nave " + nave.getId() + ": energía cargada (+" + cantidad + ")");
-        } catch (LimiteRecursoExcedidoException error) {
+        } catch (LimiteRecursoExcedidoException | IllegalArgumentException error) {
             bitacora.registrar("ERROR",
                 "Nave " + nave.getId() + ": no se pudo cargar energía: " + error.getMessage());
             throw error;

@@ -25,17 +25,17 @@ final public class Recursos{
      * @param combustibleInicial combustible inicial de la nave
      * @param energiaInicial energia inicial de la nave
      * @param desgasteInicial desgaste inicial de la nave
-     * @throws IllegalStateException si se incumple alguna precondición. 
+     * @throws IllegalArgumentException si se incumple alguna precondición. 
      */
     public Recursos(int combustibleInicial, int energiaInicial, int desgasteInicial) {
         if (combustibleInicial < 0 || combustibleInicial > 100)
-            throw new IllegalStateException("El combustible debe empezar entre 0 y 100");
+            throw new IllegalArgumentException("El combustible debe empezar entre 0 y 100");
 
         if (energiaInicial < 0 || energiaInicial > 100)
-            throw new IllegalStateException("La energía debe empezar entre 0 y 100");
+            throw new IllegalArgumentException("La energía debe empezar entre 0 y 100");
 
         if (desgasteInicial < 0 || desgasteInicial > 100)
-            throw new IllegalStateException("El desgaste debe empezar entre 0 y 100");
+            throw new IllegalArgumentException("El desgaste debe empezar entre 0 y 100");
 
         this.combustible = combustibleInicial;
         this.energia = energiaInicial;
