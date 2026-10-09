@@ -2,6 +2,11 @@ package ar.edu.unmdp.tpg.motorwarp;
 
 import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
 
+/**
+ * La nave esta viajando en warp.
+ *
+ * Unica transicion valida: finalizarSalto(), que lleva a Enfriamiento.
+ */
 public class EnWarp extends Estado {
 
     @Override

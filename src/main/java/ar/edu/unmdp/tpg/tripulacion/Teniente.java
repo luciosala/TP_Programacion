@@ -1,5 +1,8 @@
 package ar.edu.unmdp.tpg.tripulacion;
 
+/**
+ * Teniente. Sueldo base 400 PG y 3 por ciento de antiguedad.
+ */
 public class Teniente extends Cargo {
 
     @Override

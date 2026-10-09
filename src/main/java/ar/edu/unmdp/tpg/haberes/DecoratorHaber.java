@@ -1,5 +1,14 @@
 package ar.edu.unmdp.tpg.haberes;
 
+/**
+ * Base de los conceptos que se agregan a un haber.
+ *
+ * PATRON DECORATOR: cada decorador es a la vez un Haber y envuelve a otro Haber.
+ * Al calcular, pide el total al haber envuelto y le suma su propio concepto, asi
+ * los adicionales se encadenan en cualquier combinacion.
+ *
+ * Las subclases solo definen como se llama su concepto y cuanto vale.
+ */
 public abstract class DecoratorHaber extends Haber {
 
     protected final Haber haber;

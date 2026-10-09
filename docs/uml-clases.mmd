@@ -1,0 +1,367 @@
+---
+title: TPG 2026 - Software embarcado de una nave interestelar - Diagrama de clases
+---
+classDiagram
+    direction TB
+
+    %% ============ PUNTO DE ENTRADA ============
+    class Main {
+        +main(String[] args) void$
+    }
+
+    class Universo {
+        -asistentes: List~AsistenteDeComando~
+        -naveActiva: AsistenteDeComando
+        +registrar(AsistenteDeComando) void
+        +obtener(String idNave) AsistenteDeComando
+        +seleccionarNave(String idNave) void
+        +getNaveActiva() AsistenteDeComando
+        -buscarPorId(String idNave) AsistenteDeComando
+    }
+
+    %% ============ MEDIADOR ============
+    class AsistenteDeComando {
+        <<interface>>
+        +idNave() String
+        +asignarTripulante(Tripulante) void
+        +validarTripulacionMinima() void
+        +cargarCombustible(int) void
+        +cargarEnergia(int) void
+        +realizarMantenimiento() void
+        +verificarRecursos(int, int, int) void
+        +consumirParaMision(int, int, int) void
+        +consumirEnergia(int) void
+        +prepararSalto() void
+        +iniciarSalto() void
+        +finalizarSalto() void
+        +completarEnfriamiento() void
+        +estadoDelMotor() String
+        +motorDisponible() boolean
+        +ejecutarMision(Mision) InformeMision
+        +crearInforme(...) InformeMision
+        +naveEstaOperativa() boolean
+        +liquidarHaberes(YearMonth, Tripulante) Haber
+        +registrarEvento(String, String) void
+        +consultarBitacora() List~EventoBitacora~
+    }
+
+    class AsistenteDeComandoBasico {
+        -nave: Nave
+        -bitacora: Bitacora
+        +AsistenteDeComandoBasico(Nave, Bitacora)
+    }
+
+    %% ============ NAVES (FACTORY) ============
+    class NaveFactory {
+        <<Factory>>
+        +createNave(String id, String tipo) Nave$
+    }
+
+    class Nave {
+        <<abstract>>
+        -id: String
+        -tipo: String
+        -recursos: Recursos
+        -motorWarp: MotorWarp
+        -tripulacion: List~Tripulante~
+        +agregarTripulante(Tripulante) void
+        +buscarTripulantePorId(String) Tripulante
+        +cantidadTripulantes() int
+        +tieneTripulacionMinima() boolean
+        +validarTripulacionMinima() void
+        +estaOperativa() boolean
+        +verificarDisponibilidad(int, int, int) void
+        +consumirParaMision(int, int, int) void
+        +prepararSalto() void
+        +iniciarSalto() void
+        +finalizarSalto() void
+        +completarEnfriamiento() void
+        +getEstadoMotor() String
+        +motorDisponible() boolean
+    }
+
+    class Combate { ~Combate(...) }
+    class Carguera { ~Carguera(...) }
+    class Exploradora { ~Exploradora(...) }
+
+    class Recursos {
+        <<final>>
+        -combustible: int
+        -energia: int
+        -desgaste: int
+        +cargarCombustible(int) void
+        +cargarEnergia(int) void
+        +consumirEnergia(int) void
+        +consumirCombustible(int) void
+        +agregarDesgaste(int) void
+        +verificarDisponibilidad(int, int, int) void
+        +consumirParaMision(int, int, int) void
+        +requiereMantenimiento() boolean
+        +realizarMantenimiento() void
+    }
+
+    %% ============ MOTOR WARP (STATE) ============
+    class MotorWarp {
+        -estadoActual: Estado
+        +prepararSalto() void
+        +iniciarSalto() void
+        +finalizarSalto() void
+        +completarEnfriamiento() void
+        +getEstadoActual() String
+        +estaDisponible() boolean
+    }
+
+    class Estado {
+        <<abstract>>
+        ~prepararSalto() Estado
+        ~iniciarSalto() Estado
+        ~finalizarSalto() Estado
+        ~completarEnfriamiento() Estado
+        ~nombre() String
+        ~estaDisponible() boolean
+    }
+
+    class Disponible { ~prepararSalto() Estado }
+    class PrepararSalto { ~iniciarSalto() Estado }
+    class EnWarp { ~finalizarSalto() Estado }
+    class Enfriando { ~completarEnfriamiento() Estado }
+
+    %% ============ MISIONES (TEMPLATE METHOD) ============
+    class Mision {
+        <<abstract>>
+        #nombre: String
+        #descripcion: String
+        #asistente: AsistenteDeComando
+        -realizada: boolean
+        -acciones: List~String~
+        +realizarMision() InformeMision
+        #preparar() void
+        #ejecutar() void
+        #evaluarResultado() boolean
+        #cerrar(boolean exito) InformeMision
+        -saltar() void
+        #registrarAccion(String) void
+        #ejecutaMision()* void
+        #condicionDeExito()* boolean
+        #costoAccionFinal()* int
+        #descripcionObjetivo()* String
+        #combustibleNecesario() int
+        #desgasteQueGenera() int
+    }
+
+    class MisionIntercepcion {
+        -objetivo: String
+        -estadoObjetivo: String
+        -contactoEstablecido: boolean
+        -asistenciaCompletada: boolean
+    }
+
+    class MisionRecoleccion {
+        -puntoInteres: String
+        -elemento: String
+        -elementoObtenido: boolean
+        -elementoRegistrado: boolean
+    }
+
+    class MisionRetornoSeguro {
+        -zonaDestino: String
+        -regresoCompletado: boolean
+        -estadoOperativoValido: boolean
+    }
+
+    class InformeMision {
+        <<final>>
+        -mision: String
+        -objetivo: String
+        -acciones: List~String~
+        -combustibleConsumido: int
+        -energiaConsumida: int
+        -desgasteGenerado: int
+        -exito: boolean
+        -idNave: String
+        -combustibleFinal: int
+        -energiaFinal: int
+        -desgasteFinal: int
+        -requiereMantenimiento: boolean
+        +fueExitosa() boolean
+        +toString() String
+    }
+
+    %% ============ BITACORA ============
+    class Bitacora {
+        -eventos: List~EventoBitacora~
+        +registrar(String, String) void
+        +consultarEventos() List~EventoBitacora~
+    }
+
+    class EventoBitacora {
+        <<final>>
+        -categoria: String
+        -descripcion: String
+        -timestamp: Instant
+    }
+
+    %% ============ TRIPULACION ============
+    class Tripulante {
+        -id: String
+        -nombre: String
+        -apellido: String
+        -cargo: Cargo
+        -origen: Origen
+        -antiguedadAnios: int
+        -consejos: List~Consejo~
+        +registrarConsejo(LocalDate, String) void
+        +cantidadConsejos() int
+        +cantidadConsejos(YearMonth) int
+        +consultarConsejo(int) Consejo
+    }
+
+    class Cargo {
+        <<abstract>>
+        +getNombre()* String
+        +getRemuneracionBase()* double
+        +getPorcentajeAntiguedad()* double
+    }
+
+    class Capitan {
+        base = 1000 PG
+        antiguedad = 20%
+    }
+    class Consejero {
+        base = 600 PG
+        antiguedad = 5%
+    }
+    class Teniente {
+        base = 400 PG
+        antiguedad = 3%
+    }
+    class Alferez {
+        base = 200 PG
+        antiguedad = 0,5%
+    }
+
+    class Origen {
+        <<enumeration>>
+        TERRICOLA
+        VULCANO
+        MARCIANO
+        -subsidioMensual: int
+    }
+
+    class Consejo {
+        <<final>>
+        -fecha: LocalDate
+        -descripcion: String
+    }
+
+    %% ============ HABERES (DECORATOR) ============
+    class LiquidacionHaberes {
+        <<final>>
+        -periodo: YearMonth
+        +liquidar(Tripulante) Haber
+    }
+
+    class Haber {
+        <<abstract>>
+        +calcularTotal()* double
+        +cantidadConceptos()* int
+        +consultarNombreConcepto(int)* String
+        +consultarImporteConcepto(int)* double
+    }
+
+    class HaberBase {
+        -nombreCargo: String
+        -remuneracionBase: double
+    }
+
+    class DecoratorHaber {
+        <<abstract>>
+        #haber: Haber
+        +calcularTotal() double
+        #nombreConcepto()* String
+        #importeConcepto()* double
+    }
+
+    class AdicionalAntiguedad {
+        -antiguedadAnios: int
+        -adicional: double
+    }
+
+    class AdicionalConsejos {
+        -periodo: YearMonth
+        -cantidadConsejos: int
+    }
+
+    class SubsidioPorOrigen {
+        -origen: Origen
+    }
+
+    %% ============ EXCEPCIONES ============
+    class NaveException {
+        <<abstract>>
+    }
+    class RecursoInsuficienteException
+    class LimiteRecursoExcedidoException
+    class TransicionInvalidaException
+    class MisionNoViableException
+    class TripulacionInvalidaException
+
+    %% ============ RELACIONES ============
+    Main ..> Universo : usa
+    Main ..> NaveFactory : usa
+    Main ..> AsistenteDeComandoBasico : crea
+
+    Universo o-- "0..*" AsistenteDeComando : asistentes
+    AsistenteDeComandoBasico ..|> AsistenteDeComando
+    AsistenteDeComandoBasico *-- "1" Nave
+    AsistenteDeComandoBasico *-- "1" Bitacora
+    AsistenteDeComandoBasico ..> LiquidacionHaberes : usa
+    AsistenteDeComandoBasico ..> InformeMision : crea
+
+    NaveFactory ..> Nave : crea
+    Nave <|-- Combate
+    Nave <|-- Carguera
+    Nave <|-- Exploradora
+    Nave *-- "1" Recursos
+    Nave *-- "1" MotorWarp
+    Nave o-- "0..*" Tripulante : tripulacion
+
+    MotorWarp *-- "1" Estado : estadoActual
+    Estado <|-- Disponible
+    Estado <|-- PrepararSalto
+    Estado <|-- EnWarp
+    Estado <|-- Enfriando
+
+    Mision --> "1" AsistenteDeComando : asistente
+    Mision <|-- MisionIntercepcion
+    Mision <|-- MisionRecoleccion
+    Mision <|-- MisionRetornoSeguro
+    Mision ..> InformeMision : produce
+    AsistenteDeComandoBasico ..> Mision : ejecuta
+
+    Bitacora *-- "0..*" EventoBitacora : eventos
+
+    Tripulante *-- "1" Cargo
+    Tripulante --> "1" Origen
+    Tripulante o-- "0..*" Consejo : consejos
+    Cargo <|-- Capitan
+    Cargo <|-- Consejero
+    Cargo <|-- Teniente
+    Cargo <|-- Alferez
+
+    LiquidacionHaberes ..> Haber : compone
+    Haber <|-- HaberBase
+    Haber <|-- DecoratorHaber
+    DecoratorHaber o-- "1" Haber : haber
+    DecoratorHaber <|-- AdicionalAntiguedad
+    DecoratorHaber <|-- AdicionalConsejos
+    DecoratorHaber <|-- SubsidioPorOrigen
+    HaberBase ..> Tripulante : usa
+    AdicionalConsejos ..> Tripulante : usa
+    SubsidioPorOrigen ..> Origen : usa
+
+    NaveException <|-- RecursoInsuficienteException
+    NaveException <|-- LimiteRecursoExcedidoException
+    NaveException <|-- TransicionInvalidaException
+    NaveException <|-- MisionNoViableException
+    NaveException <|-- TripulacionInvalidaException

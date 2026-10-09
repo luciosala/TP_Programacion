@@ -32,7 +32,15 @@ public class Bitacora {
         eventos.add(new EventoBitacora(categoria, descripcion));
     }
 
-   /*de mas viejo al mas nuevo */
+    /**
+     * Consulta los eventos registrados, del mas viejo al mas nuevo.
+     *
+     * Postcondiciones:
+     * - La bitacora no se modifica.
+     * - La lista devuelta no se puede modificar: la bitacora solo cambia por registrar().
+     *
+     * @return los eventos de la bitacora, en orden temporal
+     */
     public List<EventoBitacora> consultarEventos() {
         return Collections.unmodifiableList(eventos);
     }

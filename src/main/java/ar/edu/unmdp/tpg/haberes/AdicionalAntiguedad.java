@@ -2,6 +2,10 @@ package ar.edu.unmdp.tpg.haberes;
 
 import ar.edu.unmdp.tpg.tripulacion.Tripulante;
 
+/**
+ * Concepto adicional por antiguedad: la remuneracion base del cargo multiplicada
+ * por su porcentaje de antiguedad y por los anios de servicio del tripulante.
+ */
 public class AdicionalAntiguedad extends DecoratorHaber {
 
     private final int antiguedadAnios;

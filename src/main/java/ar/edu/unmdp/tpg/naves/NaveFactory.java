@@ -2,6 +2,14 @@ package ar.edu.unmdp.tpg.naves;
 
 import ar.edu.unmdp.tpg.motorwarp.MotorWarp;
 
+    /**
+     * PATRON FACTORY: unico punto donde se crean naves.
+     *
+     * Quien pide una nave indica solo su tipo; la fabrica elige la subclase, le da los
+     * recursos iniciales que le corresponden y le arma su propio Motor Warp. Asi el
+     * cliente no depende de las clases concretas y los valores iniciales de cada tipo
+     * quedan definidos en un solo lugar.
+     */
     public class NaveFactory {
 
         /**
