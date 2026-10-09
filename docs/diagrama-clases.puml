@@ -1,0 +1,244 @@
+@startuml
+title TPG 2026 - Entrega 1
+
+hide empty members
+skinparam packageStyle rectangle
+
+package universo {
+  class Universo {
+    - asistentes: List<AsistenteDeComando>
+    - naveActiva: AsistenteDeComando
+    + registrar(asistente: AsistenteDeComando): void
+    + obtener(idNave: String): AsistenteDeComando
+    + seleccionarNave(idNave: String): void
+    + getNaveActiva(): AsistenteDeComando
+  }
+}
+
+package asistente {
+  interface AsistenteDeComando {
+    + idNave(): String
+    + asignarTripulante(tripulante: Tripulante): void
+    + cargarCombustible(cantidad: int): void
+    + cargarEnergia(cantidad: int): void
+    + realizarMantenimiento(): void
+    + prepararSalto(): void
+    + iniciarSalto(): void
+    + finalizarSalto(): void
+    + completarEnfriamiento(): void
+    + motorDisponible(): boolean
+    + ejecutarMision(mision: Mision): InformeMision
+    + liquidarHaberes(periodo: YearMonth, tripulante: Tripulante): Haber
+    + registrarEvento(tipo: String, descripcion: String): void
+    + consultarBitacora(): List<EventoBitacora>
+  }
+
+  class AsistenteDeComandoBasico {
+    - nave: Nave
+    - bitacora: Bitacora
+  }
+}
+
+package bitacora {
+  class Bitacora {
+    - eventos: List<EventoBitacora>
+    + registrar(categoria: String, descripcion: String): void
+    + consultarEventos(): List<EventoBitacora>
+  }
+
+  class EventoBitacora <<final>> {
+    - timestamp: Instant
+    - categoria: String
+    - descripcion: String
+  }
+}
+
+package naves {
+  class NaveFactory {
+    + {static} createNave(id: String, tipo: String): Nave
+  }
+
+  abstract class Nave {
+    - id: String
+    - tipo: String
+    - recursos: Recursos
+    - motorWarp: MotorWarp
+    - tripulacion: List<Tripulante>
+    + agregarTripulante(t: Tripulante): void
+    + validarTripulacionMinima(): void
+    + estaOperativa(): boolean
+    + cargarCombustible(cantidad: int): void
+    + consumirParaMision(combustible: int, energia: int, desgaste: int): void
+    + prepararSalto(): void
+    + getEstadoMotor(): String
+    + motorDisponible(): boolean
+  }
+
+  class Exploradora
+  class Carguera
+  class Combate
+
+  class Recursos <<final>> {
+    - combustible: int
+    - energia: int
+    - desgaste: int
+    + cargarCombustible(cantidad: int): void
+    + verificarDisponibilidad(combustible: int, energia: int, desgaste: int): void
+    + consumirParaMision(combustible: int, energia: int, desgaste: int): void
+    + realizarMantenimiento(): void
+    + requiereMantenimiento(): boolean
+  }
+}
+
+package motorwarp {
+  class MotorWarp {
+    - estadoActual: Estado
+    + prepararSalto(): void
+    + iniciarSalto(): void
+    + finalizarSalto(): void
+    + completarEnfriamiento(): void
+    + getEstadoActual(): String
+    + estaDisponible(): boolean
+  }
+
+  abstract class Estado {
+    ~ {abstract} prepararSalto(): Estado
+    ~ {abstract} iniciarSalto(): Estado
+    ~ {abstract} finalizarSalto(): Estado
+    ~ {abstract} completarEnfriamiento(): Estado
+    ~ {abstract} nombre(): String
+    ~ estaDisponible(): boolean
+  }
+
+  class Disponible
+  class PrepararSalto
+  class EnWarp
+  class Enfriando
+}
+
+package mision {
+  abstract class Mision {
+    # asistente: AsistenteDeComando
+    - realizada: boolean
+    + realizarMision(): InformeMision
+    # preparar(): void
+    # ejecutar(): void
+    # evaluarResultado(): boolean
+    # cerrar(exito: boolean): InformeMision
+    # {abstract} ejecutaMision(): void
+    # {abstract} condicionDeExito(): boolean
+    # {abstract} costoAccionFinal(): int
+    # {abstract} descripcionObjetivo(): String
+    # combustibleNecesario(): int
+    # desgasteQueGenera(): int
+  }
+
+  class MisionIntercepcion
+  class MisionRecoleccion
+  class MisionRetornoSeguro
+
+  class InformeMision <<final>> {
+    - mision: String
+    - exito: boolean
+    - acciones: List<String>
+    - combustibleConsumido: int
+    - energiaConsumida: int
+    - desgasteGenerado: int
+  }
+}
+
+package tripulacion {
+  class Tripulante {
+    - id: String
+    - cargo: Cargo
+    - origen: Origen
+    - antiguedadAnios: int
+    + registrarConsejo(fecha: LocalDate, descripcion: String): void
+    + cantidadConsejos(periodo: YearMonth): int
+  }
+
+  abstract class Cargo {
+    + {abstract} getRemuneracionBase(): double
+    + {abstract} getPorcentajeAntiguedad(): double
+  }
+
+  class Capitan
+  class Consejero
+  class Teniente
+  class Alferez
+
+  enum Origen {
+    TERRICOLA
+    VULCANO
+    MARCIANO
+  }
+}
+
+package haberes {
+  abstract class Haber {
+    + {abstract} calcularTotal(): double
+    + {abstract} cantidadConceptos(): int
+  }
+
+  class HaberBase
+
+  abstract class DecoratorHaber {
+    # haber: Haber
+  }
+
+  class AdicionalAntiguedad
+  class SubsidioPorOrigen
+  class AdicionalConsejos
+
+  class LiquidacionHaberes {
+    + liquidar(tripulante: Tripulante): Haber
+  }
+}
+
+' --- Universo y asistente ---
+Universo o--> "*" AsistenteDeComando
+AsistenteDeComando <|.. AsistenteDeComandoBasico
+AsistenteDeComandoBasico --> "1" Nave : opera
+AsistenteDeComandoBasico o--> "1" Bitacora
+Bitacora *--> "*" EventoBitacora
+
+' --- Factory ---
+Nave <|-- Exploradora
+Nave <|-- Carguera
+Nave <|-- Combate
+NaveFactory ..> Nave : <<create>>
+Nave *--> "1" Recursos
+Nave *--> "1" MotorWarp
+Nave o--> "*" Tripulante
+
+' --- State ---
+MotorWarp --> "1" Estado : estadoActual
+Estado <|-- Disponible
+Estado <|-- PrepararSalto
+Estado <|-- EnWarp
+Estado <|-- Enfriando
+
+' --- Template Method ---
+Mision <|-- MisionIntercepcion
+Mision <|-- MisionRecoleccion
+Mision <|-- MisionRetornoSeguro
+Mision --> "1" AsistenteDeComando
+Mision ..> InformeMision : <<create>>
+
+' --- Tripulacion ---
+Tripulante --> "1" Cargo
+Tripulante --> "1" Origen
+Cargo <|-- Capitan
+Cargo <|-- Consejero
+Cargo <|-- Teniente
+Cargo <|-- Alferez
+
+' --- Decorator ---
+Haber <|-- HaberBase
+Haber <|-- DecoratorHaber
+DecoratorHaber o--> "1" Haber : envuelve
+DecoratorHaber <|-- AdicionalAntiguedad
+DecoratorHaber <|-- SubsidioPorOrigen
+DecoratorHaber <|-- AdicionalConsejos
+LiquidacionHaberes ..> Haber : <<create>>
+@enduml
