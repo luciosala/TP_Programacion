@@ -7,6 +7,11 @@ Software embarcado de una nave interestelar tripulada — TPG 2026, Programació
 - JDK 17 o superior
 - Maven 3.8 o superior
 
+## Configuración local
+
+No requiere configuración adicional: no usa base de datos, archivos externos ni
+variables de entorno. Alcanza con tener instalados el JDK y Maven.
+
 ## Compilación
 
 ```
@@ -54,6 +59,17 @@ y las registra en el `Universo`. Después recorre estos escenarios:
 | Haberes | Liquidación con Decorator, período octubre 2026 | Capitán 3020 PG, Consejero 786 PG, Teniente 454 PG, Alférez 221 PG. Del consejero se cuentan solo los 3 consejos del período liquidado; el de otro mes queda afuera. |
 
 La salida completa de una corrida está en [`docs/ejecuciones.txt`](docs/ejecuciones.txt).
+
+## Verificación
+
+Para verificar la entrega:
+
+1. Compilar con `mvn clean compile`.
+2. Ejecutar con `mvn exec:java`.
+3. Comparar la salida con los resultados esperados de la tabla de escenarios.
+
+En [`docs/evidencias.md`](docs/evidencias.md) está, para cada requerimiento E1 y cada
+evidencia mínima exigida, dónde se verifica y qué resultado se espera.
 
 ## Diagrama de clases
 
