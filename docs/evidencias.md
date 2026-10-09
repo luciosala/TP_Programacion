@@ -37,7 +37,7 @@ mirar y qué resultado esperar.
 | Modificación consistente de recursos y mantenimiento | Escenarios B y D | Tras el rechazo del escenario B los recursos quedan exactamente como estaban (52/0/48): la línea "Recursos sin cambios parciales: SI" lo deja asentado. En D, una carga que excedería 100 se rechaza y el combustible sigue en 92. |
 | Generación del informe de misión | Escenario A | Tres informes completos, uno por misión. |
 | Registro temporal de eventos en la Bitácora | Escenarios B, C y D | Cada evento se imprime con su `Instant`, en orden del más viejo al más nuevo. |
-| Haberes de los cuatro cargos y los tres orígenes, con dos o más decoradores compuestos | Escenario Haberes | Los cuatro cargos y los tres orígenes aparecen liquidados. Todo haber compone al menos tres decoradores sobre el sueldo base; el del consejero compone cuatro. Del consejero se cuentan solo los 3 consejos del período liquidado: el registrado en septiembre queda afuera. |
+| Haberes de los cuatro cargos y los tres orígenes, con dos o más decoradores compuestos | Escenario Haberes | Los cuatro cargos y los tres orígenes aparecen liquidados. Todo haber compone al menos dos decoradores (antigüedad y subsidio por origen) sobre el sueldo base; el del consejero compone tres (suma el adicional por consejos). Del consejero se cuentan solo los 3 consejos del período liquidado: el registrado en septiembre queda afuera. |
 | Al menos un rechazo por precondición o invariante incumplida | Escenarios B, C y D | Tres rechazos distintos: recursos insuficientes (B), transición inválida del motor (C) y carga que excedería el máximo (D). Los tres quedan registrados en la bitácora con categoría `ERROR`. |
 
 ## Observaciones del enunciado
