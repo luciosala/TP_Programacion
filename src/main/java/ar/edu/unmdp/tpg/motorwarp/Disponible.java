@@ -2,6 +2,12 @@ package ar.edu.unmdp.tpg.motorwarp;
 
 import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
 
+/**
+ * Estado inicial del Motor Warp: la nave puede iniciar una mision.
+ *
+ * Unica transicion valida: prepararSalto(), que lleva a Preparando salto.
+ * Es el unico estado en que estaDisponible() devuelve true.
+ */
 public class Disponible extends Estado {
 
     @Override

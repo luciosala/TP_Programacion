@@ -2,6 +2,11 @@ package ar.edu.unmdp.tpg.motorwarp;
 
 import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
 
+/**
+ * El motor esta preparando el salto.
+ *
+ * Unica transicion valida: iniciarSalto(), que lleva a En warp.
+ */
 public class PrepararSalto extends Estado{
 
     @Override

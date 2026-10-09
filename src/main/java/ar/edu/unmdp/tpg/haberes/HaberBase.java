@@ -2,6 +2,11 @@ package ar.edu.unmdp.tpg.haberes;
 
 import ar.edu.unmdp.tpg.tripulacion.Tripulante;
 
+/**
+ * Componente concreto del Decorator: el sueldo base que corresponde al cargo del
+ * tripulante. Es el unico concepto que todo haber tiene, y sobre el se encadenan
+ * los adicionales.
+ */
 public class HaberBase extends Haber {
 
     private final String nombreCargo;

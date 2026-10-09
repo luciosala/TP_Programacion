@@ -1,5 +1,8 @@
 package ar.edu.unmdp.tpg.tripulacion;
 
+/**
+ * Alferez. Sueldo base 200 PG y 0,5 por ciento de antiguedad.
+ */
 public class Alferez extends Cargo {
 
     @Override

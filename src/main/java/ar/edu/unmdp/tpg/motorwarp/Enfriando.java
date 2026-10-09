@@ -2,6 +2,11 @@ package ar.edu.unmdp.tpg.motorwarp;
 
 import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
 
+/**
+ * El motor esta enfriandose despues de un salto.
+ *
+ * Unica transicion valida: completarEnfriamiento(), que devuelve el motor a Disponible.
+ */
 public class Enfriando extends Estado{
 
     @Override

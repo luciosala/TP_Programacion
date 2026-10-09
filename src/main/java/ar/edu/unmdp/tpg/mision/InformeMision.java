@@ -6,6 +6,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Resultado de una mision ya cerrada: que se hizo, como termino, cuanto costo y
+ * en que estado quedo la nave.
+ *
+ * Es inmutable: se construye al cerrar la mision y no cambia despues, por lo que
+ * sigue reflejando el cierre aunque la nave siga operando.
+ */
 public final class InformeMision {
 
     private final String mision;
@@ -26,6 +33,32 @@ public final class InformeMision {
     private final int desgasteFinal;
     private final boolean requiereMantenimiento;
 
+    /**
+     * Construye el informe de una mision cerrada.
+     *
+     * Precondiciones:
+     * - nave no es nula.
+     * - acciones no es nula.
+     * - Las tres cantidades consumidas son mayores o iguales a 0.
+     *
+     * Postcondiciones:
+     * - El informe conserva el nombre, la descripcion, el objetivo y los consumos recibidos.
+     * - El informe guarda una foto del estado de la nave en este momento: id, combustible,
+     *   energia, desgaste y si requiere mantenimiento.
+     * - El informe es inmutable y su lista de acciones no se puede modificar.
+     * - La nave no se modifica.
+     *
+     * @param mision nombre de la mision ejecutada
+     * @param descripcion descripcion de la mision
+     * @param objetivo objetivo evaluado
+     * @param acciones acciones realizadas durante la mision, en orden
+     * @param combustibleConsumido combustible consumido por la mision
+     * @param energiaConsumida energia consumida por la mision
+     * @param desgasteGenerado desgaste generado por la mision
+     * @param exito resultado de la evaluacion
+     * @param nave nave de la que se toma el estado final
+     * @throws IllegalArgumentException si la nave es nula
+     */
     public InformeMision(String mision, String descripcion, String objetivo,
                          List<String> acciones,
                          int combustibleConsumido, int energiaConsumida, int desgasteGenerado,
@@ -63,6 +96,15 @@ public final class InformeMision {
     public int getEnergiaConsumida() { return energiaConsumida; }
     public int getDesgasteGenerado() { return desgasteGenerado; }
 
+    /**
+     * Informa como termino la mision.
+     *
+     * Postcondiciones:
+     * - El informe no se modifica.
+     * - Devuelve true si y solo si la mision cumplio su objetivo y pudo completar su accion final.
+     *
+     * @return si la mision fue exitosa
+     */
     public boolean fueExitosa() { return exito; }
 
     public String getIdNave() { return idNave; }
