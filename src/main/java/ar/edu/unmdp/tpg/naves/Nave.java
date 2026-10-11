@@ -50,7 +50,7 @@ abstract public class Nave {
      * @param motorWarp motor Warp que utilizará la nave
      * @throws IllegalArgumentException si se incumple alguna precondición
      */
-    public Nave(String id, String tipo, Recursos recursos, MotorWarp motorWarp) {
+    protected Nave(String id, String tipo, Recursos recursos, MotorWarp motorWarp) {
         
         if (id == null || id.isBlank()){
             throw new IllegalArgumentException("El id no puede ser nulo ni vacio");
