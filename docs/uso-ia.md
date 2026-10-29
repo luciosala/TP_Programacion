@@ -13,3 +13,5 @@
 -Se pidio a la IA que genere UMLs durante el desarrollo para definir las relaciones y responsabilidades.
 -Consultas tecnicas y dudas sobre Sintaxis.
 -Debugging y solucion de errores.
+-Desarrollo de borrador informe y readme.md
+
