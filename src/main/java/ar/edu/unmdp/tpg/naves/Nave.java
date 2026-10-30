@@ -7,6 +7,8 @@ import ar.edu.unmdp.tpg.tripulacion.Tripulante;
 import ar.edu.unmdp.tpg.excepciones.LimiteRecursoExcedidoException;
 import ar.edu.unmdp.tpg.excepciones.RecursoInsuficienteException;
 import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
+import ar.edu.unmdp.tpg.elementos.ElementoDelUniverso;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,12 +27,13 @@ import java.util.List;
  * - Los tres recursos se mantienen siempre entre 0 y 100.
  * - No hay dos tripulantes con el mismo id a bordo.
  */
-abstract public class Nave {
+abstract public class Nave implements ElementoDelUniverso {
     private final String id;
     private final String tipo;
     private final Recursos recursos;
     private final MotorWarp motorWarp;
     private final List<Tripulante> tripulacion = new ArrayList<>();
+    private boolean destruida = false;
 
     /**
      * Construye una nave con identidad, tipo, recursos y motor Warp.
@@ -213,7 +216,8 @@ abstract public class Nave {
      *         permanecen dentro de los rangos permitidos
      */
     public boolean estaOperativa() {
-        return tieneTripulacionMinima()
+        return !destruida
+            && tieneTripulacionMinima()
             && recursos.getCombustible() >= 0
             && recursos.getCombustible() <= 100
             && recursos.getEnergia() >= 0
@@ -222,7 +226,7 @@ abstract public class Nave {
             && recursos.getDesgaste() <= 100;
     }
 
-        // ---------- Recursos: la nave delega en su objeto Recursos ----------
+    // ---------- Recursos: la nave delega en su objeto Recursos ----------
 
     /**
      * Consulta el combustible de la nave.
@@ -264,6 +268,35 @@ abstract public class Nave {
      * @return si la nave requiere mantenimiento
      */
     public boolean requiereMantenimiento() { return recursos.requiereMantenimiento(); }
+
+
+    public boolean estaDestruida() {
+        return destruida;
+    }
+
+    // protected: solo la propia nave (y su paquete) puede destruirse.
+    // En el paso 3 la batalla lo va a usar.
+    protected void destruir() {
+        destruida = true;
+    }
+
+    // Lo que usa el asteroide: recibe el golpe y se fija si murió.
+    public void recibirImpacto(int danioEnergia) {
+        recursos.perderEnergia(danioEnergia);
+        controlarDestruccion();
+    }
+
+    // Lo que usa la estación de carga.
+    public void recargar(int combustibleExtra, int energiaExtra) {
+        recursos.recargar(combustibleExtra, energiaExtra);
+    }
+
+    // Se llama después de todo lo que resta recursos.
+    private void controlarDestruccion() {
+        if (recursos.enNivelLetal()) {
+            destruir();
+        }
+    }
 
     /**
      * Carga combustible delegando en los recursos de la nave.
@@ -357,6 +390,7 @@ abstract public class Nave {
     public void consumirParaMision(int combustibleConsumido, int energiaConsumida, int desgasteAgregado)
             throws RecursoInsuficienteException, LimiteRecursoExcedidoException {
         recursos.consumirParaMision(combustibleConsumido, energiaConsumida, desgasteAgregado);
+        controlarDestruccion();
     }
 
     /**
@@ -375,6 +409,7 @@ abstract public class Nave {
      */
     public void consumirEnergia(int cantidad) throws RecursoInsuficienteException {
         recursos.consumirEnergia(cantidad);
+        controlarDestruccion();
     }
     
     // ---------- Motor Warp: la nave delega en su MotorWarp ----------
@@ -468,4 +503,44 @@ abstract public class Nave {
     public boolean motorDisponible() {
         return motorWarp.estaDisponible();
     }
+    // Paso 1 del double dispatch: le paso el desafío a la enemiga
+    public final ResultadoBatalla enfrentar(Nave enemiga) {
+        if (enemiga == null) {
+            throw new IllegalArgumentException("La nave enemiga no puede ser nula");
+        }
+        return enemiga.recibirDesafioDe(this);
+    }
+
+    // Paso 2: cada subclase lo implementa llamando al contraXxx de SU tipo
+    protected abstract ResultadoBatalla recibirDesafioDe(Nave retadora);
+
+    // La fila de la tabla: cómo le va a ESTA nave contra cada tipo
+    protected abstract ResultadoBatalla contraExploradora();
+    protected abstract ResultadoBatalla contraCarguera();
+    protected abstract ResultadoBatalla contraCombate();
+    
+    //Punto 3: encuentro en el tablero
+    @Override
+    public String interactuarCon(Nave naveJugador) {
+        if (naveJugador == null) {
+            throw new IllegalArgumentException("La nave no puede ser nula");
+        }
+        String encuentro = "Encuentro con " + this + ": ";
+        switch (naveJugador.enfrentar(this)) {
+            case GANA:
+                destruir();                 // muere la enemiga
+                return encuentro + "batalla ganada, la nave enemiga fue destruida";
+            case PIERDE:
+                naveJugador.destruir();     // muere la mia
+                return encuentro + "batalla perdida, la nave y su tripulación fueron destruidas";
+            default:
+                return encuentro + "pacto de paz";
+        }
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + " " + id;   
+    }
+    
 }

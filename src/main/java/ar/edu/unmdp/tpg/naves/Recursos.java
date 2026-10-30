@@ -228,7 +228,26 @@ final public class Recursos{
         desgaste = 0;
     }
 
+    // Daño: resta energía pero no baja de 0. No tira excepción,
+    // porque un golpe no se puede "rechazar".
+    public void perderEnergia(int cantidad) {
+        if (cantidad <= 0)
+            throw new IllegalArgumentException("El daño debe ser positivo");
+        energia = Math.max(0, energia - cantidad);
+    }
 
+    // Recarga (estación de carga): suma pero no pasa de 100.
+    // Lo que sobra se descarta, en vez de tirar LimiteRecursoExcedidoException.
+    public void recargar(int combustibleExtra, int energiaExtra) {
+        if (combustibleExtra < 0 || energiaExtra < 0)
+            throw new IllegalArgumentException("Las cantidades a recargar no pueden ser negativas");
+        combustible = Math.min(100, combustible + combustibleExtra);
+        energia = Math.min(100, energia + energiaExtra);
+    }
+
+    public boolean enNivelLetal() {
+    return desgaste >= 100 || energia <= 0 || combustible <= 0;
+    }   
 
     /**
      * Aplica en una sola operacion el consumo de una mision.

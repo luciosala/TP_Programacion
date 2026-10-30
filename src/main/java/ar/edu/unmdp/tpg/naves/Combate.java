@@ -14,4 +14,20 @@ public class Combate extends Nave {
       super(id, tipo, recursos, motorWarp);
     }
 
+
+// "Hay una batalla, y yo soy una Combate"
+@Override
+protected ResultadoBatalla recibirDesafioDe(Nave retadora) {
+    return retadora.contraCombate();
+}
+
+@Override
+protected ResultadoBatalla contraExploradora() { return ResultadoBatalla.GANA; }
+
+@Override
+protected ResultadoBatalla contraCarguera() { return ResultadoBatalla.PIERDE; }
+
+@Override
+protected ResultadoBatalla contraCombate() { return ResultadoBatalla.PACTO_DE_PAZ; }
+
 }
