@@ -1,0 +1,15 @@
+-Explicacion libreria java.time.instant.
+-Explicacion excepciones previa a la formal en la teoria.
+-Explicacion del tipo enum
+-Nos ayudo con la Configuracion de Maven y a explicarnos para que se usa.
+-Usamos la IA para el desarrollo de un Main de pruebas para ver el comportamiento de una prueba.
+-se uso IA para la definicion de contratos.
+-Explicacion libreria java.time.instant.
+-Explicacion excepciones previa a la formal en la teoria.
+-Explicacion del tipo enum
+-Nos ayudo con la Configuracion de Maven y a explicarnos para que se usa.
+-Usamos la IA para el desarrollo de un Main de pruebas para ver el comportamiento de una prueba.
+-se uso IA para la definicion de contratos.
+-Se pidio a la IA que genere UMLs durante el desarrollo para definir las relaciones y responsabilidades.
+-Consultas tecnicas y dudas sobre Sintaxis.
+-Debugging y solucion de errores.
