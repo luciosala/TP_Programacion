@@ -1,5 +1,6 @@
 package ar.edu.unmdp.tpg.asistente;
 
+import ar.edu.unmdp.tpg.elementos.ElementoDelUniverso;
 import ar.edu.unmdp.tpg.bitacora.Bitacora;
 import ar.edu.unmdp.tpg.bitacora.EventoBitacora;
 import ar.edu.unmdp.tpg.haberes.Haber;
@@ -355,6 +356,19 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
     @Override
     public boolean naveEstaOperativa() {
         return nave.estaOperativa();
+    }
+
+    @Override
+    public String interactuarCon(ElementoDelUniverso elemento) {
+        if (elemento == null) {
+            throw new IllegalArgumentException("El elemento no puede ser nulo");
+        }
+        return elemento.interactuarCon(nave);   // el asistente sí conoce la nave
+    }
+
+    @Override
+    public boolean naveDestruida() {
+        return nave.estaDestruida();
     }
     
     @Override

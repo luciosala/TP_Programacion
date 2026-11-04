@@ -23,6 +23,10 @@ import ar.edu.unmdp.tpg.mision.MisionIntercepcion;
 import ar.edu.unmdp.tpg.mision.MisionRecoleccion;
 import ar.edu.unmdp.tpg.mision.MisionRetornoSeguro;
 import ar.edu.unmdp.tpg.haberes.Haber;
+import ar.edu.unmdp.tpg.destino.CantidadDeElementosSuperaCasillaException;
+import ar.edu.unmdp.tpg.destino.DimensionesDeTableroInconsistentesException;
+import ar.edu.unmdp.tpg.destino.Tablero;
+import java.util.ArrayList;
 
 import java.util.List;
 import java.time.LocalDate;
@@ -44,10 +48,10 @@ public class Main {
         AsistenteDeComando nave = universo.getNaveActiva();
         System.out.println("Nave seleccionada: " + nave.idNave());
         mostrarEstado(nave);
-
-        ejecutarYMostrar(nave, new MisionIntercepcion(nave, "Carguero Orion", "sin propulsion"));
-        ejecutarYMostrar(nave, new MisionRecoleccion(nave, "Nebulosa K-7", "muestra de gas"));
-        ejecutarYMostrar(nave, new MisionRetornoSeguro(nave, "Base Andromeda"));
+        Tablero tablero = crearTableroVacio();
+        ejecutarYMostrar(nave, new MisionIntercepcion(nave, tablero, "Carguero Orion", "sin propulsion"));
+        ejecutarYMostrar(nave, new MisionRecoleccion(nave, tablero, "Nebulosa K-7", "muestra de gas"));
+        ejecutarYMostrar(nave, new MisionRetornoSeguro(nave, tablero, "Base Andromeda"));
     }
 
     private static void ejecutarYMostrar(AsistenteDeComando nave, Mision mision) {
@@ -73,6 +77,7 @@ public class Main {
         System.out.println("Nave seleccionada: " + nave.idNave());
         mostrarEstado(nave);
 
+        Tablero tablero = crearTableroVacio();
         // Se encomiendan recolecciones hasta que la nave ya no pueda hacer otra.
         int realizadas = 0;
         boolean rechazada = false;
@@ -84,8 +89,7 @@ public class Main {
             int eventosAntes = nave.consultarBitacora().size();
 
             try {
-                nave.ejecutarMision(new MisionRecoleccion(nave, "Asteroide " + (realizadas + 1), "mineral"));
-                realizadas++;
+                nave.ejecutarMision(new MisionRecoleccion(nave, tablero, "Asteroide " + (realizadas + 1), "mineral"));                realizadas++;
             } catch (NaveException error) {
                 rechazada = true;
 
@@ -237,6 +241,15 @@ public class Main {
         return universo;
     }
 
+    // Tablero sin elementos: así los escenarios de la parte 1 dan siempre el mismo resultado
+    private static Tablero crearTableroVacio() {
+        try {
+            return new Tablero(10, 10, new ArrayList<>());
+        } catch (DimensionesDeTableroInconsistentesException | CantidadDeElementosSuperaCasillaException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     private static void registrarNave(Universo universo, String id, String tipo) {
         Nave nave = NaveFactory.createNave(id, tipo);
         AsistenteDeComando asistente = new AsistenteDeComandoBasico(nave, new Bitacora());
@@ -291,6 +304,7 @@ public class Main {
         System.out.println("=== " + texto + " ===");
     }
     public static void main(String[] args) {
+        Mision.setPausaEntreTurnos(0);
         Universo universo = crearUniverso();
 
         titulo("Naves registradas en el universo");

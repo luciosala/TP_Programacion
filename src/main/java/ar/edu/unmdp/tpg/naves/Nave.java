@@ -525,6 +525,9 @@ abstract public class Nave implements ElementoDelUniverso {
         if (naveJugador == null) {
             throw new IllegalArgumentException("La nave no puede ser nula");
         }
+        if (estaDestruida()) {
+            return "Restos de " + this + ": sin efecto";
+        }
         String encuentro = "Encuentro con " + this + ": ";
         switch (naveJugador.enfrentar(this)) {
             case GANA:

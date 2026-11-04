@@ -4,6 +4,10 @@ import ar.edu.unmdp.tpg.asistente.AsistenteDeComando;
 import ar.edu.unmdp.tpg.excepciones.MisionNoViableException;
 import ar.edu.unmdp.tpg.excepciones.NaveException;
 import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
+import ar.edu.unmdp.tpg.destino.Destino;
+import ar.edu.unmdp.tpg.destino.Posicion;
+import ar.edu.unmdp.tpg.destino.Tablero;
+import ar.edu.unmdp.tpg.elementos.ElementoDelUniverso;
 
 
 import java.util.ArrayList;
@@ -14,6 +18,13 @@ public abstract class Mision{
     int energiaConsumida =0,combustibleConsumido=0,desgasteAcumulado=0 ; //acumuladores de energia y combustible
     protected final AsistenteDeComando asistente;
     private boolean realizada = false;
+    // Parte 2: tablero y travesía
+    protected final Tablero tablero;            // protected: las subclases lo usan para elegir su destino
+    private final Destino destino;              // el que mueve los elementos en el turno del tablero
+    private final RadarLargoAlcance radarLargo = new RadarLargoAlcance();
+    private final RadarCortoAlcance radarCorto = new RadarCortoAlcance();
+    private List<Posicion> ruta = new ArrayList<>();
+    private static int pausaEntreTurnos = 400;  // milisegundos
 
     /**
      * Construye una misión
@@ -27,7 +38,7 @@ public abstract class Mision{
      * @param asistente asistente que coordina la misión; no puede ser nulo
      * @throws IllegalArgumentException si {@code nombre}, {@code descripcion} o {@code asistente} son nulos
      */
-    protected Mision(String nombre, String descripcion, AsistenteDeComando asistente) {
+    protected Mision(String nombre, String descripcion, AsistenteDeComando asistente, Tablero tablero) {        
         if (nombre == null)
             throw new IllegalArgumentException("El nombre de la misión no puede ser nulo");
 
@@ -36,21 +47,29 @@ public abstract class Mision{
 
         if (asistente == null)
             throw new IllegalArgumentException("La misión requiere un asistente de comando");
-
+        if (tablero == null)
+            throw new IllegalArgumentException("La misión requiere un tablero");
 
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.asistente = asistente;
+        this.tablero = tablero;
+        this.destino = new Destino(tablero);
     }
 
+    // Permite acelerar la simulación (por ejemplo, 0 en las pruebas por consola)
+    public static void setPausaEntreTurnos(int milisegundos) {
+        if (milisegundos < 0)
+            throw new IllegalArgumentException("La pausa no puede ser negativa");
+        pausaEntreTurnos = milisegundos;
+    }
     /**
      * Ejecuta el ciclo completo de la misión: preparar, ejecutar, evaluar y cerrar.
      *
      * PATRON TEMPLATE METHOD: este método es final, así las subclases no pueden
      * alterar el orden de las cuatro etapas. Lo que cada misión define es el
-     * contenido de los puntos de extensión (ejecutaMision, condicionDeExito,
+    * contenido de los puntos de extensión (destinoDeLaMision,
      * costoAccionFinal, descripcionObjetivo, combustibleNecesario y desgasteQueGenera),
-     * nunca la secuencia.
      *
      * Las fallas del dominio suben al Asistente de Comando, que las registra.
      *
@@ -111,6 +130,9 @@ public abstract class Mision{
      */
     protected final void preparar() throws MisionNoViableException {
         try {
+            if (asistente.naveDestruida()) {
+                throw new MisionNoViableException("la nave está destruida");
+            }
             if (!asistente.motorDisponible()) {
                 throw new MisionNoViableException(
                     "el Motor Warp no está disponible (estado: " + asistente.estadoDelMotor() + ")");
@@ -118,7 +140,11 @@ public abstract class Mision{
             asistente.validarTripulacionMinima();
 
             asistente.verificarRecursos(combustibleNecesario(),costoAccionFinal(),desgasteQueGenera());
-
+            
+            // Radar de largo alcance: calcula y guarda la ruta hasta el objetivo
+            Posicion objetivo = destinoDeLaMision();
+            ruta = radarLargo.calcularRuta(tablero.getPosicionNave(), objetivo);
+            registrarAccion("Ruta calculada hacia " + texto(objetivo) + ": " + ruta.size() + " saltos");
             registrarAccion("Preparación completada");
         } catch (NaveException error) {
             asistente.registrarEvento("MISION", nombre + ": preparación rechazada: " + error.getMessage());
@@ -151,19 +177,61 @@ public abstract class Mision{
         combustibleConsumido += combustibleNecesario();
         desgasteAcumulado += desgasteQueGenera();
 
-        // 2. Ciclo de travesía (paso 3: acá va el bucle por turnos)
-        ejecutaMision();
+        // 2. Ciclo de travesía
+        boolean llego = viajar();
+        if (!llego) {
+            return false;
+        }
 
         // 3. Verificación en destino
         return verificarEnDestino();
    }
 
-   // Solo VERIFICA: el descuento se hace recién en cerrar()
-   private boolean verificarEnDestino() {
-        if (!condicionDeExito()) {
-            registrarAccion("Objetivo no alcanzado");
+    // Bucle por turnos: mientras la nave siga viva y no haya llegado
+   private boolean viajar() {
+        int turno = 0;
+        while (!asistente.naveDestruida() && !ruta.isEmpty()) {
+            turno++;
+
+            // A. Turno de la nave
+            // A.1 Inspección de la posición actual
+            ElementoDelUniverso elemento = tablero.inspeccionarPosicion();
+            if (elemento != null) {
+                registrarAccion("Turno " + turno + ": " + asistente.interactuarCon(elemento));
+                if (asistente.naveDestruida()) {
+                    break;   // la misión falla de inmediato
+                }
+            }
+            // A.2 Escaneo con el radar de corto alcance
+            int cercanos = radarCorto.contarElementosCercanos(tablero);
+            // A.3 Planificación y movimiento: siguiente casilla de la ruta
+            Posicion siguiente = ruta.remove(0);
+            tablero.moverNave(siguiente);
+            registrarAccion("Turno " + turno + ": salto a " + texto(siguiente)
+                    + " (radar: " + cercanos + " elementos cerca)");
+
+            // B. Turno del tablero
+            destino.turnoDestino();
+
+            // Pausa para poder ver el avance en la vista
+            try {
+                Thread.sleep(pausaEntreTurnos);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                registrarAccion("Travesía interrumpida");
+                return false;
+            }
+        }
+
+        if (asistente.naveDestruida()) {
+            registrarAccion("La nave fue destruida: misión fallida");
             return false;
         }
+        return true;
+   }
+
+   // Solo VERIFICA: el descuento se hace recién en cerrar()
+   private boolean verificarEnDestino() {
         int costo = costoAccionFinal();
         if (costo > asistente.energiaDisponible()) {
             registrarAccion("Al llegar no quedan recursos suficientes para la acción final");
@@ -307,35 +375,20 @@ public abstract class Mision{
      * @return descripción del objetivo de la misión
      */
     protected abstract String descripcionObjetivo();
-    /**
-     * Punto de extensión: lo que hace esta misión en particular.
-     *
-     * Precondiciones:
-     * - El consumo de la operación ya se aplicó sobre la nave.
-     *
-     * Postcondiciones:
-     * - La misión deja registradas sus acciones con registrarAccion.
-     * - Al terminar, condicionDeExito() puede responder si el objetivo se cumplió.
-     * - La implementación no consume recursos por su cuenta: eso lo hace el ciclo.
-     *
-     * @throws NaveException si falla alguna operación del dominio
-     */
-    protected abstract void ejecutaMision() throws NaveException;
 
     /**
-     * Punto de extensión: indica si la misión cumplió su objetivo.
+     * Punto de extensión: casilla del tablero a la que tiene que llegar esta misión.
      *
      * Precondiciones:
-     * - ejecutaMision() ya se ejecutó.
+     * - Se invoca una sola vez, durante la preparación.
      *
      * Postcondiciones:
-     * - Devuelve true si y solo si se cumplieron todas las condiciones que esta
-     *   misión exige para considerarse exitosa.
-     * - La consulta no modifica el estado de la misión ni de la nave.
+     * - Devuelve una posición dentro del tablero.
+     * - La misión calcula la ruta desde la posición actual de la nave hasta esta.
      *
-     * @return si el objetivo de la misión se cumplió
+     * @return posición de destino de la misión
      */
-    protected abstract boolean condicionDeExito();
+    protected abstract Posicion destinoDeLaMision();
     /**
      * Punto de extensión: combustible que consume la operación de esta misión.
      * Por defecto, 4, como indica la ficha de inicio de la Etapa 1.
@@ -361,6 +414,9 @@ public abstract class Mision{
      */
     protected int desgasteQueGenera() {
         return 4;
+    }
+    private static String texto(Posicion p) {
+        return "(" + p.getX() + "," + p.getY() + ")";
     }
 
 }

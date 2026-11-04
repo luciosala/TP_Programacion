@@ -1,6 +1,8 @@
 package ar.edu.unmdp.tpg.mision;
 
 import ar.edu.unmdp.tpg.asistente.AsistenteDeComando;
+import ar.edu.unmdp.tpg.destino.Posicion;
+import ar.edu.unmdp.tpg.destino.Tablero;
 
 /**
  * M-02: recolectar datos o una muestra en un punto de interes.
@@ -12,9 +14,6 @@ public class MisionRecoleccion extends Mision{
 
     private final String puntoInteres;
     private final String elemento;
-
-    private boolean elementoObtenido;
-    private boolean elementoRegistrado;
 
     /**
      * Construye la mision de recoleccion.
@@ -34,9 +33,8 @@ public class MisionRecoleccion extends Mision{
      * @param elemento dato o muestra a recolectar
      * @throws IllegalArgumentException si el asistente es nulo o si el punto de interes o el elemento son nulos o vacios
      */
-    public MisionRecoleccion(AsistenteDeComando asistente, String puntoInteres, String elemento) {
-
-        super("M-02 - Recolección", "Recolectar datos o una muestra en un punto de interés", asistente);
+    public MisionRecoleccion(AsistenteDeComando asistente, Tablero tablero, String puntoInteres, String elemento) {
+        super("M-02 - Recolección", "Recolectar datos o una muestra en un punto de interés", asistente, tablero);
 
         if (puntoInteres == null || puntoInteres.isBlank()) {
             throw new IllegalArgumentException("El punto de interés no puede ser nulo ni vacío");
@@ -50,25 +48,16 @@ public class MisionRecoleccion extends Mision{
         this.elemento = elemento;
     }
 
-    @Override
-    protected void ejecutaMision() {
-        registrarAccion("Aproximación completada al punto " + puntoInteres);
-
-        elementoObtenido = true;
-        registrarAccion("Elemento obtenido: " + elemento);
-
-        elementoRegistrado = true;
-        registrarAccion("Elemento registrado como obtenido");
-    }
-
-    @Override
-    protected boolean condicionDeExito() {
-        return elementoObtenido && elementoRegistrado;
-    }
 
     @Override
     protected int costoAccionFinal() {
         return 5;
+    }
+
+    // Las riquezas están en el objetivo que elige el tablero
+    @Override
+    protected Posicion destinoDeLaMision() {
+        return tablero.obtenerObjetivo();
     }
 
     @Override

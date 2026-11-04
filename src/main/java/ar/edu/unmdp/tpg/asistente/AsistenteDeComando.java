@@ -1,5 +1,6 @@
 package ar.edu.unmdp.tpg.asistente;
 
+import ar.edu.unmdp.tpg.elementos.ElementoDelUniverso;
 import ar.edu.unmdp.tpg.bitacora.EventoBitacora;
 import ar.edu.unmdp.tpg.haberes.Haber;
 import ar.edu.unmdp.tpg.mision.InformeMision;
@@ -308,6 +309,10 @@ public interface AsistenteDeComando {
      * @return si la nave está operativa
      */
     boolean naveEstaOperativa();
+
+    // encuentros en el tablero
+    String interactuarCon(ElementoDelUniverso elemento);   // la nave se encuentra con un elemento
+    boolean naveDestruida();                                // ¿la nave sigue viva?
 
     /**
      * Consulta el combustible de la nave.

@@ -1,6 +1,8 @@
 package ar.edu.unmdp.tpg.mision;
 
 import ar.edu.unmdp.tpg.asistente.AsistenteDeComando;
+import ar.edu.unmdp.tpg.destino.Posicion;
+import ar.edu.unmdp.tpg.destino.Tablero;
 
 /**
  * M-01: interceptar un objetivo y completar su asistencia.
@@ -10,8 +12,6 @@ import ar.edu.unmdp.tpg.asistente.AsistenteDeComando;
  */
 public class MisionIntercepcion extends Mision {
 
-    private boolean asistenciaCompletada = false;
-    private boolean contactoEstablecido = false;
     private final String objetivo;
     private final String estadoObjetivo;
 
@@ -33,9 +33,8 @@ public class MisionIntercepcion extends Mision {
      * @param estadoObjetivo estado en que se encuentra el objetivo
      * @throws IllegalArgumentException si el asistente es nulo o si el objetivo o su estado son nulos o vacios
      */
-    public MisionIntercepcion(AsistenteDeComando asistente, String objetivo, String estadoObjetivo){
-        super("M-01 - Intercepción y asistencia", "Interceptar un objetivo y completar su asistencia", asistente);
-
+    public MisionIntercepcion(AsistenteDeComando asistente, Tablero tablero, String objetivo, String estadoObjetivo){
+        super("M-01 - Intercepción y asistencia", "Interceptar un objetivo y completar su asistencia", asistente, tablero);
         if (objetivo == null || objetivo.isBlank()) {
             throw new IllegalArgumentException(
                 "El objetivo no puede ser nulo ni vacío"
@@ -51,23 +50,17 @@ public class MisionIntercepcion extends Mision {
         this.objetivo = objetivo;
         this.estadoObjetivo = estadoObjetivo;
     }
-   @Override
-    protected void ejecutaMision() {
-        registrarAccion("Aproximación completada hasta " + objetivo);
-        registrarAccion("Estado del objetivo verificado: " + estadoObjetivo);
-        contactoEstablecido = true;
-        asistenciaCompletada = true;
-        registrarAccion("Asistencia completada");
-    }
 
-    @Override
-    protected boolean condicionDeExito() {
-        return contactoEstablecido && asistenciaCompletada;
-    }
 
     @Override
     protected int costoAccionFinal() {
         return 5;
+    }
+
+    // La nave aliada espera en el objetivo que elige el tablero
+    @Override
+    protected Posicion destinoDeLaMision() {
+        return tablero.obtenerObjetivo();
     }
 
     @Override
