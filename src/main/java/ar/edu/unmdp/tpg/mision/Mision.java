@@ -140,7 +140,13 @@ public abstract class Mision{
             }
             asistente.validarTripulacionMinima();
 
-            asistente.verificarRecursos(combustibleNecesario() + combustibleAEntregar(), costoAccionFinal(), desgasteQueGenera());            
+            asistente.verificarRecursos(combustibleNecesario() + combustibleAEntregar(), costoAccionFinal(), desgasteQueGenera());    
+            //  no se puede dejar a la nave en un nivel letal (combustible 0, energía 0 o desgaste 100)
+            if (asistente.combustibleDisponible() - combustibleNecesario() - combustibleAEntregar() <= 0
+                    || asistente.energiaDisponible() - costoAccionFinal() <= 0
+                    || asistente.desgasteActual() + desgasteQueGenera() >= 100) {
+                throw new MisionNoViableException("la misión dejaría a la nave sin recursos");
+            }        
             // Radar de largo alcance: calcula y guarda la ruta hasta el objetivo
             Posicion objetivo = destinoDeLaMision();
             ruta = radarLargo.calcularRuta(tablero.getPosicionNave(), objetivo);
@@ -236,9 +242,11 @@ public abstract class Mision{
 
    //  Verifica y revisa el combustibles
    private boolean verificarEnDestino() {
-        if (costoAccionFinal() > asistente.energiaDisponible()
-                || combustibleAEntregar() > asistente.combustibleDisponible()) {
-            registrarAccion("Al llegar no quedan recursos suficientes para la acción final");
+        // Lo que le quedaría a la nave después de entregar/gastar en el cierre
+        int energiaQueQueda = asistente.energiaDisponible() - costoAccionFinal();
+        int combustibleQueQueda = asistente.combustibleDisponible() - combustibleAEntregar();
+        if (energiaQueQueda <= 0 || combustibleQueQueda <= 0) {
+            registrarAccion("Al llegar no quedan recursos suficientes: la acción final dejaría la nave sin energía o sin combustible");
             return false;
         }
         registrarAccion("Destino alcanzado: recursos verificados");
