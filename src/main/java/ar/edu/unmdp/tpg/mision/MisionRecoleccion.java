@@ -1,5 +1,7 @@
 package ar.edu.unmdp.tpg.mision;
 
+import java.util.Random;
+
 import ar.edu.unmdp.tpg.asistente.AsistenteDeComando;
 import ar.edu.unmdp.tpg.destino.Posicion;
 import ar.edu.unmdp.tpg.destino.Tablero;
@@ -63,5 +65,19 @@ public class MisionRecoleccion extends Mision{
     @Override
     protected String descripcionObjetivo() {
         return "Recolectar " + elemento + " en " + puntoInteres;
+    }
+
+    private final Random random = new Random();
+    private int gemasEncontradas = 0;
+
+    @Override
+    protected void alLlegar() {
+        gemasEncontradas = 1 + random.nextInt(5);   // entre 1 y 5
+        registrarAccion("Gemas encontradas en " + puntoInteres + ": " + gemasEncontradas);
+    }
+
+    @Override
+    protected void impactarAlCerrar() {
+        asistente.recolectarGemas(gemasEncontradas);
     }
 }

@@ -67,4 +67,16 @@ public class MisionIntercepcion extends Mision {
     protected String descripcionObjetivo() {
         return "Asistir a " + objetivo + " (estado: " + estadoObjetivo + ")";
     }
+
+    // M-01 entrega energía (costoAccionFinal) y combustible a la nave aliada
+    @Override
+    protected int combustibleAEntregar() {
+        return 5;
+    }
+
+    @Override
+    protected void alLlegar() {
+        registrarAccion("Contacto con " + objetivo + ": se entregarán " + costoAccionFinal()
+                + " de energía y " + combustibleAEntregar() + " de combustible");
+    }
 }

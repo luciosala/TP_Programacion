@@ -314,6 +314,9 @@ public interface AsistenteDeComando {
     String interactuarCon(ElementoDelUniverso elemento);   // la nave se encuentra con un elemento
     boolean naveDestruida();                                // ¿la nave sigue viva?
 
+    void recolectarGemas(int cantidad);                     // M-02
+    int gemasDisponibles();
+
     /**
      * Consulta el combustible de la nave.
      *

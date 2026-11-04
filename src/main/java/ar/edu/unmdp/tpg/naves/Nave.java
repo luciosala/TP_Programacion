@@ -34,6 +34,7 @@ abstract public class Nave implements ElementoDelUniverso {
     private final MotorWarp motorWarp;
     private final List<Tripulante> tripulacion = new ArrayList<>();
     private boolean destruida = false;
+    private int gemas = 0;
 
     /**
      * Construye una nave con identidad, tipo, recursos y motor Warp.
@@ -343,6 +344,17 @@ abstract public class Nave implements ElementoDelUniverso {
      */
     public void realizarMantenimiento() {
         recursos.realizarMantenimiento();
+    }
+
+    public int getGemas() {
+        return gemas;
+    }
+
+    public void agregarGemas(int cantidad) {
+        if (cantidad <= 0) {
+            throw new IllegalArgumentException("La cantidad de gemas debe ser positiva");
+        }
+        gemas += cantidad;
     }
 
     /**

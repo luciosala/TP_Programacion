@@ -372,6 +372,16 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
     }
     
     @Override
+    public void recolectarGemas(int cantidad) {
+        nave.agregarGemas(cantidad);
+        bitacora.registrar("RECURSOS", "Nave " + nave.getId() + ": gemas recolectadas (+" + cantidad + ")");
+    }
+
+    @Override
+    public int gemasDisponibles() {
+        return nave.getGemas();
+    }
+    @Override
     public String idNave() {
         return nave.getId();
     }

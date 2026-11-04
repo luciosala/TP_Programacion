@@ -25,6 +25,7 @@ public abstract class Mision{
     private final RadarCortoAlcance radarCorto = new RadarCortoAlcance();
     private List<Posicion> ruta = new ArrayList<>();
     private static int pausaEntreTurnos = 400;  // milisegundos
+    private int combustibleAlPartir, energiaAlPartir, desgasteAlPartir;   // para el balance
 
     /**
      * Construye una misión
@@ -139,8 +140,7 @@ public abstract class Mision{
             }
             asistente.validarTripulacionMinima();
 
-            asistente.verificarRecursos(combustibleNecesario(),costoAccionFinal(),desgasteQueGenera());
-            
+            asistente.verificarRecursos(combustibleNecesario() + combustibleAEntregar(), costoAccionFinal(), desgasteQueGenera());            
             // Radar de largo alcance: calcula y guarda la ruta hasta el objetivo
             Posicion objetivo = destinoDeLaMision();
             ruta = radarLargo.calcularRuta(tablero.getPosicionNave(), objetivo);
@@ -172,6 +172,10 @@ public abstract class Mision{
     *         límite de 100, o si falla la parte específica de la misión
     */
    protected final boolean ejecutar() throws NaveException {
+        // Foto de los recursos al partir, para el balance del informe
+        combustibleAlPartir = asistente.combustibleDisponible();
+        energiaAlPartir = asistente.energiaDisponible();
+        desgasteAlPartir = asistente.desgasteActual();
         // 1. Consumo de despegue
         asistente.consumirParaMision(combustibleNecesario(), 0, desgasteQueGenera());
         combustibleConsumido += combustibleNecesario();
@@ -230,14 +234,15 @@ public abstract class Mision{
         return true;
    }
 
-   // Solo VERIFICA: el descuento se hace recién en cerrar()
+   //  Verifica y revisa el combustibles
    private boolean verificarEnDestino() {
-        int costo = costoAccionFinal();
-        if (costo > asistente.energiaDisponible()) {
+        if (costoAccionFinal() > asistente.energiaDisponible()
+                || combustibleAEntregar() > asistente.combustibleDisponible()) {
             registrarAccion("Al llegar no quedan recursos suficientes para la acción final");
             return false;
         }
         registrarAccion("Destino alcanzado: recursos verificados");
+        alLlegar();
         return true;
    }
    /**
@@ -260,8 +265,10 @@ public abstract class Mision{
      * @throws NaveException si falla alguna operación del dominio
      */
     protected final InformeMision evaluar(boolean exito) {
+        registrarAccion("Balance del trayecto: " + balanceDelTrayecto());
         if (exito) {
-            energiaConsumida += costoAccionFinal();   // lo que se va a entregar en el cierre
+            energiaConsumida += costoAccionFinal();        // lo que se va a gastar o entregar en el cierre
+            combustibleConsumido += combustibleAEntregar();
         }
         return asistente.crearInforme(
             nombre,
@@ -323,10 +330,10 @@ public abstract class Mision{
      */
     protected final void cerrar(boolean exito) throws NaveException {
         if (exito) {
-            int costo = costoAccionFinal();
-            if (costo > 0) {
-                asistente.consumirEnergia(costo);   // recién acá se descuenta
+            if (costoAccionFinal() > 0 || combustibleAEntregar() > 0) {
+                asistente.consumirParaMision(combustibleAEntregar(), costoAccionFinal(), 0);   // recién acá se descuenta
             }
+            impactarAlCerrar();
             saltar();
         }
         asistente.registrarEvento("MISION", nombre + " finalizada: " + (exito ? "EXITOSA" : "FALLIDA"));
@@ -415,6 +422,32 @@ public abstract class Mision{
     protected int desgasteQueGenera() {
         return 4;
     }
+
+    // ---------- cada misión los redefine solo si los necesita ----------
+
+    // Combustible que la misión entrega al llegar (por defecto, nada)
+    protected int combustibleAEntregar() {
+        return 0;
+    }
+
+    // Se invoca al verificar la llegada: la misión anota qué va a ganar o entregar
+    protected void alLlegar() {
+    }
+
+    // Se invoca en el cierre: la misión impacta lo que gana (gemas, recarga, reparación)
+    protected void impactarAlCerrar() throws NaveException {
+    }
+
+    private String balanceDelTrayecto() {
+        return "combustible " + conSigno(asistente.combustibleDisponible() - combustibleAlPartir)
+            + ", energía " + conSigno(asistente.energiaDisponible() - energiaAlPartir)
+            + ", desgaste " + conSigno(asistente.desgasteActual() - desgasteAlPartir);
+    }
+
+    private static String conSigno(int n) {
+        return (n > 0 ? "+" : "") + n;
+    }
+
     private static String texto(Posicion p) {
         return "(" + p.getX() + "," + p.getY() + ")";
     }
