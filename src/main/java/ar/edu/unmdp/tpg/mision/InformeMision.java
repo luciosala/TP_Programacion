@@ -133,7 +133,7 @@ public final class InformeMision {
           .append(energiaConsumida).append(" de energia, ")
           .append(desgasteGenerado).append(" de desgaste\n");
 
-        sb.append("Estado final de la nave ").append(idNave).append(": ")
+        sb.append("Estado de la nave al llegar al destino ").append(idNave).append(": ")
           .append("combustible ").append(combustibleFinal).append(", ")
           .append("energia ").append(energiaFinal).append(", ")
           .append("desgaste ").append(desgasteFinal).append("\n");

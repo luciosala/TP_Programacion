@@ -8,7 +8,7 @@ import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
 
 import java.util.ArrayList;
 import java.util.List;
-abstract public class Mision{
+public abstract class Mision{
     protected String nombre;
     protected String descripcion;
     int energiaConsumida =0,combustibleConsumido=0,desgasteAcumulado=0 ; //acumuladores de energia y combustible
@@ -77,14 +77,16 @@ abstract public class Mision{
      */
     public final InformeMision realizarMision() throws NaveException {
         if (realizada) {
-        throw new MisionNoViableException(nombre + " ya fue realizada; para repetirla hay que crear otra misión");
+            throw new MisionNoViableException(nombre + " ya fue realizada; para repetirla hay que crear otra misión");
         }
         preparar();
         realizada = true;
-        ejecutar();
-        boolean exito = evaluarResultado();
-        return cerrar(exito);
+        boolean exito = ejecutar();              // ejecutar ahora dice si llegó bien
+        InformeMision informe = evaluar(exito);  // evaluar arma el informe
+        cerrar(exito);                           // cerrar impacta los recursos
+        return informe;
     }
+
 
     /*metodos protected para que los hijos puedan accedrr */
 
@@ -143,213 +145,222 @@ abstract public class Mision{
     * @throws NaveException si falta combustible, si el desgaste superaría el
     *         límite de 100, o si falla la parte específica de la misión
     */
-   protected final void ejecutar() throws NaveException {
+   protected final boolean ejecutar() throws NaveException {
+        // 1. Consumo de despegue
+        asistente.consumirParaMision(combustibleNecesario(), 0, desgasteQueGenera());
+        combustibleConsumido += combustibleNecesario();
+        desgasteAcumulado += desgasteQueGenera();
 
-        asistente.consumirParaMision(combustibleNecesario(),0,desgasteQueGenera());
-        combustibleConsumido+=combustibleNecesario();
-        desgasteAcumulado+=desgasteQueGenera();
+        // 2. Ciclo de travesía (paso 3: acá va el bucle por turnos)
         ejecutaMision();
+
+        // 3. Verificación en destino
+        return verificarEnDestino();
    }
-   /**
- * Tercera etapa del ciclo: determina si la misión cumplió su objetivo y cobra
- * el costo de la acción final.
- *
- * Precondiciones:
- * - La misión ya ejecutó su parte específica.
- *
- * Postcondiciones:
- * - Devuelve true si y solo si se cumplió la condición de éxito de la misión
- *   y se pudo pagar el costo de la acción final.
- * - Si el objetivo no se alcanzó, no se consume energía.
- * - Si la energía no alcanza para la acción final, la acción no se realiza, no
- *   se consume nada y la misión se cierra como fallida.
- * - Si se cobra, la energía baja exactamente en el costo declarado y queda
- *   acumulada para el informe.
- *
- * @return el resultado de la misión
- * @throws NaveException si falla alguna operación del dominio
- */
-protected final boolean evaluarResultado() throws NaveException {
-    if (!condicionDeExito()) {
-        registrarAccion("Objetivo no alcanzado");
-        return false;
-    }
 
-    int costo = costoAccionFinal();
-
-    if (costo > 0) {
-        if (asistente.energiaDisponible() < costo) {
-            registrarAccion("Energía insuficiente para completar la acción final");
+   // Solo VERIFICA: el descuento se hace recién en cerrar()
+   private boolean verificarEnDestino() {
+        if (!condicionDeExito()) {
+            registrarAccion("Objetivo no alcanzado");
             return false;
         }
-        asistente.consumirEnergia(costo);
-        energiaConsumida += costo;
+        int costo = costoAccionFinal();
+        if (costo > asistente.energiaDisponible()) {
+            registrarAccion("Al llegar no quedan recursos suficientes para la acción final");
+            return false;
+        }
+        registrarAccion("Destino alcanzado: recursos verificados");
+        return true;
+   }
+   /**
+     * Tercera etapa del ciclo: determina si la misión cumplió su objetivo y cobra
+     * el costo de la acción final.
+     *
+     * Precondiciones:
+     * - La misión ya ejecutó su parte específica.
+     *
+     * Postcondiciones:
+     * - Devuelve true si y solo si se cumplió la condición de éxito de la misión
+     *   y se pudo pagar el costo de la acción final.
+     * - Si el objetivo no se alcanzó, no se consume energía.
+     * - Si la energía no alcanza para la acción final, la acción no se realiza, no
+     *   se consume nada y la misión se cierra como fallida.
+     * - Si se cobra, la energía baja exactamente en el costo declarado y queda
+     *   acumulada para el informe.
+     *
+     * @return el resultado de la misión
+     * @throws NaveException si falla alguna operación del dominio
+     */
+    protected final InformeMision evaluar(boolean exito) {
+        if (exito) {
+            energiaConsumida += costoAccionFinal();   // lo que se va a entregar en el cierre
+        }
+        return asistente.crearInforme(
+            nombre,
+            descripcion,
+            descripcionObjetivo(),
+            acciones,
+            combustibleConsumido,
+            energiaConsumida,
+            desgasteAcumulado,
+            exito
+        );
+    }
+    private final List<String> acciones = new ArrayList<>();
+
+    /**
+     * Deja constancia de una acción tanto en el informe como en la Bitácora,
+     * a través del Asistente de Comando.
+     *
+     * Precondiciones:
+     * - detalle no es nulo, vacío ni contiene solo espacios.
+     *
+     * Postcondiciones:
+     * - La acción queda al final de la lista de acciones de la misión y las
+     *   anteriores permanecen en el mismo orden.
+     * - Queda registrado un evento de categoría MISION en la bitácora.
+     * - Si se rechaza, ni la lista de acciones ni la bitácora se modifican.
+     *
+     * @param detalle descripción de la acción realizada; no puede ser nulo ni vacío
+     * @throws IllegalArgumentException si el detalle es nulo o vacío
+     */
+    protected final void registrarAccion(String detalle) {
+        if (detalle == null || detalle.isBlank()) {
+            throw new IllegalArgumentException("El detalle de la acción no puede ser nulo ni vacío");
+        }
+        acciones.add(detalle);
+        asistente.registrarEvento("MISION", nombre + ": " + detalle);
     }
 
-    registrarAccion("Acción final completada");
-    return true;
-}
-private final List<String> acciones = new ArrayList<>();
 
-/**
- * Deja constancia de una acción tanto en el informe como en la Bitácora,
- * a través del Asistente de Comando.
- *
- * Precondiciones:
- * - detalle no es nulo, vacío ni contiene solo espacios.
- *
- * Postcondiciones:
- * - La acción queda al final de la lista de acciones de la misión y las
- *   anteriores permanecen en el mismo orden.
- * - Queda registrado un evento de categoría MISION en la bitácora.
- * - Si se rechaza, ni la lista de acciones ni la bitácora se modifican.
- *
- * @param detalle descripción de la acción realizada; no puede ser nulo ni vacío
- * @throws IllegalArgumentException si el detalle es nulo o vacío
- */
-protected final void registrarAccion(String detalle) {
-    if (detalle == null || detalle.isBlank()) {
-        throw new IllegalArgumentException("El detalle de la acción no puede ser nulo ni vacío");
+    /**
+     * Cuarta y última etapa del ciclo: deja constancia del resultado, hace saltar
+     * la nave si la misión salió bien y pide al asistente el informe con lo
+     * acumulado durante el ciclo.
+     *
+     * Precondiciones:
+     * - La evaluación del resultado ya se realizó.
+     * - Si exito es true, el Motor Warp está Disponible.
+     *
+     * Postcondiciones:
+     * - Queda registrado en la bitácora el cierre de la misión y su resultado.
+     * - Si exito es true, el motor recorre el ciclo completo de salto y vuelve a
+     *   quedar Disponible; si es false, el motor no se usa.
+     * - Devuelve un informe que refleja los consumos de esta misión y el estado de
+     *   la nave en este momento, y que no cambia después.
+     *
+     * @param exito resultado devuelto por la evaluación
+     * @return el informe de la misión ejecutada
+     * @throws TransicionInvalidaException si el motor no admite el ciclo de salto
+     */
+    protected final void cerrar(boolean exito) throws NaveException {
+        if (exito) {
+            int costo = costoAccionFinal();
+            if (costo > 0) {
+                asistente.consumirEnergia(costo);   // recién acá se descuenta
+            }
+            saltar();
+        }
+        asistente.registrarEvento("MISION", nombre + " finalizada: " + (exito ? "EXITOSA" : "FALLIDA"));
     }
-    acciones.add(detalle);
-    asistente.registrarEvento("MISION", nombre + ": " + detalle);
-}
 
-
-/**
- * Cuarta y última etapa del ciclo: deja constancia del resultado, hace saltar
- * la nave si la misión salió bien y pide al asistente el informe con lo
- * acumulado durante el ciclo.
- *
- * Precondiciones:
- * - La evaluación del resultado ya se realizó.
- * - Si exito es true, el Motor Warp está Disponible.
- *
- * Postcondiciones:
- * - Queda registrado en la bitácora el cierre de la misión y su resultado.
- * - Si exito es true, el motor recorre el ciclo completo de salto y vuelve a
- *   quedar Disponible; si es false, el motor no se usa.
- * - Devuelve un informe que refleja los consumos de esta misión y el estado de
- *   la nave en este momento, y que no cambia después.
- *
- * @param exito resultado devuelto por la evaluación
- * @return el informe de la misión ejecutada
- * @throws TransicionInvalidaException si el motor no admite el ciclo de salto
- */
-protected final InformeMision cerrar(boolean exito) throws TransicionInvalidaException{
-    if (exito){
-        saltar();
+    /**
+     * Hace saltar a la nave al completarse la misión con éxito, recorriendo el
+     * ciclo del Motor Warp de punta a punta.
+     *
+     * Como todavía no se modela el paso del tiempo, el enfriamiento se completa
+     * en el momento y la nave queda nuevamente Disponible.
+     *
+     * Precondiciones:
+     * - El motor está en estado Disponible (lo verificó preparar()).
+     *
+     * Postcondiciones:
+     * - El motor pasa por Preparando salto, En warp y Enfriamiento, y termina en Disponible.
+     * - Las cuatro transiciones quedan registradas en la bitácora.
+     *
+     * @throws TransicionInvalidaException si alguna de las cuatro transiciones es rechazada
+     */
+    private void saltar() throws TransicionInvalidaException {
+        asistente.prepararSalto();
+        asistente.iniciarSalto();
+        asistente.finalizarSalto();
+        asistente.completarEnfriamiento();
     }
-    asistente.registrarEvento("MISION", nombre + " finalizada: " + (exito ? "EXITOSA" : "FALLIDA"));
+    /**
+     * Punto de extensión: energía que cuesta la acción final de esta misión.
+     *
+     * Postcondiciones:
+     * - Devuelve un valor mayor o igual a 0. Devolver 0 significa que la misión
+     *   no tiene costo de acción final.
+     * - La implementación no modifica el estado de la nave.
+     *
+     * @return energía que cuesta la acción final (0 si no tiene costo)
+     */
+    protected abstract int costoAccionFinal();
+    /**
+     * Punto de extensión: describe el objetivo que persigue esta misión.
+     *
+     * Postcondiciones:
+     * - Devuelve un texto no nulo ni vacío, que se incluye en el informe.
+     * - La implementación no modifica el estado de la nave.
+     *
+     * @return descripción del objetivo de la misión
+     */
+    protected abstract String descripcionObjetivo();
+    /**
+     * Punto de extensión: lo que hace esta misión en particular.
+     *
+     * Precondiciones:
+     * - El consumo de la operación ya se aplicó sobre la nave.
+     *
+     * Postcondiciones:
+     * - La misión deja registradas sus acciones con registrarAccion.
+     * - Al terminar, condicionDeExito() puede responder si el objetivo se cumplió.
+     * - La implementación no consume recursos por su cuenta: eso lo hace el ciclo.
+     *
+     * @throws NaveException si falla alguna operación del dominio
+     */
+    protected abstract void ejecutaMision() throws NaveException;
 
-    return asistente.crearInforme(
-        nombre,
-        descripcion,
-        descripcionObjetivo(),
-        acciones,
-        combustibleConsumido,
-        energiaConsumida,
-        desgasteAcumulado,
-        exito
-    );
-}
+    /**
+     * Punto de extensión: indica si la misión cumplió su objetivo.
+     *
+     * Precondiciones:
+     * - ejecutaMision() ya se ejecutó.
+     *
+     * Postcondiciones:
+     * - Devuelve true si y solo si se cumplieron todas las condiciones que esta
+     *   misión exige para considerarse exitosa.
+     * - La consulta no modifica el estado de la misión ni de la nave.
+     *
+     * @return si el objetivo de la misión se cumplió
+     */
+    protected abstract boolean condicionDeExito();
+    /**
+     * Punto de extensión: combustible que consume la operación de esta misión.
+     * Por defecto, 4, como indica la ficha de inicio de la Etapa 1.
+     *
+     * Postcondiciones:
+     * - Devuelve un valor mayor o igual a 0.
+     * - La implementación no modifica el estado de la nave.
+     *
+     * @return combustible que consume la operación
+     */
+    protected int combustibleNecesario() {
+        return 4;
+    }
+    /**
+     * Punto de extensión: desgaste que genera la operación de esta misión.
+     * Por defecto, 4, como indica la ficha de inicio de la Etapa 1.
+     *
+     * Postcondiciones:
+     * - Devuelve un valor mayor o igual a 0.
+     * - La implementación no modifica el estado de la nave.
+     *
+     * @return desgaste que genera la operación
+     */
+    protected int desgasteQueGenera() {
+        return 4;
+    }
 
-/**
- * Hace saltar a la nave al completarse la misión con éxito, recorriendo el
- * ciclo del Motor Warp de punta a punta.
- *
- * Como todavía no se modela el paso del tiempo, el enfriamiento se completa
- * en el momento y la nave queda nuevamente Disponible.
- *
- * Precondiciones:
- * - El motor está en estado Disponible (lo verificó preparar()).
- *
- * Postcondiciones:
- * - El motor pasa por Preparando salto, En warp y Enfriamiento, y termina en Disponible.
- * - Las cuatro transiciones quedan registradas en la bitácora.
- *
- * @throws TransicionInvalidaException si alguna de las cuatro transiciones es rechazada
- */
-private void saltar() throws TransicionInvalidaException {
-    asistente.prepararSalto();
-    asistente.iniciarSalto();
-    asistente.finalizarSalto();
-    asistente.completarEnfriamiento();
-}
-/**
- * Punto de extensión: energía que cuesta la acción final de esta misión.
- *
- * Postcondiciones:
- * - Devuelve un valor mayor o igual a 0. Devolver 0 significa que la misión
- *   no tiene costo de acción final.
- * - La implementación no modifica el estado de la nave.
- *
- * @return energía que cuesta la acción final (0 si no tiene costo)
- */
-protected abstract int costoAccionFinal();
-/**
- * Punto de extensión: describe el objetivo que persigue esta misión.
- *
- * Postcondiciones:
- * - Devuelve un texto no nulo ni vacío, que se incluye en el informe.
- * - La implementación no modifica el estado de la nave.
- *
- * @return descripción del objetivo de la misión
- */
-protected abstract String descripcionObjetivo();
-/**
- * Punto de extensión: lo que hace esta misión en particular.
- *
- * Precondiciones:
- * - El consumo de la operación ya se aplicó sobre la nave.
- *
- * Postcondiciones:
- * - La misión deja registradas sus acciones con registrarAccion.
- * - Al terminar, condicionDeExito() puede responder si el objetivo se cumplió.
- * - La implementación no consume recursos por su cuenta: eso lo hace el ciclo.
- *
- * @throws NaveException si falla alguna operación del dominio
- */
-protected abstract void ejecutaMision() throws NaveException;
-
-/**
- * Punto de extensión: indica si la misión cumplió su objetivo.
- *
- * Precondiciones:
- * - ejecutaMision() ya se ejecutó.
- *
- * Postcondiciones:
- * - Devuelve true si y solo si se cumplieron todas las condiciones que esta
- *   misión exige para considerarse exitosa.
- * - La consulta no modifica el estado de la misión ni de la nave.
- *
- * @return si el objetivo de la misión se cumplió
- */
-protected abstract boolean condicionDeExito();
-/**
- * Punto de extensión: combustible que consume la operación de esta misión.
- * Por defecto, 4, como indica la ficha de inicio de la Etapa 1.
- *
- * Postcondiciones:
- * - Devuelve un valor mayor o igual a 0.
- * - La implementación no modifica el estado de la nave.
- *
- * @return combustible que consume la operación
- */
-protected int combustibleNecesario() {
-    return 4;
-}
-/**
- * Punto de extensión: desgaste que genera la operación de esta misión.
- * Por defecto, 4, como indica la ficha de inicio de la Etapa 1.
- *
- * Postcondiciones:
- * - Devuelve un valor mayor o igual a 0.
- * - La implementación no modifica el estado de la nave.
- *
- * @return desgaste que genera la operación
- */
-protected int desgasteQueGenera() {
-    return 4;
-}
 }
