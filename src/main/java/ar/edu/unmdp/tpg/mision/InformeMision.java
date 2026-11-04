@@ -36,7 +36,7 @@ public final class InformeMision {
     /**
      * Construye el informe de una mision cerrada.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - nave no es nula.
      * - acciones no es nula.
      * - Las tres cantidades consumidas son mayores o iguales a 0.
@@ -57,16 +57,18 @@ public final class InformeMision {
      * @param desgasteGenerado desgaste generado por la mision
      * @param exito resultado de la evaluacion
      * @param nave nave de la que se toma el estado final
-     * @throws IllegalArgumentException si la nave es nula
      */
     public InformeMision(String mision, String descripcion, String objetivo,
                          List<String> acciones,
                          int combustibleConsumido, int energiaConsumida, int desgasteGenerado,
                          boolean exito, Nave nave) {
 
-        if (nave == null) {
-            throw new IllegalArgumentException("El informe requiere la nave de la misión");
-        }
+        assert mision != null && !mision.isBlank() : "El informe requiere el nombre de la misión";
+        assert descripcion != null && objetivo != null : "El informe requiere descripción y objetivo";
+        assert acciones != null : "El informe requiere la lista de acciones";
+        assert combustibleConsumido >= 0 && energiaConsumida >= 0 && desgasteGenerado >= 0
+            : "Los consumos del informe no pueden ser negativos";
+        assert nave != null : "El informe requiere la nave de la misión";
 
         this.mision = mision;
         this.descripcion = descripcion;

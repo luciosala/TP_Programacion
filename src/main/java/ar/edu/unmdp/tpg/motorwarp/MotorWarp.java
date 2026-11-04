@@ -10,7 +10,14 @@ import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
  * estado actual la transicion y se queda con el estado que este le devuelve. Para
  * agregar un estado nuevo alcanza con una subclase de Estado.
  *
- * Invariantes:
+ * Contratos:
+ * - Que el estado actual no admita una transicion es un rechazo del dominio:
+ *   se informa con TransicionInvalidaException (nunca en silencio) y el
+ *   asistente lo registra en la bitacora.
+ * - Las postcondiciones de cada transicion se comprueban con assert: si se
+ *   acepta, el motor cambia de estado; si se rechaza, conserva el mismo.
+ *
+ * Invariantes (metodo invariante()):
  * - El estado actual nunca es nulo.
  * - Una transicion rechazada no cambia el estado del motor.
  */
@@ -26,69 +33,100 @@ public class MotorWarp{
      */
     public MotorWarp(){
         estadoActual=new Disponible();
+        assert estadoActual.estaDisponible() : "El motor debe comenzar Disponible";
+        assert invariante() : "Fallo invariante de MotorWarp";
+    }
+
+    /**
+     * Invariante de clase del motor.
+     *
+     * @return true si el motor tiene un estado actual
+     */
+    private boolean invariante() {
+        return estadoActual != null;
     }
     /**
      * Prepara el motor para realizar un salto.
-     *
-     * Precondiciones:
-     * - El motor está en estado Disponible.
      *
      * Postcondiciones:
      * - El motor queda en estado Preparando salto.
      * - Si la operación se rechaza, el estado del motor permanece sin cambios.
      *
-     * @throws TransicionInvalidaException si el motor no está en estado Disponible
+     * @throws TransicionInvalidaException rechazo de dominio: el motor no está en estado Disponible
      */
     public void prepararSalto() throws TransicionInvalidaException {
-        estadoActual = estadoActual.prepararSalto();
+        Estado anterior = estadoActual;
+        try {
+            estadoActual = estadoActual.prepararSalto();
+        } catch (TransicionInvalidaException rechazo) {
+            assert estadoActual == anterior : "Una transición rechazada no debe cambiar el estado";
+            throw rechazo;
+        }
+        assert estadoActual != anterior : "Una transición aceptada debe cambiar el estado";
+        assert invariante() : "Fallo invariante de MotorWarp";
     }
 
     /**
      * Inicia el salto del motor.
      *
-     * Precondiciones:
-     * - El motor está en estado Preparando salto.
-     *
      * Postcondiciones:
      * - El motor queda en estado En warp.
      * - Si la operación se rechaza, el estado del motor permanece sin cambios.
      *
-     * @throws TransicionInvalidaException si el motor no está en estado Preparando salto
+     * @throws TransicionInvalidaException rechazo de dominio: el motor no está en estado Preparando salto
      */
     public void iniciarSalto() throws TransicionInvalidaException {
-        estadoActual = estadoActual.iniciarSalto();
+        Estado anterior = estadoActual;
+        try {
+            estadoActual = estadoActual.iniciarSalto();
+        } catch (TransicionInvalidaException rechazo) {
+            assert estadoActual == anterior : "Una transición rechazada no debe cambiar el estado";
+            throw rechazo;
+        }
+        assert estadoActual != anterior : "Una transición aceptada debe cambiar el estado";
+        assert invariante() : "Fallo invariante de MotorWarp";
     }
 
     /**
      * Finaliza el salto e inicia el enfriamiento del motor.
      *
-     * Precondiciones:
-     * - El motor está en estado En warp.
-     *
      * Postcondiciones:
      * - El motor queda en estado Enfriamiento.
      * - Si la operación se rechaza, el estado del motor permanece sin cambios.
      *
-     * @throws TransicionInvalidaException si el motor no está en estado En warp
+     * @throws TransicionInvalidaException rechazo de dominio: el motor no está en estado En warp
      */
     public void finalizarSalto() throws TransicionInvalidaException {
-        estadoActual = estadoActual.finalizarSalto();
+        Estado anterior = estadoActual;
+        try {
+            estadoActual = estadoActual.finalizarSalto();
+        } catch (TransicionInvalidaException rechazo) {
+            assert estadoActual == anterior : "Una transición rechazada no debe cambiar el estado";
+            throw rechazo;
+        }
+        assert estadoActual != anterior : "Una transición aceptada debe cambiar el estado";
+        assert invariante() : "Fallo invariante de MotorWarp";
     }
 
     /**
      * Completa el enfriamiento del motor.
      *
-     * Precondiciones:
-     * - El motor está en estado Enfriamiento.
-     *
      * Postcondiciones:
      * - El motor queda en estado Disponible.
      * - Si la operación se rechaza, el estado del motor permanece sin cambios.
      *
-     * @throws TransicionInvalidaException si el motor no está en estado Enfriamiento
+     * @throws TransicionInvalidaException rechazo de dominio: el motor no está en estado Enfriamiento
      */
     public void completarEnfriamiento() throws TransicionInvalidaException {
-        estadoActual = estadoActual.completarEnfriamiento();
+        Estado anterior = estadoActual;
+        try {
+            estadoActual = estadoActual.completarEnfriamiento();
+        } catch (TransicionInvalidaException rechazo) {
+            assert estadoActual == anterior : "Una transición rechazada no debe cambiar el estado";
+            throw rechazo;
+        }
+        assert estadoActual != anterior : "Una transición aceptada debe cambiar el estado";
+        assert invariante() : "Fallo invariante de MotorWarp";
     }
 
     /**

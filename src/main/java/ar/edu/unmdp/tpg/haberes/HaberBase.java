@@ -15,7 +15,7 @@ public class HaberBase extends Haber {
     /**
      * Construye el concepto de sueldo base del tripulante.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - tripulante no es nulo.
      * - La remuneración base de su cargo es finita y no negativa.
      *
@@ -24,18 +24,12 @@ public class HaberBase extends Haber {
      * - El importe almacenado es finito y no negativo.
      *
      * @param tripulante tripulante cuyo sueldo base se calcula
-     * @throws IllegalArgumentException si el tripulante es nulo o la remuneración base no es finita o es negativa
      */
     public HaberBase(Tripulante tripulante) {
-        if (tripulante == null) {
-            throw new IllegalArgumentException("El tripulante no puede ser nulo");
-        }
+        assert tripulante != null : "El tripulante no puede ser nulo";
 
         double importe = tripulante.getCargo().getRemuneracionBase();
-        
-        if (!Double.isFinite(importe) || importe < 0) {
-            throw new IllegalArgumentException("La remuneración base debe ser un importe válido no negativo");
-        }
+        assert Double.isFinite(importe) && importe >= 0 : "La remuneración base debe ser un importe válido no negativo";
 
         this.nombreCargo = tripulante.getCargo().getNombre();
         this.remuneracionBase = importe;
@@ -63,9 +57,8 @@ public class HaberBase extends Haber {
         return remuneracionBase;
     }
 
+    // Precondicion de las consultas por indice (assert).
     private void validarIndice(int indice) {
-        if (indice != 0) {
-            throw new IndexOutOfBoundsException("El haber base tiene un único concepto, con índice 0");
-        }
+        assert indice == 0 : "El haber base tiene un único concepto, con índice 0";
     }
 }

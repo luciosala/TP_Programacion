@@ -6,9 +6,7 @@ public abstract class EstacionDeCarga implements ElementoDelUniverso {
 
     @Override
     public final String interactuarCon(Nave nave) {
-        if (nave == null) {
-            throw new IllegalArgumentException("La nave no puede ser nula");
-        }
+        assert nave != null : "La nave no puede ser nula";
         int combustibleAntes = nave.getCombustible();
         int energiaAntes = nave.getEnergia();
 

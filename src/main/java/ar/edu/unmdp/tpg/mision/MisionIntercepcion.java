@@ -18,7 +18,7 @@ public class MisionIntercepcion extends Mision {
     /**
      * Construye la mision de intercepcion y asistencia.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - asistente no es nulo.
      * - objetivo no es nulo, vacio ni contiene solo espacios.
      * - estadoObjetivo no es nulo, vacio ni contiene solo espacios.
@@ -31,21 +31,11 @@ public class MisionIntercepcion extends Mision {
      * @param asistente asistente que coordina la mision
      * @param objetivo nave o punto a interceptar
      * @param estadoObjetivo estado en que se encuentra el objetivo
-     * @throws IllegalArgumentException si el asistente es nulo o si el objetivo o su estado son nulos o vacios
      */
     public MisionIntercepcion(AsistenteDeComando asistente, Tablero tablero, String objetivo, String estadoObjetivo){
         super("M-01 - Intercepción y asistencia", "Interceptar un objetivo y completar su asistencia", asistente, tablero);
-        if (objetivo == null || objetivo.isBlank()) {
-            throw new IllegalArgumentException(
-                "El objetivo no puede ser nulo ni vacío"
-            );
-        }
-
-        if (estadoObjetivo == null || estadoObjetivo.isBlank()) {
-            throw new IllegalArgumentException(
-                "El estado del objetivo no puede ser nulo ni vacío"
-            );
-        }
+        assert objetivo != null && !objetivo.isBlank() : "El objetivo no puede ser nulo ni vacío";
+        assert estadoObjetivo != null && !estadoObjetivo.isBlank() : "El estado del objetivo no puede ser nulo ni vacío";
 
         this.objetivo = objetivo;
         this.estadoObjetivo = estadoObjetivo;

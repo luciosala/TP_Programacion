@@ -17,7 +17,7 @@ public class MisionRetornoSeguro extends Mision {
     /**
      * Construye la mision de retorno seguro.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - asistente no es nulo.
      * - zonaDestino no es nula, vacia ni contiene solo espacios.
      *
@@ -28,13 +28,10 @@ public class MisionRetornoSeguro extends Mision {
      *
      * @param asistente asistente que coordina la mision
      * @param zonaDestino zona a la que debe regresar la nave
-     * @throws IllegalArgumentException si el asistente es nulo o si la zona de destino es nula o vacia
      */
     public MisionRetornoSeguro(AsistenteDeComando asistente, Tablero tablero, String zonaDestino) {
         super("M-03 - Retorno seguro", "Completar el regreso simulado a una zona designada", asistente, tablero);
-        if (zonaDestino == null || zonaDestino.isBlank()) {
-            throw new IllegalArgumentException("La zona de destino no puede ser nula ni vacía");
-        }
+        assert zonaDestino != null && !zonaDestino.isBlank() : "La zona de destino no puede ser nula ni vacía";
 
         this.zonaDestino = zonaDestino;
     }

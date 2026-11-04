@@ -5,17 +5,13 @@ public class Asteroide implements ElementoDelUniverso  {
     private final int danioEnergia;
 
     public Asteroide(int danioEnergia) {
-        if (danioEnergia <= 0) {
-            throw new IllegalArgumentException("El daño del asteroide debe ser positivo");
-        }
+        assert danioEnergia > 0 : "El daño del asteroide debe ser positivo";
         this.danioEnergia = danioEnergia;
     }
 
     @Override
     public String interactuarCon(Nave nave) {
-        if (nave == null) {
-            throw new IllegalArgumentException("La nave no puede ser nula");
-        }
+        assert nave != null : "La nave no puede ser nula";
         nave.recibirImpacto(danioEnergia);   // ← lo del paso 1
         String resultado = "Impacto de asteroide: -" + danioEnergia + " de energía";
         if (nave.estaDestruida()) {

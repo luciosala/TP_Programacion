@@ -1,8 +1,10 @@
 package ar.edu.unmdp.tpg.excepciones;
 
 /**
- * Se lanza cuando la tripulacion de la nave no cumple la composicion minima
- * exigida.
+ * Rechazo de dominio sobre la tripulacion. Se lanza cuando:
+ * - la tripulacion no esta lista para operar (falta el capitan o los cuatro
+ *   tripulantes adicionales), o
+ * - se asigna a la nave un tripulante con un id que ya esta a bordo.
  */
 public class TripulacionInvalidaException extends NaveException {
 

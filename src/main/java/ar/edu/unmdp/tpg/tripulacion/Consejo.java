@@ -14,7 +14,7 @@ public final class Consejo {
     /**
      * Construye un consejo.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - fecha no es nula.
      * - descripcion no es nula, vacia ni contiene solo espacios.
      *
@@ -23,15 +23,10 @@ public final class Consejo {
      *
      * @param fecha fecha en que se brindo el consejo
      * @param descripcion detalle del consejo
-     * @throws IllegalArgumentException si la fecha es nula o la descripcion es nula o vacia
      */
     public Consejo(LocalDate fecha, String descripcion) {
-        if (fecha == null) {
-            throw new IllegalArgumentException("La fecha del consejo no puede ser nula");
-        }
-        if (descripcion == null || descripcion.isBlank()) {
-            throw new IllegalArgumentException("La descripción del consejo no puede ser nula ni vacía");
-        }
+        assert fecha != null : "La fecha del consejo no puede ser nula";
+        assert descripcion != null && !descripcion.isBlank() : "La descripción del consejo no puede ser nula ni vacía";
 
         this.fecha = fecha;
         this.descripcion = descripcion;

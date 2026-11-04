@@ -22,3 +22,7 @@ Thumbs.db
 # Locales del equipo
 /.contexto-local/
 /guia-tpg-programacion-c-2026-v4.1.md
+/docs/decisiones-de-diseno.md
+/docs/evidencias-local.md
+/docs/ejecuciones-local.txt
+/README-local.md

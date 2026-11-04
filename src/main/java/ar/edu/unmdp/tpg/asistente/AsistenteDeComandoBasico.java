@@ -36,7 +36,7 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
     /**
      * Construye el asistente de comando sobre una nave ya creada por el cliente.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - La nave no es nula.
      * - La bitacora no es nula.
      *
@@ -46,15 +46,10 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
      *
      * @param nave nave que el asistente va a operar.
      * @param bitacora bitacora donde se registra las ordenes y resultados.
-     * @throws IllegalArgumentException si la nave o la bitacora son nulas.
      */
     public AsistenteDeComandoBasico (Nave nave, Bitacora bitacora){
-        if (nave == null){
-            throw new IllegalArgumentException ("El asistente requiere una nave");
-        }
-        if (bitacora == null){
-            throw new IllegalArgumentException ("El asistente requiere una bitácora");
-        }
+        assert nave != null : "El asistente requiere una nave";
+        assert bitacora != null : "El asistente requiere una bitácora";
 
         this.nave = nave;
         this.bitacora = bitacora;
@@ -69,9 +64,8 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
     /**
      * Ordena asignar un tripulante a la nave.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - tripulante no es nulo.
-     * - No existe ya un tripulante con el mismo id en la nave.
      *
      * Postcondiciones:
      * - Si se acepta, el tripulante queda incorporado a la nave y se
@@ -79,35 +73,29 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
      * - Si se rechaza, la nave no se modifica y se registra el motivo.
      *
      * @param tripulante tripulante a asignar
-     * @throws IllegalArgumentException si el tripulante es inválido, o si ya existe un tripulante con ese id en la nave
+     * @throws TripulacionInvalidaException rechazo de dominio: ya hay un tripulante con ese id
      */
     @Override
-    public void asignarTripulante(Tripulante tripulante) {
+    public void asignarTripulante(Tripulante tripulante) throws TripulacionInvalidaException {
+        assert tripulante != null : "El tripulante no puede ser nulo";
         try {
             nave.agregarTripulante(tripulante);
             bitacora.registrar("COMANDO", "Tripulante " + tripulante.getId() + " asignado a la nave " + nave.getId());
-        } catch (IllegalArgumentException error) {
+        } catch (TripulacionInvalidaException error) {
             bitacora.registrar("ERROR", "No se pudo asignar tripulante: " + error.getMessage());
             throw error;
         }
     }
 
     /**
-     * Verifica que la nave cumpla la composicion minima de tripulacion.
+     * Consulta si la tripulacion esta lista, delegando en la unica operacion
+     * de la nave que define la regla.
      *
-     * Postcondiciones:
-     * - Si no la cumple, queda registrado el motivo y se propaga la excepcion.
-     *
-     * @throws TripulacionInvalidaException si falta el capitan o los cuatro tripulantes adicionales
+     * @return true si la tripulacion esta lista
      */
     @Override
-    public void validarTripulacionMinima() throws TripulacionInvalidaException {
-        try {
-            nave.validarTripulacionMinima();
-        } catch (TripulacionInvalidaException error) {
-            bitacora.registrar("ERROR", "Nave " + nave.getId() + ": " + error.getMessage());
-            throw error;
-        }
+    public boolean tripulacionLista() {
+        return nave.tripulacionLista();
     }
 
 
@@ -115,7 +103,7 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
     /**
      * Ordena cargar combustible en la nave.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - cantidad es mayor que 0 y no supera la capacidad restante de la nave.
      *
      * Postcondiciones:
@@ -131,7 +119,7 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
             nave.cargarCombustible(cantidad);
             bitacora.registrar("RECURSOS",
                 "Nave " + nave.getId() + ": combustible cargado (+" + cantidad + ")");
-        } catch (LimiteRecursoExcedidoException | IllegalArgumentException error) {
+        } catch (LimiteRecursoExcedidoException error) {
             bitacora.registrar("ERROR",
                 "Nave " + nave.getId() + ": no se pudo cargar combustible: " + error.getMessage());
             throw error;
@@ -148,7 +136,7 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
             nave.cargarEnergia(cantidad);
             bitacora.registrar("RECURSOS",
                 "Nave " + nave.getId() + ": energía cargada (+" + cantidad + ")");
-        } catch (LimiteRecursoExcedidoException | IllegalArgumentException error) {
+        } catch (LimiteRecursoExcedidoException error) {
             bitacora.registrar("ERROR",
                 "Nave " + nave.getId() + ": no se pudo cargar energía: " + error.getMessage());
             throw error;
@@ -299,8 +287,9 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
      * Ordena la ejecución completa de una misión (preparar, ejecutar, evaluar y cerrar), delegando en el Template Method a la mision.
      * Sirve indistintamente para MisionIntercepcion (M-01), MisionRecoleccion (M-02) o MisionRetornoSeguro (M-03).
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - mision no es nula.
+     * - La mision fue encomendada a este asistente.
      *
      * Postcondiciones:
      * - Si la misión se completa (con éxito o no), devuelve su InformeMision.
@@ -311,9 +300,8 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
      */
     @Override
     public InformeMision ejecutarMision(Mision mision) throws NaveException {
-        if (mision == null) {
-            throw new IllegalArgumentException("No se puede ejecutar una misión nula");
-        }
+        assert mision != null : "No se puede ejecutar una misión nula";
+        assert mision.estaEncomendadaA(this) : "La misión fue encomendada a otro asistente";
 
         bitacora.registrar("COMANDO", "Orden recibida: ejecutar " + mision.getClass().getSimpleName());
         try {
@@ -360,9 +348,7 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
 
     @Override
     public String interactuarCon(ElementoDelUniverso elemento) {
-        if (elemento == null) {
-            throw new IllegalArgumentException("El elemento no puede ser nulo");
-        }
+        assert elemento != null : "El elemento no puede ser nulo";
         return elemento.interactuarCon(nave);   // el asistente sí conoce la nave
     }
 
@@ -416,7 +402,7 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
     /**
      * Ordena liquidar el haber mensual de un tripulante para un período dado.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - periodo y tripulante no son nulos.
      *
      * Postcondiciones:
@@ -429,6 +415,7 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
      */
     @Override
      public Haber liquidarHaberes(YearMonth periodo, Tripulante tripulante) {
+        assert periodo != null && tripulante != null : "El período y el tripulante no pueden ser nulos";
         LiquidacionHaberes liquidacion = new LiquidacionHaberes(periodo);
         Haber haber = liquidacion.liquidar(tripulante);
         bitacora.registrar("HABERES", "Liquidado " + tripulante.getId() + " (" + periodo + "): " + haber.calcularTotal() + " PG");
@@ -441,21 +428,16 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
      * Registra un evento en la bitacora. Es la unica via por la que las misiones
      * dejan constancia de lo que hacen.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - tipo y descripcion no son nulos ni vacios.
      *
      * @param tipo tipo de evento (MISION, MOTOR, RECURSOS, ERROR, COMANDO)
      * @param descripcion detalle de lo ocurrido
-     * @throws IllegalArgumentException si el tipo o la descripcion son nulos o vacios
      */
     @Override
     public void registrarEvento(String tipo, String descripcion) {
-        if (tipo == null || tipo.isBlank()) {
-            throw new IllegalArgumentException("El tipo de evento no puede ser nulo ni vacío");
-        }
-        if (descripcion == null || descripcion.isBlank()) {
-            throw new IllegalArgumentException("La descripción del evento no puede ser nula ni vacía");
-        }
+        assert tipo != null && !tipo.isBlank() : "El tipo de evento no puede ser nulo ni vacío";
+        assert descripcion != null && !descripcion.isBlank() : "La descripción del evento no puede ser nula ni vacía";
         bitacora.registrar(tipo, descripcion);
     }
 
