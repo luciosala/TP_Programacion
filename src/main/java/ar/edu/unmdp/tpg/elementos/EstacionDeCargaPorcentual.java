@@ -5,9 +5,7 @@ public class EstacionDeCargaPorcentual extends EstacionDeCarga {
     private final int porcentaje;
 
     public EstacionDeCargaPorcentual(int porcentaje) {
-        if (porcentaje < 1 || porcentaje > 100) {
-            throw new IllegalArgumentException("El porcentaje debe estar entre 1 y 100");
-        }
+        assert porcentaje >= 1 && porcentaje <= 100 : "El porcentaje debe estar entre 1 y 100";
         this.porcentaje = porcentaje;
     }
 

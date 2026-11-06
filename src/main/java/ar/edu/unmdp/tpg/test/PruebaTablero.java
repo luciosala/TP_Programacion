@@ -1,4 +1,4 @@
-package ar.edu.unmdp.tpg.app;
+package ar.edu.unmdp.tpg.test;
 
 
 import ar.edu.unmdp.tpg.destino.*;
@@ -18,8 +18,8 @@ public class PruebaTablero {
         Tablero tablero = new Tablero(7, 7, elementos);
         Destino destino = new Destino(tablero);
 
-        // Observador de la cátedra: interfaz con un solo método -> se puede usar una lambda
-        tablero.agregarObservador(() -> System.out.println("  [aviso] el tablero cambió"));
+        // Observer (clase 11): el tablero avisa sus cambios a los observadores registrados
+        tablero.agregarObservador(new ObservadorConsola());
 
         Posicion objetivo = tablero.obtenerObjetivo();
         dibujar(tablero, objetivo);

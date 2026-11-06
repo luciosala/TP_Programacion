@@ -22,7 +22,7 @@ private final Instant timestamp;
 /**
  * Construye un evento de bitacora con la fecha y hora de su creacion.
  *
- * Precondiciones:
+ * Precondiciones (assert):
  * - categoria no es nula, vacia ni contiene solo espacios.
  * - descripcion no es nula, vacia ni contiene solo espacios.
  *
@@ -33,15 +33,10 @@ private final Instant timestamp;
  *
  * @param categoria tipo de evento (MISION, MOTOR, RECURSOS, ERROR, COMANDO, HABERES)
  * @param descripcion detalle de lo ocurrido
- * @throws IllegalArgumentException si la categoria o la descripcion son nulas o vacias
  */
 public EventoBitacora(String categoria,String descripcion){
-    if (categoria == null || categoria.isBlank()) {
-        throw new IllegalArgumentException("La categoría del evento no puede ser nula ni vacía");
-    }
-    if (descripcion == null || descripcion.isBlank()) {
-            throw new IllegalArgumentException("La Bitacora no acepta eventos nulos o vacios");
-        }
+    assert categoria != null && !categoria.isBlank() : "La categoría del evento no puede ser nula ni vacía";
+    assert descripcion != null && !descripcion.isBlank() : "La Bitacora no acepta eventos nulos o vacios";
     
     this.timestamp = Instant.now();
     this.categoria = categoria;

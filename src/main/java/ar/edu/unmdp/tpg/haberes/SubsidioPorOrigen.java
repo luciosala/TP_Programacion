@@ -12,7 +12,7 @@ public class SubsidioPorOrigen extends DecoratorHaber {
     /**
      * Construye el concepto de subsidio por origen.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - haber no es nulo.
      * - origen no es nulo.
      *
@@ -22,13 +22,10 @@ public class SubsidioPorOrigen extends DecoratorHaber {
      *
      * @param haber haber al que se agrega el subsidio
      * @param origen origen del tripulante
-     * @throws IllegalArgumentException si el haber o el origen son nulos
      */
     public SubsidioPorOrigen(Haber haber, Origen origen) {
         super(haber);
-        if (origen == null) {
-            throw new IllegalArgumentException("El origen no puede ser nulo");
-        }
+        assert origen != null : "El origen no puede ser nulo";
         this.origen = origen;
     }
 

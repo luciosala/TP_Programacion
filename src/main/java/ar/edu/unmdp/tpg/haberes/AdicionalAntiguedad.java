@@ -14,7 +14,7 @@ public class AdicionalAntiguedad extends DecoratorHaber {
     /**
      * Construye el concepto adicional por antigüedad.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - haber y tripulante no son nulos.
      * - La base y el porcentaje de antigüedad del cargo son finitos y no negativos.
      * - El producto de base, porcentaje y años es finito.
@@ -25,27 +25,22 @@ public class AdicionalAntiguedad extends DecoratorHaber {
      *
      * @param haber haber al que se agrega el adicional
      * @param tripulante tripulante cuya antigüedad se utiliza
-     * @throws IllegalArgumentException si el haber o el tripulante es nulo,
-     *         o la base, el porcentaje o el importe calculado es inválido
      */
     public AdicionalAntiguedad(Haber haber, Tripulante tripulante) {
         super(haber);
-        if (tripulante == null) {
-            throw new IllegalArgumentException("El tripulante no puede ser nulo");
-        }
+        assert tripulante != null : "El tripulante no puede ser nulo";
 
         double base = tripulante.getCargo().getRemuneracionBase();
         double porcentaje = tripulante.getCargo().getPorcentajeAntiguedad();
-        if (!Double.isFinite(base) || base < 0 || !Double.isFinite(porcentaje) || porcentaje < 0) {
-            throw new IllegalArgumentException("La base y el porcentaje deben ser valores válidos no negativos");
-        }
+        assert Double.isFinite(base) && base >= 0 && Double.isFinite(porcentaje) && porcentaje >= 0
+            : "La base y el porcentaje deben ser valores válidos no negativos";
 
         this.antiguedadAnios = tripulante.getAntiguedadAnios();
         double importe = base * porcentaje * antiguedadAnios;
-        if (!Double.isFinite(importe) || importe < 0) {
-            throw new IllegalArgumentException("El adicional de antigüedad debe ser un importe válido no negativo");
-        }
         this.adicional = importe;
+
+        assert Double.isFinite(adicional) && adicional >= 0
+            : "El adicional de antigüedad debe ser un importe válido no negativo";
     }
 
     @Override

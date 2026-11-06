@@ -1,6 +1,5 @@
 package ar.edu.unmdp.tpg.haberes;
 
-import ar.edu.unmdp.tpg.tripulacion.Consejero;
 import ar.edu.unmdp.tpg.tripulacion.Tripulante;
 
 import java.time.YearMonth;
@@ -20,7 +19,7 @@ public class AdicionalConsejos extends DecoratorHaber {
     /**
      * Construye el concepto adicional por consejos del periodo.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - haber no es nulo.
      * - tripulante no es nulo y su cargo es Consejero.
      * - periodo no es nulo.
@@ -34,16 +33,11 @@ public class AdicionalConsejos extends DecoratorHaber {
      * @param haber haber al que se agrega el adicional
      * @param tripulante consejero cuyos consejos se liquidan
      * @param periodo periodo de liquidacion
-     * @throws IllegalArgumentException si el haber o el periodo son nulos, o si el tripulante no es consejero
      */
     public AdicionalConsejos(Haber haber, Tripulante tripulante, YearMonth periodo) {
         super(haber);
-        if (tripulante == null || !(tripulante.getCargo() instanceof Consejero)) {
-            throw new IllegalArgumentException("El adicional de consejos requiere un tripulante consejero");
-        }
-        if (periodo == null) {
-            throw new IllegalArgumentException("El período de liquidación no puede ser nulo");
-        }
+        assert tripulante != null && tripulante.esConsejero() : "El adicional de consejos requiere un tripulante consejero";
+        assert periodo != null : "El período de liquidación no puede ser nulo";
 
         this.periodo = periodo;
         this.cantidadConsejos = tripulante.cantidadConsejos(periodo);

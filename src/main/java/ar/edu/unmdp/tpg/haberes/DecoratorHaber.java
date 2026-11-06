@@ -16,19 +16,16 @@ public abstract class DecoratorHaber extends Haber {
     /**
      * Construye un decorador sobre un haber existente.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - haber no es nulo.
      *
      * Postcondiciones:
      * - El componente almacenado es el haber recibido y no es nulo.
      *
      * @param haber haber al que se agrega un concepto
-     * @throws IllegalArgumentException si el haber es nulo
      */
     protected DecoratorHaber(Haber haber) {
-        if (haber == null) {
-            throw new IllegalArgumentException("El haber a decorar no puede ser nulo");
-        }
+        assert haber != null : "El haber a decorar no puede ser nulo";
 
         this.haber = haber;
     }
@@ -36,7 +33,7 @@ public abstract class DecoratorHaber extends Haber {
     /**
      * Calcula el total del haber incluyendo el concepto adicional.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - El importe del concepto adicional es finito y no negativo.
      * - El haber envuelto cumple su contrato de cálculo de importes válidos.
      *
@@ -45,20 +42,14 @@ public abstract class DecoratorHaber extends Haber {
      * - El total devuelto es finito y no negativo.
      *
      * @return total del haber en PG
-     * @throws IllegalStateException si el importe adicional o el total
-     *         no es finito o es negativo
      */
     @Override
     public double calcularTotal() {
         double importe = importeConcepto();
-        if (!Double.isFinite(importe) || importe < 0) {
-            throw new IllegalStateException("El concepto debe tener un importe válido no negativo");
-        }
+        assert Double.isFinite(importe) && importe >= 0 : "El concepto debe tener un importe válido no negativo";
 
         double total = haber.calcularTotal() + importe;
-        if (!Double.isFinite(total) || total < 0) {
-            throw new IllegalStateException("El total del haber debe ser un importe válido no negativo");
-        }
+        assert Double.isFinite(total) && total >= 0 : "El total del haber debe ser un importe válido no negativo";
         return total;
     }
 
@@ -89,9 +80,8 @@ public abstract class DecoratorHaber extends Haber {
 
     protected abstract double importeConcepto();
 
+    // Precondicion de las consultas por indice (assert).
     private void validarIndice(int indice) {
-        if (indice < 0 || indice >= cantidadConceptos()) {
-            throw new IndexOutOfBoundsException("El índice no corresponde a un concepto del haber");
-        }
+        assert indice >= 0 && indice < cantidadConceptos() : "El índice no corresponde a un concepto del haber: " + indice;
     }
 }

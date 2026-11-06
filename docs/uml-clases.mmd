@@ -9,14 +9,36 @@ classDiagram
         +main(String[] args) void$
     }
 
+    %% ============ PAQUETE test ============
+    class PruebaEscenarios {
+        +main(String[] args) void$
+    }
+
+    class Verificador {
+        <<final>>
+        -comprobaciones: int
+        -fallos: int
+        +asercionesActivas() boolean$
+        +verificar(String, boolean) void
+        +verificarIgual(String, int, int) void
+        +verificarRecursos(...) void
+        +rechazoEsperado(String, Throwable) void
+        +faltoRechazo(String) void
+        +imprimirResumen() void
+    }
+
     class Universo {
         -asistentes: List~AsistenteDeComando~
         -naveActiva: AsistenteDeComando
         +registrar(AsistenteDeComando) void
-        +obtener(String idNave) AsistenteDeComando
-        +seleccionarNave(String idNave) void
+        +estaRegistrada(String idNave) boolean
+        +cantidadNaves() int
+        +obtener(String idNave) AsistenteDeComando throws NaveNoRegistradaException
+        +seleccionarNave(String idNave) void throws NaveNoRegistradaException
+        +hayNaveActiva() boolean
         +getNaveActiva() AsistenteDeComando
         -buscarPorId(String idNave) AsistenteDeComando
+        -invariante() boolean
     }
 
     %% ============ MEDIADOR ============
@@ -24,7 +46,7 @@ classDiagram
         <<interface>>
         +idNave() String
         +asignarTripulante(Tripulante) void
-        +validarTripulacionMinima() void
+        +tripulacionLista() boolean
         +cargarCombustible(int) void
         +cargarEnergia(int) void
         +realizarMantenimiento() void
@@ -54,6 +76,7 @@ classDiagram
     %% ============ NAVES (FACTORY) ============
     class NaveFactory {
         <<Factory>>
+        +esTipoValido(String tipo) boolean$
         +createNave(String id, String tipo) Nave$
     }
 
@@ -67,9 +90,9 @@ classDiagram
         +agregarTripulante(Tripulante) void
         +buscarTripulantePorId(String) Tripulante
         +cantidadTripulantes() int
-        +tieneTripulacionMinima() boolean
-        +validarTripulacionMinima() void
+        +tripulacionLista() boolean
         +estaOperativa() boolean
+        -invariante() boolean
         +verificarDisponibilidad(int, int, int) void
         +consumirParaMision(int, int, int) void
         +prepararSalto() void
@@ -98,6 +121,7 @@ classDiagram
         +consumirParaMision(int, int, int) void
         +requiereMantenimiento() boolean
         +realizarMantenimiento() void
+        -invariante() boolean
     }
 
     %% ============ MOTOR WARP (STATE) ============
@@ -109,6 +133,7 @@ classDiagram
         +completarEnfriamiento() void
         +getEstadoActual() String
         +estaDisponible() boolean
+        -invariante() boolean
     }
 
     class Estado {
@@ -129,44 +154,53 @@ classDiagram
     %% ============ MISIONES (TEMPLATE METHOD) ============
     class Mision {
         <<abstract>>
-        #nombre: String
-        #descripcion: String
+        -nombre: String
+        -descripcion: String
         #asistente: AsistenteDeComando
-        -realizada: boolean
+        -fase: Fase
+        -informe: InformeMision
         -acciones: List~String~
         +realizarMision() InformeMision
+        +estaEncomendadaA(AsistenteDeComando) boolean
         #preparar() void
-        #ejecutar() void
-        #evaluarResultado() boolean
-        #cerrar(boolean exito) InformeMision
+        #ejecutar() boolean
+        #evaluar(boolean exito) InformeMision
+        #cerrar(boolean exito) void
         -saltar() void
+        -invariante() boolean
         #registrarAccion(String) void
-        #ejecutaMision()* void
-        #condicionDeExito()* boolean
+        #destinoDeLaMision()* Posicion
         #costoAccionFinal()* int
         #descripcionObjetivo()* String
         #combustibleNecesario() int
         #desgasteQueGenera() int
+        #combustibleAEntregar() int
+        #alLlegar() void
+        #impactarAlCerrar() void
+    }
+
+    class Fase {
+        <<enumeration>>
+        CREADA
+        PREPARADA
+        EJECUTADA
+        EVALUADA
+        CERRADA
     }
 
     class MisionIntercepcion {
         -objetivo: String
         -estadoObjetivo: String
-        -contactoEstablecido: boolean
-        -asistenciaCompletada: boolean
     }
 
     class MisionRecoleccion {
         -puntoInteres: String
         -elemento: String
-        -elementoObtenido: boolean
-        -elementoRegistrado: boolean
+        -gemasEncontradas: int
     }
 
     class MisionRetornoSeguro {
         -zonaDestino: String
-        -regresoCompletado: boolean
-        -estadoOperativoValido: boolean
     }
 
     class InformeMision {
@@ -192,6 +226,7 @@ classDiagram
         -eventos: List~EventoBitacora~
         +registrar(String, String) void
         +consultarEventos() List~EventoBitacora~
+        -invariante() boolean
     }
 
     class EventoBitacora {
@@ -214,6 +249,8 @@ classDiagram
         +cantidadConsejos() int
         +cantidadConsejos(YearMonth) int
         +consultarConsejo(int) Consejo
+        +esConsejero() boolean
+        -invariante() boolean
     }
 
     class Cargo {
@@ -305,11 +342,19 @@ classDiagram
     class TransicionInvalidaException
     class MisionNoViableException
     class TripulacionInvalidaException
+    class NaveYaRegistradaException {
+        -idNave: String
+    }
+    class NaveNoRegistradaException {
+        -idNave: String
+    }
 
     %% ============ RELACIONES ============
     Main ..> Universo : usa
     Main ..> NaveFactory : usa
     Main ..> AsistenteDeComandoBasico : crea
+    PruebaEscenarios ..> Verificador : comprueba con
+    PruebaEscenarios ..> Universo : usa
 
     Universo o-- "0..*" AsistenteDeComando : asistentes
     AsistenteDeComandoBasico ..|> AsistenteDeComando
@@ -337,6 +382,7 @@ classDiagram
     Mision <|-- MisionRecoleccion
     Mision <|-- MisionRetornoSeguro
     Mision ..> InformeMision : produce
+    Mision *-- "1" Fase : fase
     AsistenteDeComandoBasico ..> Mision : ejecuta
 
     Bitacora *-- "0..*" EventoBitacora : eventos
@@ -365,3 +411,5 @@ classDiagram
     NaveException <|-- TransicionInvalidaException
     NaveException <|-- MisionNoViableException
     NaveException <|-- TripulacionInvalidaException
+    NaveException <|-- NaveYaRegistradaException
+    NaveException <|-- NaveNoRegistradaException
