@@ -14,4 +14,5 @@
 -Consultas tecnicas y dudas sobre Sintaxis.
 -Debugging y solucion de errores.
 -Desarrollo de borrador informe y readme.md
-
+-Se uso IA  para el diseño e implementación inicial del login y registro con DAO/DTO y JDBC sobre H2 (paquetes persistencia y acceso, database/schema.sql, PruebaAcceso, cambios en pom.xml). Se verifico ejecutando PruebaAcceso dos veces para comprobar la persistencia entre ejecuciones.
+-Implementacion del visor del universo paralelo (productor-consumidor con monitores, Observer y MVC). Lo revisamos, lo adaptamos a la teoria y lo probamos con PruebaVisor.
