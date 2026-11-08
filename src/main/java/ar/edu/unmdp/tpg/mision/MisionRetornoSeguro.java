@@ -1,7 +1,9 @@
 package ar.edu.unmdp.tpg.mision;
 
 import ar.edu.unmdp.tpg.asistente.AsistenteDeComando;
-
+import ar.edu.unmdp.tpg.destino.Posicion;
+import ar.edu.unmdp.tpg.destino.Tablero;
+import ar.edu.unmdp.tpg.excepciones.NaveException;
 /**
  * M-03: completar el regreso simulado a una zona designada.
  *
@@ -12,13 +14,10 @@ public class MisionRetornoSeguro extends Mision {
 
     private final String zonaDestino;
 
-    private boolean regresoCompletado;
-    private boolean estadoOperativoValido;
-
     /**
      * Construye la mision de retorno seguro.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - asistente no es nulo.
      * - zonaDestino no es nula, vacia ni contiene solo espacios.
      *
@@ -29,35 +28,12 @@ public class MisionRetornoSeguro extends Mision {
      *
      * @param asistente asistente que coordina la mision
      * @param zonaDestino zona a la que debe regresar la nave
-     * @throws IllegalArgumentException si el asistente es nulo o si la zona de destino es nula o vacia
      */
-    public MisionRetornoSeguro(AsistenteDeComando asistente, String zonaDestino) {
-
-        super("M-03 - Retorno seguro", "Completar el regreso simulado a una zona designada", asistente);
-
-        if (zonaDestino == null || zonaDestino.isBlank()) {
-            throw new IllegalArgumentException("La zona de destino no puede ser nula ni vacía");
-        }
+    public MisionRetornoSeguro(AsistenteDeComando asistente, Tablero tablero, String zonaDestino) {
+        super("M-03 - Retorno seguro", "Completar el regreso simulado a una zona designada", asistente, tablero);
+        assert zonaDestino != null && !zonaDestino.isBlank() : "La zona de destino no puede ser nula ni vacía";
 
         this.zonaDestino = zonaDestino;
-    }
-
-    @Override
-    protected void ejecutaMision() {
-        registrarAccion("Regreso simulado iniciado hacia " + zonaDestino);
-
-        regresoCompletado = true;
-
-        registrarAccion("Arribo confirmado en " + zonaDestino);
-
-        estadoOperativoValido = asistente.naveEstaOperativa();
-
-        registrarAccion("Estado operativo final verificado: " + estadoOperativoValido);
-    }
-
-    @Override
-    protected boolean condicionDeExito() {
-        return regresoCompletado && estadoOperativoValido;
     }
 
     @Override
@@ -65,8 +41,32 @@ public class MisionRetornoSeguro extends Mision {
         return 0;
     }
 
+    // La base de origen es el punto de partida de la nave: el centro del tablero
+    @Override
+    protected Posicion destinoDeLaMision() {
+        return new Posicion(tablero.getX() / 2, tablero.getY() / 2);
+    }
+
     @Override
     protected String descripcionObjetivo() {
         return "Regresar de forma segura a " + zonaDestino;
+    }
+
+    @Override
+    protected void alLlegar() {
+        registrarAccion("Base alcanzada: se recargarán los recursos y se reparará el desgaste");
+    }
+
+    @Override
+    protected void impactarAlCerrar() throws NaveException {
+        int faltaCombustible = 100 - asistente.combustibleDisponible();
+        if (faltaCombustible > 0) {
+            asistente.cargarCombustible(faltaCombustible);
+        }
+        int faltaEnergia = 100 - asistente.energiaDisponible();
+        if (faltaEnergia > 0) {
+            asistente.cargarEnergia(faltaEnergia);
+        }
+        asistente.realizarMantenimiento();
     }
 }

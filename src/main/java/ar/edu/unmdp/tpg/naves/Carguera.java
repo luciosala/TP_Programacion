@@ -13,4 +13,19 @@ public class Carguera extends Nave {
     Carguera(String id, String tipo, Recursos recursos, MotorWarp motorWarp) {
         super(id, tipo, recursos, motorWarp);
     }
+
+// "Hay una batalla, y yo soy una Carguera"
+@Override
+protected ResultadoBatalla recibirDesafioDe(Nave retadora) {
+    return retadora.contraCarguera();
+}
+
+@Override
+protected ResultadoBatalla contraExploradora() { return ResultadoBatalla.PIERDE; }
+
+@Override
+protected ResultadoBatalla contraCarguera() { return ResultadoBatalla.PACTO_DE_PAZ; }
+
+@Override
+protected ResultadoBatalla contraCombate() { return ResultadoBatalla.GANA; }
 }

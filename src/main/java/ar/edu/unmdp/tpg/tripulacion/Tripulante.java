@@ -27,7 +27,7 @@ public class Tripulante {
     /**
      * Construye un tripulante.
      *
-     * Precondiciones de antigüedad:
+     * Precondiciones (assert):
      * - antiguedadAnios es mayor o igual a 0.
      * - El cargo no puede ser nulo.
      * - El origen no puede ser nulo.
@@ -35,8 +35,9 @@ public class Tripulante {
      * - El apellido no puede ser nulo ni vacio.
      * - El nombre no puede ser nulo ni vacio.
      *
-     * Postcondiciones de antigüedad:
-     * - La antigüedad, el id, el nombre, el apellido, el cargo y el origen queda inicializado con lo ingresado.
+     * Postcondiciones:
+     * - La antigüedad, el id, el nombre, el apellido, el cargo y el origen quedan inicializados con lo ingresado.
+     * - El tripulante comienza sin consejos registrados.
      *
      * @param id identificador del tripulante
      * @param nombre nombre del tripulante
@@ -44,35 +45,15 @@ public class Tripulante {
      * @param cargo cargo del tripulante
      * @param origen origen del tripulante
      * @param antiguedadAnios antigüedad en años
-     * @throws IllegalArgumentException si incumple alguna precondición.
      */
     public Tripulante(String id, String nombre, String apellido, Cargo cargo, Origen origen, int antiguedadAnios) {
 
-        if (antiguedadAnios < 0) {
-            throw new IllegalArgumentException(
-                "La antiguedad no puede ser negativa"
-            );
-        }
-
-        if (cargo == null){
-            throw new IllegalArgumentException("El cargo es inválido");
-        }
-
-        if (origen == null) {
-            throw new IllegalArgumentException("El origen es inválido");
-        }
-
-        if (id == null || id.isBlank()) {
-            throw new IllegalArgumentException("El id no puede ser nulo ni vacío");
-        }
-
-        if (nombre == null || nombre.isBlank()) {
-            throw new IllegalArgumentException("El nombre no puede ser nulo ni vacío");
-        }
-
-        if (apellido == null || apellido.isBlank()) {
-            throw new IllegalArgumentException("El apellido no puede ser nulo ni vacío");
-        }
+        assert antiguedadAnios >= 0 : "La antiguedad no puede ser negativa";
+        assert cargo != null : "El cargo es inválido";
+        assert origen != null : "El origen es inválido";
+        assert id != null && !id.isBlank() : "El id no puede ser nulo ni vacío";
+        assert nombre != null && !nombre.isBlank() : "El nombre no puede ser nulo ni vacío";
+        assert apellido != null && !apellido.isBlank() : "El apellido no puede ser nulo ni vacío";
 
         this.id = id;
         this.nombre = nombre;
@@ -80,6 +61,8 @@ public class Tripulante {
         this.cargo = cargo;
         this.origen = origen;
         this.antiguedadAnios = antiguedadAnios;
+
+        assert invariante() : "Fallo invariante de Tripulante al construir";
     }
 
     public String getId() {
@@ -109,7 +92,7 @@ public class Tripulante {
     /**
      * Registra un consejo brindado por el tripulante.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - El cargo del tripulante es Consejero.
      * - fecha no es nula.
      * - descripcion no es nula, vacia ni contiene solo espacios.
@@ -122,14 +105,39 @@ public class Tripulante {
      *
      * @param fecha fecha en que se brindo el consejo
      * @param descripcion detalle del consejo
-     * @throws IllegalStateException si el tripulante no es consejero
-     * @throws IllegalArgumentException si la fecha es nula o la descripcion es nula o vacia
      */
     public void registrarConsejo(LocalDate fecha, String descripcion) {
-        if (!(cargo instanceof Consejero)) {
-            throw new IllegalStateException("Solo los consejeros pueden registrar consejos");
-        }
+        assert esConsejero() : "Solo los consejeros pueden registrar consejos";
+
+        int cantidadAnterior = consejos.size();
         consejos.add(new Consejo(fecha, descripcion));
+
+        assert consejos.size() == cantidadAnterior + 1 : "Fallo postcondición de registrarConsejo";
+        assert invariante() : "Fallo invariante de Tripulante";
+    }
+
+    /**
+     * Consulta si el tripulante tiene cargo de consejero, condicion para
+     * registrar consejos.
+     *
+     * @return true si el cargo es Consejero
+     */
+    public boolean esConsejero() {
+        return cargo instanceof Consejero;
+    }
+
+    /**
+     * Invariante de clase del tripulante.
+     *
+     * @return true si el tripulante esta en un estado valido
+     */
+    private boolean invariante() {
+        return id != null && !id.isBlank()
+            && nombre != null && !nombre.isBlank()
+            && apellido != null && !apellido.isBlank()
+            && cargo != null && origen != null
+            && antiguedadAnios >= 0
+            && (consejos.isEmpty() || cargo instanceof Consejero);
     }
 
     /**
@@ -148,7 +156,7 @@ public class Tripulante {
     /**
      * Cuenta los consejos que el tripulante registro dentro de un periodo mensual.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - periodo no es nulo.
      *
      * Postcondiciones:
@@ -159,12 +167,9 @@ public class Tripulante {
      *
      * @param periodo periodo mensual a contar
      * @return cantidad de consejos de ese periodo
-     * @throws IllegalArgumentException si el periodo es nulo
      */
     public int cantidadConsejos(YearMonth periodo) {
-        if (periodo == null) {
-            throw new IllegalArgumentException("El período no puede ser nulo");
-        }
+        assert periodo != null : "El período no puede ser nulo";
 
         int cantidad = 0;
         for (Consejo consejo : consejos) {
@@ -178,7 +183,7 @@ public class Tripulante {
     /**
      * Consulta un consejo del tripulante por su indice, empezando en cero.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - indice esta entre 0 y cantidadConsejos()-1.
      *
      * Postcondiciones:
@@ -187,9 +192,9 @@ public class Tripulante {
      *
      * @param indice posicion del consejo
      * @return el consejo pedido
-     * @throws IndexOutOfBoundsException si el indice esta fuera de rango
      */
     public Consejo consultarConsejo(int indice) {
+        assert indice >= 0 && indice < consejos.size() : "Índice de consejo fuera de rango: " + indice;
         return consejos.get(indice);
     }
 }

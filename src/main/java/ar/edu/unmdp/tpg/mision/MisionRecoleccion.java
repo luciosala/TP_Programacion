@@ -1,6 +1,10 @@
 package ar.edu.unmdp.tpg.mision;
 
+import java.util.Random;
+
 import ar.edu.unmdp.tpg.asistente.AsistenteDeComando;
+import ar.edu.unmdp.tpg.destino.Posicion;
+import ar.edu.unmdp.tpg.destino.Tablero;
 
 /**
  * M-02: recolectar datos o una muestra en un punto de interes.
@@ -13,13 +17,10 @@ public class MisionRecoleccion extends Mision{
     private final String puntoInteres;
     private final String elemento;
 
-    private boolean elementoObtenido;
-    private boolean elementoRegistrado;
-
     /**
      * Construye la mision de recoleccion.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - asistente no es nulo.
      * - puntoInteres no es nulo, vacio ni contiene solo espacios.
      * - elemento no es nulo, vacio ni contiene solo espacios.
@@ -32,47 +33,45 @@ public class MisionRecoleccion extends Mision{
      * @param asistente asistente que coordina la mision
      * @param puntoInteres punto donde se realiza la recoleccion
      * @param elemento dato o muestra a recolectar
-     * @throws IllegalArgumentException si el asistente es nulo o si el punto de interes o el elemento son nulos o vacios
      */
-    public MisionRecoleccion(AsistenteDeComando asistente, String puntoInteres, String elemento) {
+    public MisionRecoleccion(AsistenteDeComando asistente, Tablero tablero, String puntoInteres, String elemento) {
+        super("M-02 - Recolección", "Recolectar datos o una muestra en un punto de interés", asistente, tablero);
 
-        super("M-02 - Recolección", "Recolectar datos o una muestra en un punto de interés", asistente);
-
-        if (puntoInteres == null || puntoInteres.isBlank()) {
-            throw new IllegalArgumentException("El punto de interés no puede ser nulo ni vacío");
-        }
-
-        if (elemento == null || elemento.isBlank()) {
-            throw new IllegalArgumentException("El elemento no puede ser nulo ni vacío");
-        }
+        assert puntoInteres != null && !puntoInteres.isBlank() : "El punto de interés no puede ser nulo ni vacío";
+        assert elemento != null && !elemento.isBlank() : "El elemento no puede ser nulo ni vacío";
 
         this.puntoInteres = puntoInteres;
         this.elemento = elemento;
     }
 
-    @Override
-    protected void ejecutaMision() {
-        registrarAccion("Aproximación completada al punto " + puntoInteres);
-
-        elementoObtenido = true;
-        registrarAccion("Elemento obtenido: " + elemento);
-
-        elementoRegistrado = true;
-        registrarAccion("Elemento registrado como obtenido");
-    }
-
-    @Override
-    protected boolean condicionDeExito() {
-        return elementoObtenido && elementoRegistrado;
-    }
 
     @Override
     protected int costoAccionFinal() {
         return 5;
     }
 
+    // Las riquezas están en el objetivo que elige el tablero
+    @Override
+    protected Posicion destinoDeLaMision() {
+        return tablero.obtenerObjetivo();
+    }
+
     @Override
     protected String descripcionObjetivo() {
         return "Recolectar " + elemento + " en " + puntoInteres;
+    }
+
+    private final Random random = new Random();
+    private int gemasEncontradas = 0;
+
+    @Override
+    protected void alLlegar() {
+        gemasEncontradas = 1 + random.nextInt(5);   // entre 1 y 5
+        registrarAccion("Gemas encontradas en " + puntoInteres + ": " + gemasEncontradas);
+    }
+
+    @Override
+    protected void impactarAlCerrar() {
+        asistente.recolectarGemas(gemasEncontradas);
     }
 }

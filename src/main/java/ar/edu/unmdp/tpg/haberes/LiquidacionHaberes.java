@@ -1,6 +1,5 @@
 package ar.edu.unmdp.tpg.haberes;
 
-import ar.edu.unmdp.tpg.tripulacion.Consejero;
 import ar.edu.unmdp.tpg.tripulacion.Tripulante;
 
 import java.time.YearMonth;
@@ -19,19 +18,16 @@ public final class LiquidacionHaberes {
     /**
      * Construye una liquidacion para un periodo determinado.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - periodo no es nulo.
      *
      * Postcondiciones:
      * - La liquidacion queda asociada a ese periodo y no cambia despues.
      *
      * @param periodo periodo mensual a liquidar
-     * @throws IllegalArgumentException si el periodo es nulo
      */
     public LiquidacionHaberes(YearMonth periodo) {
-        if (periodo == null) {
-            throw new IllegalArgumentException("El período de liquidación no puede ser nulo");
-        }
+        assert periodo != null : "El período de liquidación no puede ser nulo";
         this.periodo = periodo;
     }
 
@@ -50,7 +46,7 @@ public final class LiquidacionHaberes {
     /**
      * Arma el haber del tripulante para el periodo de esta liquidacion.
      *
-     * Precondiciones:
+     * Precondiciones (assert):
      * - tripulante no es nulo.
      *
      * Postcondiciones:
@@ -63,16 +59,31 @@ public final class LiquidacionHaberes {
      *
      * @param tripulante tripulante a liquidar
      * @return el haber compuesto por los conceptos que le corresponden
-     * @throws IllegalArgumentException si el tripulante es nulo
      */
     public Haber liquidar(Tripulante tripulante) {
+        assert tripulante != null : "El tripulante no puede ser nulo";
+
         Haber haber = new HaberBase(tripulante);
         haber = new AdicionalAntiguedad(haber, tripulante);
         haber = new SubsidioPorOrigen(haber, tripulante.getOrigen());
 
-        if (tripulante.getCargo() instanceof Consejero) {
+        if (tripulante.esConsejero()) {
             haber = new AdicionalConsejos(haber, tripulante, periodo);
         }
+
+        assert haber.cantidadConceptos() == (tripulante.esConsejero() ? 4 : 3)
+            : "Fallo postcondición: cantidad de conceptos incorrecta";
+        assert Math.abs(haber.calcularTotal() - sumaDeConceptos(haber)) < 1e-9
+            : "Fallo postcondición: el total debe ser la suma de sus conceptos";
         return haber;
+    }
+
+    // Suma los importes de cada concepto, para verificar la postcondicion del total.
+    private static double sumaDeConceptos(Haber haber) {
+        double suma = 0;
+        for (int i = 0; i < haber.cantidadConceptos(); i++) {
+            suma += haber.consultarImporteConcepto(i);
+        }
+        return suma;
     }
 }
