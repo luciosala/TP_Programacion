@@ -13,3 +13,4 @@
 -Se pidio a la IA que genere UMLs durante el desarrollo para definir las relaciones y responsabilidades.
 -Consultas tecnicas y dudas sobre Sintaxis.
 -Debugging y solucion de errores.
+-Se uso IA  para el diseño e implementación inicial del login y registro con DAO/DTO y JDBC sobre H2 (paquetes persistencia y acceso, database/schema.sql, PruebaAcceso, cambios en pom.xml). Se verifico ejecutando PruebaAcceso dos veces para comprobar la persistencia entre ejecuciones.
