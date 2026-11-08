@@ -1,7 +1,6 @@
 package ar.edu.unmdp.tpg.visor.modelo;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.ArrayList;
 
 /**
  * Recurso compartido del productor-consumidor: la unica plataforma de carga del
@@ -18,7 +17,7 @@ import java.util.Deque;
 public class PlataformaDeCarga {
 
     private final int capacidad;
-    private final Deque<Bateria> baterias = new ArrayDeque<>();
+    private final ArrayList<Bateria> baterias = new ArrayList<>();
     private final CanalDeEventos canal;
     private int maximoAlcanzado = 0;
 
@@ -65,7 +64,7 @@ public class PlataformaDeCarga {
             canal.publicar(generadora + " esperando a que se libere espacio en la Plataforma.");
             wait();
         }
-        baterias.addLast(bateria);
+        baterias.add(bateria);                  // la deja al final
         maximoAlcanzado = Math.max(maximoAlcanzado, baterias.size());
         notifyAll();
     }
@@ -87,7 +86,7 @@ public class PlataformaDeCarga {
             canal.publicar(nave + " esperando por falta de baterías en la Plataforma.");
             wait();
         }
-        Bateria bateria = baterias.removeFirst();
+        Bateria bateria = baterias.remove(0);   // saca la mas antigua
         notifyAll();
         return bateria;
     }
