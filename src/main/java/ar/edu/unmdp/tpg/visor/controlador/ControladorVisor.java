@@ -8,7 +8,7 @@ import java.awt.event.ActionListener;
 
 /**
  * Controlador del visor (MVC): atiende los botones de la vista y le pide al modelo
- * que cree naves o generadoras. Al cerrar la vista, detiene todos los hilos.
+ * que cree naves o generadoras. Los hilos son daemon: terminan al cerrar la aplicación.
  *
  * Las actualizaciones automaticas (los eventos de la simulacion) no pasan por aca:
  * llegan del modelo a la vista directamente por Observer.
@@ -22,7 +22,6 @@ public class ControladorVisor implements ActionListener {
         this.vista = vista;
         this.universo = universo;
         vista.setActionListener(this);
-        vista.alCerrar(universo::detenerTodo);
     }
 
     @Override

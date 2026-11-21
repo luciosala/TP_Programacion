@@ -1,33 +1,30 @@
 package ar.edu.unmdp.tpg.visor.vista;
 
-import ar.edu.unmdp.tpg.visor.modelo.ObservadorVisor;
+import ar.edu.unmdp.tpg.destino.Observador;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
-import javax.swing.WindowConstants;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 
 /**
- * Vista del visor del universo paralelo: los dos botones del panel de control y la
- * consola de eventos en vivo.
+ * Sección del Visor Recóndito: botones para agregar Naves Consumidoras y
+ * Generadoras de Energía en vivo, y una consola con el flujo de eventos de la
+ * Plataforma de Carga, que se actualiza sola.
  *
- * Cumple dos roles:
- * - Vista del MVC (IVistaVisor): los botones avisan al controlador.
- * - Observador concreto del patron Observer (ObservadorVisor): recibe los eventos
- *   que publican la plataforma, las generadoras y las naves.
+ * Es vista (MVC) y observadora del canal de eventos (Observer). Los eventos los
+ * publican los hilos de las naves y generadoras; como Swing solo debe modificarse
+ * desde su hilo de eventos, el texto se agrega con SwingUtilities.invokeLater y
+ * un Runnable (Clase 10).
  */
-public class VentanaVisor extends JFrame implements IVistaVisor, ObservadorVisor {
+public class PanelVisor extends JPanel implements IVistaVisor, Observador {
 
     private static final int MAX_LINEAS = 500;
 
@@ -36,15 +33,12 @@ public class VentanaVisor extends JFrame implements IVistaVisor, ObservadorVisor
     private final JLabel lblCantidades = new JLabel();
     private final JTextArea consola = new JTextArea(22, 70);
 
-    public VentanaVisor(int capacidadPlataforma) {
-        super("Visor del universo paralelo");
-
+    public PanelVisor(int capacidadPlataforma) {
         JPanel botones = new JPanel(new FlowLayout(FlowLayout.LEFT));
         botones.setBorder(BorderFactory.createTitledBorder("Panel de control"));
         botones.add(btnCrearNave);
         botones.add(btnCrearGeneradora);
         botones.add(lblCantidades);
-
         btnCrearNave.setActionCommand(CREAR_NAVE);
         btnCrearGeneradora.setActionCommand(CREAR_GENERADORA);
 
@@ -57,11 +51,7 @@ public class VentanaVisor extends JFrame implements IVistaVisor, ObservadorVisor
         setLayout(new BorderLayout());
         add(botones, BorderLayout.NORTH);
         add(scroll, BorderLayout.CENTER);
-
         mostrarCantidades(0, 0);
-        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        pack();
-        setLocationRelativeTo(null);
     }
 
     @Override
@@ -71,35 +61,24 @@ public class VentanaVisor extends JFrame implements IVistaVisor, ObservadorVisor
     }
 
     @Override
-    public void alCerrar(Runnable accion) {
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                accion.run();
-            }
-        });
-    }
-
-    @Override
     public void mostrarCantidades(int naves, int generadoras) {
         lblCantidades.setText("   Naves: " + naves + "   Generadoras: " + generadoras);
     }
 
-    /**
-     * Lo llaman los hilos de las generadoras y naves, no el hilo de Swing.
-     * Swing no es seguro para hilos: el append se encola con invokeLater para que lo
-     * haga el hilo de Swing (Event Dispatch Thread).
-     */
+    /** Observer: llega un evento del universo paralelo (desde el hilo que lo publicó). */
     @Override
-    public void actualizar(String evento) {
-        SwingUtilities.invokeLater(() -> {
-            consola.append(evento + "\n");
-            recortar();
-            consola.setCaretPosition(consola.getDocument().getLength());   // autoscroll
+    public void actualizar(final String evento) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                consola.append(evento + "\n");
+                recortar();
+                consola.setCaretPosition(consola.getDocument().getLength());   // autoscroll
+            }
         });
     }
 
-    /** Evita que la consola crezca sin limite si la simulacion corre mucho tiempo. */
+    // Deja solo las últimas MAX_LINEAS líneas, para que la consola no crezca sin límite
     private void recortar() {
         int sobrantes = consola.getLineCount() - MAX_LINEAS;
         if (sobrantes > 0) {
@@ -109,10 +88,5 @@ public class VentanaVisor extends JFrame implements IVistaVisor, ObservadorVisor
                 // no puede pasar: el offset sale de la propia consola
             }
         }
-    }
-
-    @Override
-    public void mostrar() {
-        setVisible(true);
     }
 }

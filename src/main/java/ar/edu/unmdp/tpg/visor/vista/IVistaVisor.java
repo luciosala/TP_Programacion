@@ -14,11 +14,6 @@ public interface IVistaVisor {
     /** Registra al controlador como oyente de los dos botones. */
     void setActionListener(ActionListener listener);
 
-    /** Accion a ejecutar cuando el usuario cierra el visor (detener los hilos). */
-    void alCerrar(Runnable accion);
-
     /** Muestra cuantas naves y generadoras hay en el universo paralelo. */
     void mostrarCantidades(int naves, int generadoras);
-
-    void mostrar();
 }

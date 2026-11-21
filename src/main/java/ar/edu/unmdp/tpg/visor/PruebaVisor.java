@@ -1,5 +1,6 @@
 package ar.edu.unmdp.tpg.visor;
 
+import ar.edu.unmdp.tpg.destino.Observador;
 import ar.edu.unmdp.tpg.visor.modelo.UniversoParalelo;
 
 /**
@@ -11,8 +12,12 @@ public class PruebaVisor {
     public static void main(String[] args) throws InterruptedException {
         int capacidad = 2;
         UniversoParalelo universo = new UniversoParalelo(capacidad);
-        universo.getCanal().agregarObservador(evento ->
-                System.out.println("[" + Thread.currentThread().getName() + "] " + evento));
+        universo.getCanal().agregarObservador(new Observador() {
+            @Override
+            public void actualizar(String evento) {
+                System.out.println("[" + Thread.currentThread().getName() + "] " + evento);
+            }
+        });
 
         universo.crearGeneradora();
         universo.crearGeneradora();

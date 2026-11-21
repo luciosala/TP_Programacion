@@ -15,7 +15,7 @@
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <programa>ar.edu.unmdp.tpg.test.PruebaEscenarios</programa>
+        <programa>ar.edu.unmdp.tpg.app.MainGrafico</programa>
     </properties>
 
     <dependencies>
@@ -56,10 +56,10 @@
                 <!--
                     Las precondiciones del modelo se comprueban con assert, que la JVM
                     deja desactivado por defecto. exec:exec lanza una JVM aparte con -ea.
-                    Por defecto corre la verificacion de escenarios:
+                    Por defecto inicia la aplicacion con interfaz grafica:
                         mvn compile exec:exec
-                    Para otro main: mvn compile exec:exec -Dprograma=ar.edu.unmdp.tpg.app.Main
-                                    mvn compile exec:exec -Dprograma=ar.edu.unmdp.tpg.test.PruebaElementos
+                    Para otro main: mvn compile exec:exec -Dprograma=ar.edu.unmdp.tpg.test.PruebaEscenarios
+                                    mvn compile exec:exec -Dprograma=ar.edu.unmdp.tpg.app.Main
                 -->
                 <configuration>
                     <mainClass>${programa}</mainClass>

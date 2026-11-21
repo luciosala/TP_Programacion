@@ -1,61 +1,32 @@
 package ar.edu.unmdp.tpg.visor.modelo;
 
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import ar.edu.unmdp.tpg.destino.Observable;
 
 /**
- * Sujeto del patron Observer: guarda los observadores y les avisa cada evento.
+ * Sujeto del patrón Observer (Clase 11): avisa cada evento del universo paralelo
+ * a sus observadores (la vista del visor). Reutiliza la clase Observable que
+ * provee la cátedra junto con Destino y Tablero, igual que la bitácora y el
+ * modelo de la aplicación.
  *
  * Lo comparten la plataforma, las generadoras, las naves y el universo paralelo:
- * todos publican aca, y los observadores (la vista) no conocen a ninguno de ellos.
+ * todos publican acá, y los observadores no conocen a ninguno de ellos.
  *
- * La lista es CopyOnWriteArrayList porque varios hilos publican a la vez mientras
- * el hilo de Swing puede estar agregando o quitando observadores: con un ArrayList
- * comun, recorrerla mientras otro hilo la modifica lanza ConcurrentModificationException.
+ * Concurrencia: varios hilos publican a la vez, por eso publicar es synchronized
+ * (los avisos salen de a uno). Los observadores se registran al armar la
+ * aplicación, antes de que exista ningún hilo, así la lista no cambia mientras
+ * se recorre.
  */
-public class CanalDeEventos {
-
-    private final List<ObservadorVisor> observadores = new CopyOnWriteArrayList<>();
-
-    /**
-     * Suscribe un observador.
-     *
-     * Precondiciones:
-     * - observador no es nulo.
-     *
-     * Postcondiciones:
-     * - El observador recibe todos los eventos publicados a partir de ahora.
-     *
-     * @param observador quien quiere recibir los eventos
-     * @throws IllegalArgumentException si el observador es nulo
-     */
-    public void agregarObservador(ObservadorVisor observador) {
-        if (observador == null) {
-            throw new IllegalArgumentException("El observador no puede ser nulo");
-        }
-        observadores.add(observador);
-    }
-
-    /**
-     * Desuscribe un observador. Si no estaba suscripto, no pasa nada.
-     *
-     * @param observador observador a quitar
-     */
-    public void quitarObservador(ObservadorVisor observador) {
-        observadores.remove(observador);
-    }
+public class CanalDeEventos extends Observable {
 
     /**
      * Avisa un evento a todos los observadores suscriptos.
      *
      * Postcondiciones:
-     * - Cada observador suscripto recibio el evento una vez, en el hilo que lo publica.
+     * - Cada observador suscripto recibió el evento una vez, en el hilo que lo publica.
      *
-     * @param evento descripcion del evento
+     * @param evento descripción del evento
      */
-    public void publicar(String evento) {
-        for (ObservadorVisor o : observadores) {
-            o.actualizar(evento);
-        }
+    public synchronized void publicar(String evento) {
+        notificarObservadores(evento);
     }
 }
