@@ -60,9 +60,10 @@ public class ControladorAcceso implements ActionListener {
             return;
         }
         try {
-            servicio.registrar(vista.getUsuarioRegistro(), vista.getContrasenaRegistro());
+            String usuario = vista.getUsuarioRegistro();
+            servicio.registrar(usuario, vista.getContrasenaRegistro());
             vista.limpiarRegistro();
-            vista.mostrarMensaje("Usuario " + vista.getUsuarioRegistro() + " registrado. Ya puede iniciar sesión.");
+            vista.mostrarMensaje("Usuario " + usuario + " registrado. Ya puede iniciar sesión.");
         } catch (UsuarioExistenteException error) {
             vista.mostrarError(error.getMessage());
         } catch (PersistenciaException error) {

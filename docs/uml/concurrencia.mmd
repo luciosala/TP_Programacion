@@ -1,0 +1,128 @@
+---
+title: Concurrencia - Visor del universo paralelo (productor-consumidor con monitor)
+---
+classDiagram
+    direction TB
+
+    class Runnable {
+        <<interface - java.lang>>
+        +run()
+    }
+    class Thread {
+        <<java.lang>>
+        +Thread(Runnable tarea, String nombre)
+        +start()
+        +interrupt()
+    }
+
+    class GeneradoraDeEnergia {
+        <<Productor>>
+        +CANTIDAD_BATERIAS = 10
+        +TIEMPO_PRODUCCION = 1000 ms
+        -nombre: String
+        -plataforma: PlataformaDeCarga
+        -canal: CanalDeEventos
+        +run() for 10 veces: sleep, produce, plataforma.depositar
+    }
+
+    class NaveConsumidora {
+        <<Consumidor>>
+        +CANTIDAD_CONSUMOS = 10
+        +TIEMPO_CONSUMO = 1500 ms
+        -nombre: String
+        -plataforma: PlataformaDeCarga
+        -canal: CanalDeEventos
+        +run() for 10 veces: plataforma.retirar, sleep
+    }
+
+    class PlataformaDeCarga {
+        <<Monitor - recurso compartido>>
+        -capacidad: int
+        -baterias: ArrayList~Bateria~
+        -canal: CanalDeEventos
+        +depositar(Bateria, String) synchronized
+        +retirar(String) Bateria synchronized
+        +getCantidad() int synchronized
+    }
+    note for PlataformaDeCarga "depositar: while (llena) wait(); add; notifyAll()
+retirar: while (vacia) wait(); remove(0); notifyAll()"
+
+    class Bateria {
+        -numero: int
+        -producidaPor: String
+    }
+
+    class UniversoParalelo {
+        <<arma y arranca los hilos>>
+        -canal: CanalDeEventos
+        -plataforma: PlataformaDeCarga
+        -hilos: List~Thread~
+        +crearGeneradora() String
+        +crearNave() String
+        +detenerTodo() interrupt a todos
+    }
+
+    class Observable {
+        <<abstract - destino, de la catedra>>
+        -observadores: ArrayList~Observador~
+        +agregarObservador(Observador)
+        +quitarObservador(Observador)
+        +notificarObservadores(String)
+    }
+
+    class CanalDeEventos {
+        +publicar(String evento) synchronized
+    }
+
+    class Observador {
+        <<interface - destino, de la catedra>>
+        +actualizar(String mensaje)
+    }
+
+    class PanelVisor {
+        <<Vista Swing - pestaña de VentanaPrincipal>>
+        +actualizar(String) invokeLater
+        +setActionListener(ActionListener)
+        +mostrarCantidades(int, int)
+    }
+
+    class IVistaVisor {
+        <<interface>>
+        +setActionListener(ActionListener)
+        +mostrarCantidades(int, int)
+    }
+
+    class ControladorVisor {
+        <<ActionListener - MVC>>
+        +actionPerformed(ActionEvent) crearNave o crearGeneradora
+    }
+
+    class MainGrafico {
+        +CAPACIDAD_PLATAFORMA = 3
+        +main(String[])
+    }
+
+    Runnable <|.. GeneradoraDeEnergia
+    Runnable <|.. NaveConsumidora
+    Thread --> Runnable : ejecuta run()
+    GeneradoraDeEnergia --> PlataformaDeCarga : depositar()
+    NaveConsumidora --> PlataformaDeCarga : retirar()
+    GeneradoraDeEnergia ..> Bateria : crea
+    PlataformaDeCarga o-- "0..capacidad" Bateria
+    UniversoParalelo *-- PlataformaDeCarga
+    UniversoParalelo *-- CanalDeEventos
+    UniversoParalelo ..> GeneradoraDeEnergia : new
+    UniversoParalelo ..> NaveConsumidora : new
+    UniversoParalelo ..> Thread : new Thread(tarea, nombre).start()
+    GeneradoraDeEnergia --> CanalDeEventos : publicar
+    NaveConsumidora --> CanalDeEventos : publicar
+    PlataformaDeCarga --> CanalDeEventos : publicar esperas
+    Observable <|-- CanalDeEventos
+    Observable o--> "*" Observador : notifica
+    Observador <|.. PanelVisor
+    IVistaVisor <|.. PanelVisor
+    ControladorVisor --> IVistaVisor
+    ControladorVisor --> UniversoParalelo
+    MainGrafico ..> UniversoParalelo : crea
+    MainGrafico ..> PanelVisor : crea y suscribe al canal
+    MainGrafico ..> ControladorVisor : crea

@@ -16,3 +16,6 @@
 -Desarrollo de borrador informe y readme.md
 -Se uso IA  para el diseño e implementación inicial del login y registro con DAO/DTO y JDBC sobre H2 (paquetes persistencia y acceso, database/schema.sql, PruebaAcceso, cambios en pom.xml). Se verifico ejecutando PruebaAcceso dos veces para comprobar la persistencia entre ejecuciones.
 -Implementacion del visor del universo paralelo (productor-consumidor con monitores, Observer y MVC). Lo revisamos, lo adaptamos a la teoria y lo probamos con PruebaVisor.
+-Se uso IA para rehacer el Motor Warp segun el Anexo de la catedra (saltar y saltarWarp con State, costos por turno) y para adaptar el ciclo de la mision y las pruebas. Las decisiones que no estaban en la consigna las tomamos nosotros y estan explicadas en el informe. Se verifico corriendo PruebaEscenarios.
+-Se uso IA para la implementacion inicial de las vistas Swing (paquetes vista y controlador, interfaces IVista, MVC y Observer) y de los scripts ejecutar_*.bat. Las revisamos, las simplificamos para que queden como lo visto en clase (sin lambdas) y las probamos a mano con el programa.
+-Se uso IA para generar los diagramas de docs/uml a partir del codigo.

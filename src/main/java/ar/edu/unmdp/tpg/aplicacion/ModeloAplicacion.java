@@ -205,22 +205,34 @@ public class ModeloAplicacion extends Observable {
     }
 
     // ---------- Recursos ----------
+    // La carga de recursos y el mantenimiento se hacen en la base de origen: en el
+    // medio del universo no hay de dónde sacar combustible ni quién repare la nave.
+    // Si la nave quedó lejos, primero tiene que volver con M-03.
+
+    /** @return true si la nave activa está en su base de origen (donde arrancó) */
+    public boolean naveEnLaBase() {
+        assert hayNaveActiva() : "No hay una nave activa";
+        return getBase().equals(getFotoNave());
+    }
 
     /** Carga combustible en la nave activa. @throws LimiteRecursoExcedidoException si supera 100 */
     public void cargarCombustible(int cantidad) throws LimiteRecursoExcedidoException {
         assert hayNaveActiva() && !hayMisionEnCurso() : "Se carga con una nave activa y sin misión en curso";
+        assert naveEnLaBase() : "Solo se carga en la base de origen";
         getNaveActiva().cargarCombustible(cantidad);
     }
 
     /** Carga energía en la nave activa. @throws LimiteRecursoExcedidoException si supera 100 */
     public void cargarEnergia(int cantidad) throws LimiteRecursoExcedidoException {
         assert hayNaveActiva() && !hayMisionEnCurso() : "Se carga con una nave activa y sin misión en curso";
+        assert naveEnLaBase() : "Solo se carga en la base de origen";
         getNaveActiva().cargarEnergia(cantidad);
     }
 
     /** Realiza el mantenimiento de la nave activa (desgaste a 0). */
     public void realizarMantenimiento() {
         assert hayNaveActiva() && !hayMisionEnCurso() : "Se repara con una nave activa y sin misión en curso";
+        assert naveEnLaBase() : "Solo se repara en la base de origen";
         getNaveActiva().realizarMantenimiento();
     }
 
@@ -252,7 +264,8 @@ public class ModeloAplicacion extends Observable {
             misionEnCurso = true;
         }
         notificarObservadores("Misión iniciada: " + mision.getNombre());
-        new EjecucionDeMision(this, getNaveActiva(), mision).start();
+        Thread hilo = new Thread(new EjecucionDeMision(this, getNaveActiva(), mision), "Mision " + mision.getNombre());
+        hilo.start();
     }
 
     /** Lo invoca el hilo de la misión al terminar con su informe. */

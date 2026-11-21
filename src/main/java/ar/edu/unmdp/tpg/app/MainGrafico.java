@@ -6,9 +6,13 @@ import ar.edu.unmdp.tpg.controlador.ControladorAcceso;
 import ar.edu.unmdp.tpg.controlador.ControladorControl;
 import ar.edu.unmdp.tpg.controlador.ControladorCreacion;
 import ar.edu.unmdp.tpg.controlador.ControladorTripulantes;
+import ar.edu.unmdp.tpg.excepciones.NaveException;
 import ar.edu.unmdp.tpg.persistencia.ConexionBD;
 import ar.edu.unmdp.tpg.persistencia.PersistenciaException;
+import ar.edu.unmdp.tpg.persistencia.UsuarioDAO;
+import ar.edu.unmdp.tpg.persistencia.UsuarioDAOEnMemoria;
 import ar.edu.unmdp.tpg.persistencia.UsuarioDAOJDBC;
+import ar.edu.unmdp.tpg.tripulacion.Origen;
 import ar.edu.unmdp.tpg.visor.controlador.ControladorVisor;
 import ar.edu.unmdp.tpg.visor.modelo.UniversoParalelo;
 import ar.edu.unmdp.tpg.visor.vista.PanelVisor;
@@ -24,6 +28,9 @@ import javax.swing.JOptionPane;
  * Programa principal con interfaz gráfica (Entrega 2). Arma el MVC: crea los
  * modelos, las vistas y los controladores, registra las vistas como observadoras
  * de los modelos y muestra la ventana de acceso.
+ *
+ * Si se lo ejecuta con el argumento "demo" arranca con una nave ya creada y
+ * tripulada, para no cargarla a mano en la defensa (ejecutar_demo.bat).
  */
 public class MainGrafico {
 
@@ -32,17 +39,13 @@ public class MainGrafico {
 
     public static void main(String[] args) {
         // Persistencia: solo las credenciales de los usuarios, en H2 (DAO/DTO + JDBC)
-        ConexionBD conexion = ConexionBD.porDefecto();
-        try {
-            conexion.inicializarEsquema();
-        } catch (PersistenciaException error) {
-            JOptionPane.showMessageDialog(null, error.getMessage(), "Base de datos", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        ServicioDeAcceso servicio = new ServicioDeAcceso(new UsuarioDAOJDBC(conexion));
+        ServicioDeAcceso servicio = new ServicioDeAcceso(crearUsuarioDAO());
 
         // Modelos
         ModeloAplicacion modelo = new ModeloAplicacion();
+        if (args.length > 0 && args[0].equalsIgnoreCase("demo")) {
+            cargarNaveDeDemo(modelo);
+        }
         UniversoParalelo universoParalelo = new UniversoParalelo(CAPACIDAD_PLATAFORMA);
 
         // Vistas
@@ -66,5 +69,38 @@ public class MainGrafico {
         new ControladorAcceso(acceso, principal, servicio);
 
         acceso.mostrar();
+    }
+
+    /**
+     * Si la base H2 está disponible los usuarios quedan guardados entre ejecuciones.
+     * Si no (falta el jar de H2 en lib, ver lib/LEEME.txt), se avisa y se usa el DAO
+     * en memoria: el programa funciona igual, pero los usuarios duran lo que dura la ejecución.
+     */
+    private static UsuarioDAO crearUsuarioDAO() {
+        try {
+            ConexionBD conexion = ConexionBD.porDefecto();
+            conexion.inicializarEsquema();
+            return new UsuarioDAOJDBC(conexion);
+        } catch (PersistenciaException error) {
+            JOptionPane.showMessageDialog(null,
+                "No se pudo abrir la base de datos H2 (" + error.getMessage() + ").\n"
+                + "Los usuarios se guardarán solo en memoria durante esta ejecución.",
+                "Base de datos", JOptionPane.WARNING_MESSAGE);
+            return new UsuarioDAOEnMemoria();
+        }
+    }
+
+    /** Nave de combate COM-1 con capitán y cuatro tripulantes más, lista para iniciar misiones. */
+    private static void cargarNaveDeDemo(ModeloAplicacion modelo) {
+        try {
+            modelo.crearNave("COM-1", "combate");
+            modelo.asignarTripulante("T1", "Ana", "Sol", "Capitán", Origen.TERRICOLA, 5);
+            modelo.asignarTripulante("T2", "Bruno", "Luz", "Consejero", Origen.VULCANO, 2);
+            modelo.asignarTripulante("T3", "Carla", "Mora", "Teniente", Origen.MARCIANO, 1);
+            modelo.asignarTripulante("T4", "Dante", "Paz", "Alférez", Origen.TERRICOLA, 0);
+            modelo.asignarTripulante("T5", "Eva", "Quiroga", "Alférez", Origen.VULCANO, 3);
+        } catch (NaveException error) {
+            System.err.println("No se pudo cargar la nave de demo: " + error.getMessage());
+        }
     }
 }

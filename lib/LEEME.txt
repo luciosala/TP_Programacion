@@ -1,0 +1,5 @@
+Carpeta opcional para el jar de la base H2 (si se ejecuta sin Maven).
+Maven lo baja solo; sin Maven, se puede descargar de
+https://repo1.maven.org/maven2/com/h2database/h2/2.2.224/h2-2.2.224.jar
+y dejarlo aca. Si no esta, el programa anda igual, pero los usuarios
+se guardan en memoria (se pierden al cerrar).

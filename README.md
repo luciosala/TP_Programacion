@@ -7,7 +7,7 @@ Entrega vigente: **Entrega 2** (etiqueta `entrega-e2`). La Entrega 1 quedó iden
 ## Requisitos
 
 - JDK 17 o superior
-- Maven 3.8 o superior
+- Maven 3.8 o superior (opcional: ver *Sin Maven* más abajo)
 
 ## Configuración local
 
@@ -34,6 +34,21 @@ mvn compile exec:exec
 `exec:exec` lanza una JVM aparte con `-ea`, porque las precondiciones del modelo se comprueban con `assert`.
 Por defecto arranca `ar.edu.unmdp.tpg.app.MainGrafico`.
 
+### Sin Maven
+
+En la raíz hay tres scripts que compilan con `javac` y ejecutan con `-ea`; alcanza con tener el JDK:
+
+- `ejecutar_ventanas.bat`: abre la interfaz gráfica.
+- `ejecutar_demo.bat`: lo mismo, pero arranca con la nave de combate `COM-1` ya creada y con su tripulación
+  completa, para ir directo a las misiones (es `ejecutar_ventanas.bat demo`).
+- `ejecutar_pruebas.bat`: corre `PruebaEscenarios`; se le puede pasar otra clase, por ejemplo
+  `ejecutar_pruebas.bat ar.edu.unmdp.tpg.visor.PruebaVisor`.
+
+Sin Maven el jar de H2 no se baja solo: hay que dejarlo en la carpeta `lib/` (ver `lib/LEEME.txt`). Si no está,
+el programa avisa y guarda los usuarios en memoria durante esa ejecución.
+
+Para registrar de una vez los usuarios del grupo en la base: `ejecutar_pruebas.bat ar.edu.unmdp.tpg.test.CrearUsuariosDemo`.
+
 Recorrido sugerido:
 
 1. **Acceso:** en la ficha *Registrarse* dar de alta un usuario (3 a 30 caracteres, contraseña de 4 o más) y
@@ -43,8 +58,9 @@ Recorrido sugerido:
 3. **Tripulantes:** tabla con la tripulación y el salario del mes de cada uno, y el detalle concepto por
    concepto. Se puede registrar un consejo del consejero seleccionado.
 4. **Control de la Nave:** iniciar M-01, M-02 o M-03 y ver el avance en el tablero, los recursos, la
-   bitácora y el historial de informes, que se actualizan solos. Con la nave quieta se puede cargar
-   combustible o energía y hacer mantenimiento.
+   bitácora y el historial de informes, que se actualizan solos. Con la nave quieta **y en la base de
+   origen** se puede cargar combustible o energía y hacer mantenimiento; si quedó lejos después de una
+   misión, primero tiene que volver con M-03.
 5. **Visor Recóndito:** agregar naves consumidoras y generadoras de energía y ver los eventos de la
    plataforma de carga en vivo.
 
@@ -69,6 +85,7 @@ Otras verificaciones:
 | `ar.edu.unmdp.tpg.test.PruebaTablero` | Integración del Tablero y Destino de la cátedra y su Observer. |
 | `ar.edu.unmdp.tpg.visor.PruebaVisor` | Productor-Consumidor: la plataforma nunca supera su capacidad. |
 | `ar.edu.unmdp.tpg.app.Main` | Demostración por consola de las tres misiones sobre un tablero con elementos. |
+| `ar.edu.unmdp.tpg.test.CrearUsuariosDemo` | Registra en la base los usuarios del grupo (no es una prueba, es para la demo). |
 
 Cada uno se ejecuta con `mvn compile exec:exec -Dprograma=<clase>`.
 
@@ -80,6 +97,8 @@ En [`docs/evidencias.md`](docs/evidencias.md) está, para cada requerimiento, d�
 ![Diagrama de clases](docs/uml-clases.png)
 
 También en [`docs/uml-clases.svg`](docs/uml-clases.svg). El fuente, en Mermaid, es [`docs/uml-clases.mmd`](docs/uml-clases.mmd).
+
+En [`docs/uml/`](docs/uml/) hay un diagrama por tema (concurrencia, tablero y batallas, acceso con DAO/DTO).
 
 ## Patrones de diseño
 

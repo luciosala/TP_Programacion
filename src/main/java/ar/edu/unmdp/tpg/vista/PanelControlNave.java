@@ -203,6 +203,7 @@ public class PanelControlNave extends JPanel implements IVistaControl, Observado
         mostrarBitacora(nave);
         mostrarInformes();
         habilitar(!enMision && !nave.naveDestruida());
+        habilitarCarga(!enMision && !nave.naveDestruida() && modelo.naveEnLaBase());
     }
 
     private void mostrarBitacora(AsistenteDeComando nave) {
@@ -234,6 +235,13 @@ public class PanelControlNave extends JPanel implements IVistaControl, Observado
         btnM01.setEnabled(habilitado);
         btnM02.setEnabled(habilitado);
         btnM03.setEnabled(habilitado);
+        if (!habilitado) {
+            habilitarCarga(false);
+        }
+    }
+
+    // Cargar y reparar solo se puede en la base de origen
+    private void habilitarCarga(boolean habilitado) {
         btnCombustible.setEnabled(habilitado);
         btnEnergia.setEnabled(habilitado);
         btnMantenimiento.setEnabled(habilitado);
