@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Punto de entrada del modelo del visor: crea la plataforma, lanza un hilo por cada
+ * Punto de entrada del modelo del visor: crea la plataforma, arranca un hilo por cada
  * nave o generadora nueva (aun con la simulacion en marcha) y los detiene al cerrar.
+ * Guarda los hilos en una lista solo para poder interrumpirlos cuando se cierra el visor.
  *
  * Es independiente del resto del juego: no usa Universo, Nave, misiones ni el tablero.
  */
@@ -37,7 +38,10 @@ public class UniversoParalelo {
         cantidadNaves++;
         String nombre = "Nave " + cantidadNaves;
         canal.publicar("¡Ingresó una nueva " + nombre + " al universo paralelo!");
-        lanzar(new NaveConsumidora(nombre, plataforma, canal));
+        // Igual que en el main de la teoria: se crea el hilo con la tarea y se arranca con start()
+        Thread hilo = new Thread(new NaveConsumidora(nombre, plataforma, canal), nombre);
+        hilos.add(hilo);
+        hilo.start();
         return nombre;
     }
 
@@ -54,20 +58,10 @@ public class UniversoParalelo {
         cantidadGeneradoras++;
         String nombre = "Generadora " + cantidadGeneradoras;
         canal.publicar("¡Ingresó una nueva " + nombre + " al universo paralelo!");
-        lanzar(new GeneradoraDeEnergia(nombre, plataforma, canal));
-        return nombre;
-    }
-
-    /**
-     * Arranca el hilo con start(), como en el main de la teoria. start() crea el hilo
-     * nuevo, que ejecuta run(); llamar a run() directamente lo ejecutaria en el hilo
-     * que llama (el de Swing) y congelaria la ventana.
-     * Son daemon: si se cierra la aplicacion, no la mantienen viva.
-     */
-    private void lanzar(Thread hilo) {
-        hilo.setDaemon(true);
+        Thread hilo = new Thread(new GeneradoraDeEnergia(nombre, plataforma, canal), nombre);
         hilos.add(hilo);
         hilo.start();
+        return nombre;
     }
 
     /**

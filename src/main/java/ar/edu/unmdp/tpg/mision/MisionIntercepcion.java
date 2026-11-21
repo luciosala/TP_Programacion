@@ -4,50 +4,75 @@ import ar.edu.unmdp.tpg.asistente.AsistenteDeComando;
 import ar.edu.unmdp.tpg.destino.Posicion;
 import ar.edu.unmdp.tpg.destino.Tablero;
 
+import java.util.Random;
+
 /**
- * M-01: interceptar un objetivo y completar su asistencia.
+ * M-01: llegar hasta una nave aliada y transferirle los recursos de auxilio que pide.
  *
- * Es exitosa cuando se establece contacto con el objetivo y se completa la
- * asistencia. Su accion final cuesta 5 de energia.
+ * Costos (Anexo de la catedra):
+ * - Al despegar: 4 de combustible, 5 de energia y 4 de desgaste.
+ * - Al llegar: transfiere a la aliada entre 0 y 50 de energia y entre 0 y 50 de
+ *   combustible. Lo que pide la aliada se sortea al crear la mision.
  */
 public class MisionIntercepcion extends Mision {
 
+    public static final int ENERGIA_INICIAL = 5;
+    public static final int MAXIMO_AUXILIO = 50;
+
+    private static final Random azar = new Random();
+
     private final String objetivo;
     private final String estadoObjetivo;
+    private final int energiaAEntregar;
+    private final int combustibleAEntregar;
 
     /**
-     * Construye la mision de intercepcion y asistencia.
+     * Construye la mision con un pedido de auxilio al azar (entre 0 y 50 de cada recurso).
      *
      * Precondiciones (assert):
-     * - asistente no es nulo.
-     * - objetivo no es nulo, vacio ni contiene solo espacios.
-     * - estadoObjetivo no es nulo, vacio ni contiene solo espacios.
-     *
-     * Postcondiciones:
-     * - La mision queda lista para ejecutarse una vez, sobre la nave de ese asistente.
-     * - La mision conserva el objetivo y su estado para el informe.
-     * - La nave no se modifica al construir la mision.
-     *
-     * @param asistente asistente que coordina la mision
-     * @param objetivo nave o punto a interceptar
-     * @param estadoObjetivo estado en que se encuentra el objetivo
+     * - asistente y tablero no son nulos.
+     * - objetivo y estadoObjetivo no son nulos ni vacios.
      */
-    public MisionIntercepcion(AsistenteDeComando asistente, Tablero tablero, String objetivo, String estadoObjetivo){
+    public MisionIntercepcion(AsistenteDeComando asistente, Tablero tablero, String objetivo, String estadoObjetivo) {
+        this(asistente, tablero, objetivo, estadoObjetivo,
+             azar.nextInt(MAXIMO_AUXILIO + 1), azar.nextInt(MAXIMO_AUXILIO + 1));
+    }
+
+    /**
+     * Construye la mision con un pedido de auxilio fijo (sirve para las pruebas).
+     *
+     * Precondiciones (assert):
+     * - energiaAEntregar y combustibleAEntregar estan entre 0 y 50.
+     */
+    public MisionIntercepcion(AsistenteDeComando asistente, Tablero tablero, String objetivo, String estadoObjetivo,
+                              int energiaAEntregar, int combustibleAEntregar) {
         super("M-01 - Intercepción y asistencia", "Interceptar un objetivo y completar su asistencia", asistente, tablero);
         assert objetivo != null && !objetivo.isBlank() : "El objetivo no puede ser nulo ni vacío";
         assert estadoObjetivo != null && !estadoObjetivo.isBlank() : "El estado del objetivo no puede ser nulo ni vacío";
-
+        assert energiaAEntregar >= 0 && energiaAEntregar <= MAXIMO_AUXILIO : "La energía de auxilio va de 0 a 50";
+        assert combustibleAEntregar >= 0 && combustibleAEntregar <= MAXIMO_AUXILIO : "El combustible de auxilio va de 0 a 50";
         this.objetivo = objetivo;
         this.estadoObjetivo = estadoObjetivo;
+        this.energiaAEntregar = energiaAEntregar;
+        this.combustibleAEntregar = combustibleAEntregar;
     }
-
 
     @Override
-    protected int costoAccionFinal() {
-        return 5;
+    protected int energiaInicial() {
+        return ENERGIA_INICIAL;
     }
 
-    // La nave aliada espera en el objetivo que elige el tablero
+    // La accion final es entregar el auxilio: esta energia se descuenta en el cierre.
+    @Override
+    protected int costoAccionFinal() {
+        return energiaAEntregar;
+    }
+
+    @Override
+    protected int combustibleAEntregar() {
+        return combustibleAEntregar;
+    }
+
     @Override
     protected Posicion destinoDeLaMision() {
         return tablero.obtenerObjetivo();
@@ -55,18 +80,13 @@ public class MisionIntercepcion extends Mision {
 
     @Override
     protected String descripcionObjetivo() {
-        return "Asistir a " + objetivo + " (estado: " + estadoObjetivo + ")";
-    }
-
-    // M-01 entrega energía (costoAccionFinal) y combustible a la nave aliada
-    @Override
-    protected int combustibleAEntregar() {
-        return 5;
+        return "Asistir a " + objetivo + " (estado: " + estadoObjetivo + "), que pide "
+            + energiaAEntregar + " de energía y " + combustibleAEntregar + " de combustible";
     }
 
     @Override
     protected void alLlegar() {
-        registrarAccion("Contacto con " + objetivo + ": se entregarán " + costoAccionFinal()
-                + " de energía y " + combustibleAEntregar() + " de combustible");
+        registrarAccion("Contacto con " + objetivo + " en la misma posición: se transfieren "
+            + energiaAEntregar + " de energía y " + combustibleAEntregar + " de combustible");
     }
 }

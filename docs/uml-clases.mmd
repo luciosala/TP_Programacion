@@ -53,10 +53,8 @@ classDiagram
         +verificarRecursos(int, int, int) void
         +consumirParaMision(int, int, int) void
         +consumirEnergia(int) void
-        +prepararSalto() void
-        +iniciarSalto() void
-        +finalizarSalto() void
-        +completarEnfriamiento() void
+        +saltar() int
+        +saltarWarp() int
         +estadoDelMotor() String
         +motorDisponible() boolean
         +ejecutarMision(Mision) InformeMision
@@ -95,10 +93,8 @@ classDiagram
         -invariante() boolean
         +verificarDisponibilidad(int, int, int) void
         +consumirParaMision(int, int, int) void
-        +prepararSalto() void
-        +iniciarSalto() void
-        +finalizarSalto() void
-        +completarEnfriamiento() void
+        +saltar() int
+        +saltarWarp() int
         +getEstadoMotor() String
         +motorDisponible() boolean
     }
@@ -127,10 +123,10 @@ classDiagram
     %% ============ MOTOR WARP (STATE) ============
     class MotorWarp {
         -estadoActual: Estado
-        +prepararSalto() void
-        +iniciarSalto() void
-        +finalizarSalto() void
-        +completarEnfriamiento() void
+        -recursos: Recursos
+        +saltar() int
+        +saltarWarp() int
+        ~cambiarEstado(Estado) void
         +getEstadoActual() String
         +estaDisponible() boolean
         -invariante() boolean
@@ -138,18 +134,16 @@ classDiagram
 
     class Estado {
         <<abstract>>
-        ~prepararSalto() Estado
-        ~iniciarSalto() Estado
-        ~finalizarSalto() Estado
-        ~completarEnfriamiento() Estado
+        ~saltar(MotorWarp, Recursos)* int
+        ~saltarWarp(MotorWarp, Recursos)* int
         ~nombre() String
         ~estaDisponible() boolean
     }
 
-    class Disponible { ~prepararSalto() Estado }
-    class PrepararSalto { ~iniciarSalto() Estado }
-    class EnWarp { ~finalizarSalto() Estado }
-    class Enfriando { ~completarEnfriamiento() Estado }
+    class Disponible { ~saltar() avanza 1, 2 de combustible }
+    class PreparandoSalto { -turnosCompletados: int }
+    class EnWarp { ~saltarWarp() avanza 2, 5 de energia }
+    class Enfriando { ~saltar()/saltarWarp() 3 de desgaste }
 
     %% ============ MISIONES (TEMPLATE METHOD) ============
     class Mision {
@@ -166,10 +160,12 @@ classDiagram
         #ejecutar() boolean
         #evaluar(boolean exito) InformeMision
         #cerrar(boolean exito) void
-        -saltar() void
+        -moverMotor(turno, obstaculo) int
+        -avanzar(turno, casillas, cercanos) void
         -invariante() boolean
         #registrarAccion(String) void
         #destinoDeLaMision()* Posicion
+        #energiaInicial() int
         #costoAccionFinal()* int
         #descripcionObjetivo()* String
         #combustibleNecesario() int
@@ -373,7 +369,7 @@ classDiagram
 
     MotorWarp *-- "1" Estado : estadoActual
     Estado <|-- Disponible
-    Estado <|-- PrepararSalto
+    Estado <|-- PreparandoSalto
     Estado <|-- EnWarp
     Estado <|-- Enfriando
 

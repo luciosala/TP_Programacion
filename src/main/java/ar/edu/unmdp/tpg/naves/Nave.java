@@ -192,6 +192,16 @@ abstract public class Nave implements ElementoDelUniverso {
      *
      * @return cantidad de tripulantes
      */
+    /**
+     * Consulta la tripulacion completa (copia de solo lectura, en orden de alta).
+     * Sirve para que una vista la muestre sin poder modificarla.
+     *
+     * @return lista con los tripulantes de la nave
+     */
+    public List<Tripulante> getTripulacion() {
+        return java.util.Collections.unmodifiableList(new ArrayList<>(tripulacion));
+    }
+
     public int cantidadTripulantes() {
         return tripulacion.size();
     }
@@ -475,55 +485,38 @@ abstract public class Nave implements ElementoDelUniverso {
     // ---------- Motor Warp: la nave delega en su MotorWarp ----------
 
     /**
-     * Ordena al Motor Warp preparar un salto.
+     * Turno de salto normal: la nave le pide a su Motor Warp que salte.
      *
      * Postcondiciones:
-     * - El motor queda en estado Preparando salto.
-     * - Si la transicion se rechaza, el estado del motor permanece sin cambios.
+     * - Devuelve cuantas casillas avanza la nave (1 si el motor estaba Disponible,
+     *   0 si era el turno de enfriamiento).
+     * - Si los recursos quedan en nivel letal, la nave queda destruida.
      *
-     * @throws TransicionInvalidaException rechazo de dominio: el motor no esta en estado Disponible
+     * @return casillas que avanza la nave en este turno
+     * @throws TransicionInvalidaException si hay un salto warp en preparacion o listo
+     * @throws RecursoInsuficienteException si no hay combustible para el salto
      */
-    public void prepararSalto() throws TransicionInvalidaException {
-        motorWarp.prepararSalto();
+    public int saltar() throws TransicionInvalidaException, RecursoInsuficienteException {
+        int casillas = motorWarp.saltar();
+        controlarDestruccion();
+        return casillas;
     }
 
     /**
-     * Ordena al Motor Warp iniciar el salto.
+     * Turno de salto warp: la nave le pide a su Motor Warp que avance la maniobra.
      *
      * Postcondiciones:
-     * - El motor queda en estado En warp.
-     * - Si la transicion se rechaza, el estado del motor permanece sin cambios.
+     * - Devuelve cuantas casillas avanza la nave (2 en el turno del salto, 0 en los
+     *   turnos de preparacion y de enfriamiento).
+     * - Si los recursos quedan en nivel letal, la nave queda destruida.
      *
-     * @throws TransicionInvalidaException rechazo de dominio: el motor no esta en estado Preparando salto
+     * @return casillas que avanza la nave en este turno
+     * @throws RecursoInsuficienteException si falta energia para preparar o ejecutar el salto
      */
-    public void iniciarSalto() throws TransicionInvalidaException {
-        motorWarp.iniciarSalto();
-    }
-
-    /**
-     * Ordena al Motor Warp finalizar el salto.
-     *
-     * Postcondiciones:
-     * - El motor queda en estado Enfriamiento.
-     * - Si la transicion se rechaza, el estado del motor permanece sin cambios.
-     *
-     * @throws TransicionInvalidaException rechazo de dominio: el motor no esta en estado En warp
-     */
-    public void finalizarSalto() throws TransicionInvalidaException {
-        motorWarp.finalizarSalto();
-    }
-
-    /**
-     * Ordena al Motor Warp completar el enfriamiento.
-     *
-     * Postcondiciones:
-     * - El motor queda en estado Disponible.
-     * - Si la transicion se rechaza, el estado del motor permanece sin cambios.
-     *
-     * @throws TransicionInvalidaException rechazo de dominio: el motor no esta en estado Enfriamiento
-     */
-    public void completarEnfriamiento() throws TransicionInvalidaException {
-        motorWarp.completarEnfriamiento();
+    public int saltarWarp() throws TransicionInvalidaException, RecursoInsuficienteException {
+        int casillas = motorWarp.saltarWarp();
+        controlarDestruccion();
+        return casillas;
     }
 
     /**

@@ -204,66 +204,36 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
 
     // Motor Warp
     /**
-     * Ordena al Motor Warp preparar un salto.
-     *
-     * Postcondiciones:
-     * - Si la transicion es valida, el motor cambia de estado y queda registrado.
-     * - Si no lo es, el motor no cambia y queda registrado el rechazo.
-     *
-     * @throws TransicionInvalidaException si el estado actual no admite preparar el salto
+     * Turno de salto normal. Registra el salto y el estado del motor; si se rechaza,
+     * registra el error y lo vuelve a lanzar.
      */
     @Override
-    public void prepararSalto() throws TransicionInvalidaException {
-        bitacora.registrar("COMANDO", "Orden recibida: preparar salto");
+    public int saltar() throws TransicionInvalidaException, RecursoInsuficienteException {
         try {
-            nave.prepararSalto();
-            bitacora.registrar("MOTOR", "Motor Warp en " + nave.getEstadoMotor());
-        } catch (TransicionInvalidaException error) {
+            int casillas = nave.saltar();
+            bitacora.registrar("MOTOR", "Salto normal: avanza " + casillas + " casilla(s), motor "
+                + nave.getEstadoMotor() + ", combustible " + nave.getCombustible());
+            return casillas;
+        } catch (TransicionInvalidaException | RecursoInsuficienteException error) {
             bitacora.registrar("ERROR", "Motor Warp: " + error.getMessage());
             throw error;
         }
     }
 
     /**
-     * @throws TransicionInvalidaException si el estado actual no admite iniciar el salto
+     * Turno de la maniobra de salto warp. Registra el turno y el estado del motor;
+     * si se rechaza, registra el error y lo vuelve a lanzar.
      */
     @Override
-    public void iniciarSalto() throws TransicionInvalidaException {
-        bitacora.registrar("COMANDO", "Orden recibida: iniciar salto");
+    public int saltarWarp() throws TransicionInvalidaException, RecursoInsuficienteException {
+        String antes = nave.getEstadoMotor();
         try {
-            nave.iniciarSalto();
-            bitacora.registrar("MOTOR", "Motor Warp en " + nave.getEstadoMotor());
-        } catch (TransicionInvalidaException error) {
-            bitacora.registrar("ERROR", "Motor Warp: " + error.getMessage());
-            throw error;
-        }
-    }
-
-    /**
-     * @throws TransicionInvalidaException si el estado actual no admite finalizar el salto
-     */
-    @Override
-    public void finalizarSalto() throws TransicionInvalidaException {
-        bitacora.registrar("COMANDO", "Orden recibida: finalizar salto");
-        try {
-            nave.finalizarSalto();
-            bitacora.registrar("MOTOR", "Motor Warp en " + nave.getEstadoMotor());
-        } catch (TransicionInvalidaException error) {
-            bitacora.registrar("ERROR", "Motor Warp: " + error.getMessage());
-            throw error;
-        }
-    }
-
-    /**
-     * @throws TransicionInvalidaException si el estado actual no admite completar el enfriamiento
-     */
-    @Override
-    public void completarEnfriamiento() throws TransicionInvalidaException {
-        bitacora.registrar("COMANDO", "Orden recibida: completar enfriamiento");
-        try {
-            nave.completarEnfriamiento();
-            bitacora.registrar("MOTOR", "Motor Warp en " + nave.getEstadoMotor());
-        } catch (TransicionInvalidaException error) {
+            int casillas = nave.saltarWarp();
+            bitacora.registrar("MOTOR", "Salto warp: " + antes + " -> " + nave.getEstadoMotor()
+                + ", avanza " + casillas + " casilla(s), energía " + nave.getEnergia()
+                + ", desgaste " + nave.getDesgaste());
+            return casillas;
+        } catch (TransicionInvalidaException | RecursoInsuficienteException error) {
             bitacora.registrar("ERROR", "Motor Warp: " + error.getMessage());
             throw error;
         }
@@ -395,6 +365,11 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
     @Override
     public int cantidadTripulantes() {
         return nave.cantidadTripulantes();
+    }
+
+    @Override
+    public List<Tripulante> consultarTripulacion() {
+        return nave.getTripulacion();
     }
 
 

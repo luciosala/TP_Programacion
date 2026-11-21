@@ -300,6 +300,29 @@ final public class Recursos{
     }
 
     /**
+     * Desgaste que no se puede "rechazar" (por ejemplo, el enfriamiento del Motor Warp):
+     * suma pero no pasa de 100. Si llega a 100 la nave queda en nivel letal.
+     *
+     * Precondiciones (assert):
+     * - cantidad es mayor que 0.
+     *
+     * Postcondiciones:
+     * - El desgaste queda en min(100, desgaste anterior + cantidad).
+     * - El combustible y la energia no se modifican.
+     *
+     * @param cantidad desgaste a sumar
+     */
+    public void sufrirDesgaste(int cantidad) {
+        assert cantidad > 0 : "El desgaste debe ser positivo";
+
+        int desgasteAnterior = desgaste;
+        desgaste = Math.min(DESGASTE_MAXIMO, desgaste + cantidad);
+
+        assert desgaste == Math.min(DESGASTE_MAXIMO, desgasteAnterior + cantidad) : "Fallo postcondición de sufrirDesgaste";
+        assert invariante() : "Fallo invariante de Recursos";
+    }
+
+    /**
      * Recarga en una estación de carga: suma pero no pasa de 100. Lo que sobra
      * se descarta, en vez de lanzar LimiteRecursoExcedidoException.
      *

@@ -1,7 +1,9 @@
 package ar.edu.unmdp.tpg.visor.modelo;
 
 /**
- * Productor: cada generadora es un hilo (extends Thread, como el Productor de la teoria)
+ * Productor: cada generadora corre en su propio hilo. Implementa Runnable (define la
+ * tarea) y el hilo lo crea UniversoParalelo con new Thread(tarea, nombre).start(), como
+ * en los ejemplos de la catedra.
  * y repite el ciclo de la consigna una cantidad fija de veces:
  * 1) produce una bateria, 2) pide la plataforma, 3) si esta llena espera,
  * 4) deposita, 5) notifica (los pasos 2 a 5 los resuelve PlataformaDeCarga.depositar).
@@ -9,7 +11,7 @@ package ar.edu.unmdp.tpg.visor.modelo;
  * Cuando termina sus CANTIDAD_BATERIAS vueltas, run() termina y el hilo muere.
  * Si se cierra el visor antes, se la interrumpe y tambien termina.
  */
-public class GeneradoraDeEnergia extends Thread {
+public class GeneradoraDeEnergia implements Runnable {
 
     /** Cuantas baterias produce cada generadora antes de terminar. */
     public static final int CANTIDAD_BATERIAS = 10;
@@ -19,16 +21,17 @@ public class GeneradoraDeEnergia extends Thread {
 
     private static int ultimaBateria = 0;
 
+    private final String nombre;
     private final PlataformaDeCarga plataforma;
     private final CanalDeEventos canal;
 
     /**
-     * @param nombre nombre del hilo, se usa en los eventos (por ejemplo, "Generadora 1")
+     * @param nombre nombre para los eventos (por ejemplo, "Generadora 1")
      * @param plataforma plataforma compartida donde deposita
      * @param canal canal donde publica sus eventos
      */
     public GeneradoraDeEnergia(String nombre, PlataformaDeCarga plataforma, CanalDeEventos canal) {
-        super(nombre);
+        this.nombre = nombre;
         this.plataforma = plataforma;
         this.canal = canal;
     }
@@ -42,12 +45,12 @@ public class GeneradoraDeEnergia extends Thread {
     public void run() {
         try {
             for (int i = 0; i < CANTIDAD_BATERIAS; i++) {
-                sleep(TIEMPO_PRODUCCION);                       // produce la bateria
-                Bateria bateria = new Bateria(siguienteNumero(), getName());
-                canal.publicar("Batería producida por " + getName() + ".");
-                plataforma.depositar(bateria, getName());       // espera si esta llena
+                Thread.sleep(TIEMPO_PRODUCCION);                       // produce la bateria
+                Bateria bateria = new Bateria(siguienteNumero(), nombre);
+                canal.publicar("Batería producida por " + nombre + ".");
+                plataforma.depositar(bateria, nombre);       // espera si esta llena
             }
-            canal.publicar(getName() + " terminó: produjo sus " + CANTIDAD_BATERIAS + " baterías.");
+            canal.publicar(nombre + " terminó: produjo sus " + CANTIDAD_BATERIAS + " baterías.");
         } catch (InterruptedException e) {
             // La interrumpieron (se cerro el visor): run() termina y el hilo muere.
         }

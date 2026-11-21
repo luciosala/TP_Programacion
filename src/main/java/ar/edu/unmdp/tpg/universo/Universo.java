@@ -70,6 +70,19 @@ public class Universo {
      *
      * @return cantidad de naves registradas
      */
+    /**
+     * Consulta los ids de todas las naves registradas, en orden de alta.
+     *
+     * @return lista nueva con los ids (vacia si no hay naves)
+     */
+    public List<String> idsDeNaves() {
+        List<String> ids = new ArrayList<>();
+        for (AsistenteDeComando asistente : asistentes) {
+            ids.add(asistente.idNave());
+        }
+        return ids;
+    }
+
     public int cantidadNaves() {
         return asistentes.size();
     }

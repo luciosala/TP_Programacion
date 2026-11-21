@@ -9,8 +9,9 @@ import ar.edu.unmdp.tpg.destino.Tablero;
 /**
  * M-02: recolectar datos o una muestra en un punto de interes.
  *
- * Es exitosa cuando se obtiene el elemento y queda registrado como obtenido.
- * Su accion final cuesta 5 de energia.
+ * Costos (Anexo de la catedra):
+ * - Al despegar: 4 de combustible, 10 de energia y 4 de desgaste.
+ * - Al llegar: la nave extrae una recompensa de entre 20 y 100 gemas, al azar.
  */
 public class MisionRecoleccion extends Mision{
 
@@ -45,9 +46,19 @@ public class MisionRecoleccion extends Mision{
     }
 
 
+    public static final int ENERGIA_INICIAL = 10;
+    public static final int GEMAS_MINIMO = 20;
+    public static final int GEMAS_MAXIMO = 100;
+
+    @Override
+    protected int energiaInicial() {
+        return ENERGIA_INICIAL;
+    }
+
+    // La recoleccion no tiene costo al final: la energia se paga al despegar.
     @Override
     protected int costoAccionFinal() {
-        return 5;
+        return 0;
     }
 
     // Las riquezas están en el objetivo que elige el tablero
@@ -66,7 +77,7 @@ public class MisionRecoleccion extends Mision{
 
     @Override
     protected void alLlegar() {
-        gemasEncontradas = 1 + random.nextInt(5);   // entre 1 y 5
+        gemasEncontradas = GEMAS_MINIMO + random.nextInt(GEMAS_MAXIMO - GEMAS_MINIMO + 1);   // entre 20 y 100
         registrarAccion("Gemas encontradas en " + puntoInteres + ": " + gemasEncontradas);
     }
 

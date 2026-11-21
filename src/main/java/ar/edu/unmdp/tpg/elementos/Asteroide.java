@@ -20,6 +20,12 @@ public class Asteroide implements ElementoDelUniverso  {
         return resultado;
     }
 
+    // Un asteroide es un obstáculo: si está en la próxima casilla, la nave lo esquiva con el Motor Warp.
+    @Override
+    public boolean esObstaculo() {
+        return true;
+    }
+
     @Override
     public String toString() {
         return "Asteroide";

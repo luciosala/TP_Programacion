@@ -1,48 +1,32 @@
 package ar.edu.unmdp.tpg.motorwarp;
 
-import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
+import ar.edu.unmdp.tpg.naves.Recursos;
 
 /**
- * El motor esta enfriandose despues de un salto.
- *
- * Unica transicion valida: completarEnfriamiento(), que devuelve el motor a Disponible.
+ * Despues del salto warp el motor necesita un turno de enfriamiento. Ese turno
+ * suma 3 de desgaste a la nave, que no se mueve, y el motor vuelve a Disponible.
+ * Da lo mismo si la orden del turno es saltar() o saltarWarp().
  */
-public class Enfriando extends Estado{
+public class Enfriando extends Estado {
 
     @Override
-    public String nombre() {
+    String nombre() {
         return "Enfriamiento";
     }
 
     @Override
-    public Estado prepararSalto() throws TransicionInvalidaException {
-         throw new TransicionInvalidaException(
-            "No se puede preparar salto si esta enfriando"
-         );
+    int saltar(MotorWarp motor, Recursos recursos) {
+        return enfriar(motor, recursos);
     }
 
     @Override
-    public Estado iniciarSalto() throws TransicionInvalidaException {
-        throw new TransicionInvalidaException(
-            "No se puede iniciar el salto mientras esta enfriando"
-        );
+    int saltarWarp(MotorWarp motor, Recursos recursos) {
+        return enfriar(motor, recursos);
     }
-    @Override
-    public Estado completarEnfriamiento(){
-        return new Disponible();
+
+    private int enfriar(MotorWarp motor, Recursos recursos) {
+        recursos.sufrirDesgaste(MotorWarp.DESGASTE_ENFRIAMIENTO);
+        motor.cambiarEstado(new Disponible());
+        return 0;
     }
-    @Override
-    public Estado finalizarSalto() throws TransicionInvalidaException {
-         throw new TransicionInvalidaException(
-            "No se puede finalizar el salto mientras se enfria"
-        );
-    }
-    
-
-
-
-
-
-
-
 }

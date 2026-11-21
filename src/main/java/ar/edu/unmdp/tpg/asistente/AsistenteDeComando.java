@@ -167,48 +167,31 @@ public interface AsistenteDeComando {
     void consumirEnergia(int cantidad) throws RecursoInsuficienteException;
 
     /**
-     * Ordena al Motor Warp preparar un salto.
+     * Ordena un turno de salto normal al Motor Warp.
      *
      * Postcondiciones:
-     * - Si la transición es válida, el motor queda en Preparando salto y queda registrado.
-     * - Si no lo es, el motor no cambia de estado y queda registrado el rechazo.
+     * - Devuelve cuantas casillas avanza la nave (1, o 0 si era el turno de enfriamiento).
+     * - El salto y el estado del motor quedan registrados en la bitacora; si se
+     *   rechaza, queda registrado el error.
      *
-     * @throws TransicionInvalidaException rechazo de dominio: el estado actual no admite preparar el salto
+     * @return casillas que avanza la nave en este turno
+     * @throws TransicionInvalidaException si hay un salto warp en preparacion o listo
+     * @throws RecursoInsuficienteException si no hay combustible para el salto
      */
-    void prepararSalto() throws TransicionInvalidaException;
+    int saltar() throws TransicionInvalidaException, RecursoInsuficienteException;
 
     /**
-     * Ordena al Motor Warp iniciar el salto.
+     * Ordena un turno de la maniobra de salto warp.
      *
      * Postcondiciones:
-     * - Si la transición es válida, el motor queda En warp y queda registrado.
-     * - Si no lo es, el motor no cambia de estado y queda registrado el rechazo.
+     * - Devuelve cuantas casillas avanza la nave (2 en el turno del salto, 0 en los demas).
+     * - El turno y el estado del motor quedan registrados en la bitacora; si se
+     *   rechaza, queda registrado el error.
      *
-     * @throws TransicionInvalidaException rechazo de dominio: el estado actual no admite iniciar el salto
+     * @return casillas que avanza la nave en este turno
+     * @throws RecursoInsuficienteException si falta energia para preparar o ejecutar el salto
      */
-    void iniciarSalto() throws TransicionInvalidaException;
-
-    /**
-     * Ordena al Motor Warp finalizar el salto.
-     *
-     * Postcondiciones:
-     * - Si la transición es válida, el motor queda en Enfriamiento y queda registrado.
-     * - Si no lo es, el motor no cambia de estado y queda registrado el rechazo.
-     *
-     * @throws TransicionInvalidaException rechazo de dominio: el estado actual no admite finalizar el salto
-     */
-    void finalizarSalto() throws TransicionInvalidaException;
-
-    /**
-     * Ordena al Motor Warp completar el enfriamiento.
-     *
-     * Postcondiciones:
-     * - Si la transición es válida, el motor queda Disponible y queda registrado.
-     * - Si no lo es, el motor no cambia de estado y queda registrado el rechazo.
-     *
-     * @throws TransicionInvalidaException rechazo de dominio: el estado actual no admite completar el enfriamiento
-     */
-    void completarEnfriamiento() throws TransicionInvalidaException;
+    int saltarWarp() throws TransicionInvalidaException, RecursoInsuficienteException;
 
     /**
      * Consulta en qué estado está el Motor Warp.
@@ -351,6 +334,13 @@ public interface AsistenteDeComando {
      * @return cantidad de tripulantes asignados
      */
     int cantidadTripulantes();
+
+    /**
+     * Consulta la tripulación de la nave (copia de solo lectura).
+     *
+     * @return los tripulantes, en orden de alta
+     */
+    List<Tripulante> consultarTripulacion();
 
     /**
      * Ordena liquidar el haber mensual de un tripulante para un período dado.

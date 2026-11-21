@@ -3,7 +3,9 @@ package ar.edu.unmdp.tpg.mision;
 import ar.edu.unmdp.tpg.asistente.AsistenteDeComando;
 import ar.edu.unmdp.tpg.excepciones.MisionNoViableException;
 import ar.edu.unmdp.tpg.excepciones.NaveException;
+import ar.edu.unmdp.tpg.excepciones.RecursoInsuficienteException;
 import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
+import ar.edu.unmdp.tpg.motorwarp.MotorWarp;
 import ar.edu.unmdp.tpg.excepciones.TripulacionInvalidaException;
 import ar.edu.unmdp.tpg.destino.Destino;
 import ar.edu.unmdp.tpg.destino.Posicion;
@@ -50,7 +52,8 @@ public abstract class Mision{
     private final RadarLargoAlcance radarLargo = new RadarLargoAlcance();
     private final RadarCortoAlcance radarCorto = new RadarCortoAlcance();
     private List<Posicion> ruta = new ArrayList<>();
-    private static int pausaEntreTurnos = 400;  // milisegundos
+    private Posicion objetivo;                  // casilla a la que va la mision (se fija en preparar)
+    private static int pausaEntreTurnos = 1500;  // milisegundos
     private int combustibleAlPartir, energiaAlPartir, desgasteAlPartir;   // para el balance
 
     /**
@@ -107,6 +110,22 @@ public abstract class Mision{
      * @param otro asistente a comparar
      * @return true si la mision pertenece a ese asistente
      */
+    /**
+     * Consulta la casilla objetivo de la mision, o null si todavia no se preparo.
+     * No modifica la mision. Sirve para mostrarla en el tablero.
+     */
+    public final Posicion getObjetivo() {
+        return objetivo;
+    }
+
+    /**
+     * Consulta las casillas que le faltan recorrer a la nave (copia de solo lectura).
+     * Antes de preparar esta vacia; se va acortando turno a turno.
+     */
+    public final List<Posicion> getRutaPendiente() {
+        return java.util.Collections.unmodifiableList(new ArrayList<>(ruta));
+    }
+
     public final boolean estaEncomendadaA(AsistenteDeComando otro) {
         return asistente == otro;
     }
@@ -210,17 +229,24 @@ public abstract class Mision{
                     "la tripulación no está lista: se requiere un capitán y cuatro tripulantes adicionales");
             }
 
-            asistente.verificarRecursos(combustibleNecesario() + combustibleAEntregar(), costoAccionFinal(), desgasteQueGenera());    
+            // Radar de largo alcance: calcula la ruta hasta el objetivo
+            objetivo = destinoDeLaMision();
+            List<Posicion> rutaCalculada = radarLargo.calcularRuta(tablero.getPosicionNave(), objetivo);
+
+            // Recursos mínimos: despegue + saltos normales de la ruta (2 de combustible cada uno)
+            // + lo que se entrega al final. Los desvíos con warp no se pueden prever acá.
+            int combustibleRecorrido = rutaCalculada.size() * MotorWarp.COMBUSTIBLE_SALTO;
+            int combustibleTotal = combustibleNecesario() + combustibleRecorrido + combustibleAEntregar();
+            int energiaTotal = energiaInicial() + costoAccionFinal();
+            asistente.verificarRecursos(combustibleTotal, energiaTotal, desgasteQueGenera());
             //  no se puede dejar a la nave en un nivel letal (combustible 0, energía 0 o desgaste 100)
-            if (asistente.combustibleDisponible() - combustibleNecesario() - combustibleAEntregar() <= 0
-                    || asistente.energiaDisponible() - costoAccionFinal() <= 0
+            if (asistente.combustibleDisponible() - combustibleTotal <= 0
+                    || asistente.energiaDisponible() - energiaTotal <= 0
                     || asistente.desgasteActual() + desgasteQueGenera() >= 100) {
                 throw new MisionNoViableException("la misión dejaría a la nave sin recursos");
-            }        
-            // Radar de largo alcance: calcula y guarda la ruta hasta el objetivo
-            Posicion objetivo = destinoDeLaMision();
-            ruta = radarLargo.calcularRuta(tablero.getPosicionNave(), objetivo);
-            registrarAccion("Ruta calculada hacia " + texto(objetivo) + ": " + ruta.size() + " saltos");
+            }
+            ruta = rutaCalculada;
+            registrarAccion("Ruta calculada hacia " + texto(objetivo) + ": " + ruta.size() + " casillas");
             registrarAccion("Preparación completada");
             fase = Fase.PREPARADA;
         } catch (NaveException error) {
@@ -253,9 +279,10 @@ public abstract class Mision{
         combustibleAlPartir = asistente.combustibleDisponible();
         energiaAlPartir = asistente.energiaDisponible();
         desgasteAlPartir = asistente.desgasteActual();
-        // 1. Consumo de despegue
-        asistente.consumirParaMision(combustibleNecesario(), 0, desgasteQueGenera());
+        // 1. Consumo de despegue (Anexo): combustible, energía según la misión y desgaste
+        asistente.consumirParaMision(combustibleNecesario(), energiaInicial(), desgasteQueGenera());
         combustibleConsumido += combustibleNecesario();
+        energiaConsumida += energiaInicial();
         desgasteAcumulado += desgasteQueGenera();
         fase = Fase.EJECUTADA;
 
@@ -269,10 +296,12 @@ public abstract class Mision{
         return verificarEnDestino();
    }
 
-    // Bucle por turnos: mientras la nave siga viva y no haya llegado
+    // Bucle por turnos: mientras la nave siga viva y no haya llegado.
+    // Si llega con una maniobra warp sin terminar (le falta el enfriamiento), sigue
+    // los turnos que hagan falta para dejar el motor Disponible.
    private boolean viajar() {
         int turno = 0;
-        while (!asistente.naveDestruida() && !ruta.isEmpty()) {
+        while (!asistente.naveDestruida() && (!ruta.isEmpty() || !asistente.motorDisponible())) {
             turno++;
 
             // A. Turno de la nave
@@ -284,13 +313,20 @@ public abstract class Mision{
                     break;   // la misión falla de inmediato
                 }
             }
+
             // A.2 Escaneo con el radar de corto alcance
             int cercanos = radarCorto.contarElementosCercanos(tablero);
-            // A.3 Planificación y movimiento: siguiente casilla de la ruta
-            Posicion siguiente = ruta.remove(0);
-            tablero.moverNave(siguiente);
-            registrarAccion("Turno " + turno + ": salto a " + texto(siguiente)
-                    + " (radar: " + cercanos + " elementos cerca)");
+            boolean obstaculo = !ruta.isEmpty() && radarCorto.hayObstaculoEn(tablero, ruta.get(0));
+
+            // A.3 Planificación y movimiento: salto normal o salto warp (Anexo)
+            int casillas;
+            try {
+                casillas = moverMotor(turno, obstaculo);
+            } catch (RecursoInsuficienteException | TransicionInvalidaException error) {
+                registrarAccion("Turno " + turno + ": " + error.getMessage() + ". La nave no puede seguir: misión fallida");
+                return false;
+            }
+            avanzar(turno, casillas, cercanos);
 
             // B. Turno del tablero
             destino.turnoDestino();
@@ -310,6 +346,61 @@ public abstract class Mision{
             return false;
         }
         return true;
+   }
+
+    // Decide qué le pide al motor en este turno:
+    // - si hay una maniobra warp en curso (preparación o enfriamiento), la sigue;
+    // - si el radar ve un obstáculo en la próxima casilla y hay lugar para saltar 2,
+    //   empieza un salto warp para esquivarlo;
+    // - si no, salto normal.
+    // Suma al informe lo que consumió el motor.
+   private int moverMotor(int turno, boolean obstaculo)
+            throws RecursoInsuficienteException, TransicionInvalidaException {
+        int combustibleAntes = asistente.combustibleDisponible();
+        int energiaAntes = asistente.energiaDisponible();
+        int desgasteAntes = asistente.desgasteActual();
+
+        int casillas;
+        if (!asistente.motorDisponible()) {
+            String estado = asistente.estadoDelMotor();
+            casillas = asistente.saltarWarp();
+            if (casillas == 0) {
+                registrarAccion("Turno " + turno + ": Motor Warp en " + estado.toLowerCase()
+                        + ", la nave espera (motor ahora " + asistente.estadoDelMotor() + ")");
+            }
+        } else if (obstaculo && ruta.size() >= MotorWarp.CASILLAS_WARP
+                && asistente.energiaDisponible() > MotorWarp.ENERGIA_WARP) {
+            registrarAccion("Turno " + turno + ": obstáculo en " + texto(ruta.get(0))
+                    + ", se activa el Motor Warp para esquivarlo");
+            casillas = asistente.saltarWarp();
+        } else {
+            if (obstaculo) {
+                registrarAccion("Turno " + turno + ": obstáculo en " + texto(ruta.get(0))
+                        + ", pero no se puede usar el Motor Warp: salto normal");
+            }
+            casillas = asistente.saltar();
+        }
+
+        combustibleConsumido += Math.max(0, combustibleAntes - asistente.combustibleDisponible());
+        energiaConsumida += Math.max(0, energiaAntes - asistente.energiaDisponible());
+        desgasteAcumulado += Math.max(0, asistente.desgasteActual() - desgasteAntes);
+        return casillas;
+   }
+
+    // Mueve la nave por la ruta. En un salto warp la primera casilla (la del obstáculo)
+    // se saltea y la nave aparece directamente en la segunda.
+   private void avanzar(int turno, int casillas, int cercanos) {
+        if (casillas == 0) {
+            return;
+        }
+        Posicion llegada = null;
+        for (int i = 0; i < casillas && !ruta.isEmpty(); i++) {
+            llegada = ruta.remove(0);
+        }
+        tablero.moverNave(llegada);
+        String tipo = casillas == 1 ? "salto normal" : "salto warp de " + casillas + " casillas";
+        registrarAccion("Turno " + turno + ": " + tipo + " a " + texto(llegada)
+                + " (radar: " + cercanos + " elementos cerca)");
    }
 
    //  Verifica y revisa el combustibles
@@ -390,7 +481,7 @@ public abstract class Mision{
 
     /**
      * Cuarta y última etapa del ciclo: impacta en la nave lo ganado o entregado,
-     * hace saltar la nave si la misión salió bien y deja constancia del resultado.
+     * y deja constancia del resultado.
      *
      * Precondiciones (assert):
      * - La misión está en fase EVALUADA y ya tiene informe: no se cierra sin
@@ -398,13 +489,12 @@ public abstract class Mision{
      *
      * Postcondiciones:
      * - Queda registrado en la bitácora el cierre de la misión y su resultado.
-     * - Si exito es true, se descuenta lo entregado o gastado en la acción final,
-     *   se aplica lo ganado y el motor recorre el ciclo de salto hasta quedar
-     *   Disponible; si es false, la nave no se modifica.
+     * - Si exito es true, se descuenta lo entregado o gastado en la acción final
+     *   y se aplica lo ganado; si es false, la nave no se modifica.
      * - La misión pasa a fase CERRADA.
      *
      * @param exito resultado devuelto por la evaluación
-     * @throws NaveException rechazo de dominio durante el impacto final o el salto
+     * @throws NaveException rechazo de dominio durante el impacto final
      */
     protected final void cerrar(boolean exito) throws NaveException {
         assert fase == Fase.EVALUADA && informe != null : "Una misión no puede cerrarse sin resultado e informe";
@@ -413,40 +503,17 @@ public abstract class Mision{
                 asistente.consumirParaMision(combustibleAEntregar(), costoAccionFinal(), 0);   // recién acá se descuenta
             }
             impactarAlCerrar();
-            saltar();
         }
         asistente.registrarEvento("MISION", nombre + " finalizada: " + (exito ? "EXITOSA" : "FALLIDA"));
         fase = Fase.CERRADA;
 
-        assert !exito || asistente.motorDisponible() : "Tras un salto exitoso el motor debe quedar Disponible";
+        assert asistente.naveDestruida() || !exito || asistente.motorDisponible()
+            : "Una misión exitosa termina con el motor Disponible";
         assert invariante() : "Fallo invariante de Mision";
     }
 
     /**
-     * Hace saltar a la nave al completarse la misión con éxito, recorriendo el
-     * ciclo del Motor Warp de punta a punta.
-     *
-     * Como todavía no se modela el paso del tiempo, el enfriamiento se completa
-     * en el momento y la nave queda nuevamente Disponible.
-     *
-     * Precondiciones (assert):
-     * - El motor está en estado Disponible (lo verificó preparar()).
-     *
-     * Postcondiciones:
-     * - El motor pasa por Preparando salto, En warp y Enfriamiento, y termina en Disponible.
-     * - Las cuatro transiciones quedan registradas en la bitácora.
-     *
-     * @throws TransicionInvalidaException si alguna de las cuatro transiciones es rechazada
-     */
-    private void saltar() throws TransicionInvalidaException {
-        assert asistente.motorDisponible() : "Para saltar el motor debe estar Disponible";
-        asistente.prepararSalto();
-        asistente.iniciarSalto();
-        asistente.finalizarSalto();
-        asistente.completarEnfriamiento();
-    }
-    /**
-     * Punto de extensión: energía que cuesta la acción final de esta misión.
+     * Punto de extensión: energía que se gasta o entrega en la acción final de esta misión.
      *
      * Postcondiciones:
      * - Devuelve un valor mayor o igual a 0. Devolver 0 significa que la misión
@@ -508,6 +575,12 @@ public abstract class Mision{
     }
 
     // ---------- cada misión los redefine solo si los necesita ----------
+
+    // Energía que consume la misión al despegar, además del costo base (Anexo).
+    // Por defecto, nada.
+    protected int energiaInicial() {
+        return 0;
+    }
 
     // Combustible que la misión entrega al llegar (por defecto, nada)
     protected int combustibleAEntregar() {

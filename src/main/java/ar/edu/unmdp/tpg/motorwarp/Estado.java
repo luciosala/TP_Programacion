@@ -1,33 +1,41 @@
 package ar.edu.unmdp.tpg.motorwarp;
 
+import ar.edu.unmdp.tpg.excepciones.RecursoInsuficienteException;
 import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
+import ar.edu.unmdp.tpg.naves.Recursos;
 
 /**
- * Estado del Motor Warp. Cada subclase sabe a que estado puede pasar y rechaza
- * el resto de las transiciones.
+ * Estado del Motor Warp (patron State).
  *
- * PATRON STATE: el motor no decide con ifs que transicion es valida; delega en su
- * estado actual, y cada transicion devuelve el estado siguiente.
+ * El motor solo expone saltar() y saltarWarp() (Anexo de la catedra). Lo que pasa
+ * en cada turno depende del estado en que este el motor, y eso lo decide cada
+ * subclase de Estado, no el motor con ifs:
  *
- * Contrato comun de las cuatro transiciones:
- * - No modifican el estado receptor: los estados son inmutables.
- * - Si la transicion es valida, devuelven el estado siguiente, que no es nulo.
- * - Si no lo es, lanzan TransicionInvalidaException y el motor conserva su estado.
+ * - Disponible: saltar() avanza 1 casilla (2 de combustible); saltarWarp() empieza
+ *   la preparacion.
+ * - Preparando salto: cada saltarWarp() es un turno de preparacion (hacen falta 2),
+ *   y en cada uno se controla que haya 5 de energia. saltar() no esta permitido.
+ * - En warp: el motor esta listo; saltarWarp() consume 5 de energia y avanza
+ *   2 casillas. Si ya no hay energia, se aborta y se vuelve a preparar.
+ * - Enfriamiento: el siguiente turno (saltar() o saltarWarp()) es de enfriamiento,
+ *   suma 3 de desgaste y el motor vuelve a Disponible. La nave no se mueve.
  *
- * Ciclo valido: Disponible -> Preparando salto -> En warp -> Enfriamiento -> Disponible.
+ * Contrato comun de saltar() y saltarWarp():
+ * - Devuelven cuantas casillas avanza la nave en este turno (0, 1 o 2).
+ * - Si cambian de estado, lo hacen con motor.cambiarEstado(...).
+ * - Si rechazan la orden, lanzan una excepcion y el motor no cambia de estado
+ *   (salvo el aborto del salto, que segun el Anexo vuelve a preparacion).
  */
 public abstract class Estado {
 
-    abstract Estado prepararSalto() throws TransicionInvalidaException;
+    abstract int saltar(MotorWarp motor, Recursos recursos)
+            throws TransicionInvalidaException, RecursoInsuficienteException;
 
-    abstract Estado iniciarSalto() throws TransicionInvalidaException;
-
-    abstract Estado finalizarSalto() throws TransicionInvalidaException;
-
-    abstract Estado completarEnfriamiento() throws TransicionInvalidaException;
+    abstract int saltarWarp(MotorWarp motor, Recursos recursos)
+            throws TransicionInvalidaException, RecursoInsuficienteException;
 
     abstract String nombre();
-    
+
     boolean estaDisponible() {
         return false;
     }
