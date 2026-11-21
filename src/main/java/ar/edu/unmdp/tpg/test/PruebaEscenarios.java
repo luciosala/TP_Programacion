@@ -6,14 +6,16 @@ import ar.edu.unmdp.tpg.bitacora.Bitacora;
 import ar.edu.unmdp.tpg.bitacora.EventoBitacora;
 import ar.edu.unmdp.tpg.destino.CantidadDeElementosSuperaCasillaException;
 import ar.edu.unmdp.tpg.destino.DimensionesDeTableroInconsistentesException;
+import ar.edu.unmdp.tpg.destino.Posicion;
 import ar.edu.unmdp.tpg.destino.Tablero;
 import ar.edu.unmdp.tpg.excepciones.LimiteRecursoExcedidoException;
 import ar.edu.unmdp.tpg.excepciones.MisionNoViableException;
 import ar.edu.unmdp.tpg.excepciones.NaveException;
 import ar.edu.unmdp.tpg.excepciones.NaveNoRegistradaException;
 import ar.edu.unmdp.tpg.excepciones.NaveYaRegistradaException;
-import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
+import ar.edu.unmdp.tpg.excepciones.RecursoInsuficienteException;
 import ar.edu.unmdp.tpg.excepciones.TripulacionInvalidaException;
+import ar.edu.unmdp.tpg.elementos.FabricaDeElementos;
 import ar.edu.unmdp.tpg.haberes.Haber;
 import ar.edu.unmdp.tpg.mision.InformeMision;
 import ar.edu.unmdp.tpg.mision.Mision;
@@ -23,6 +25,7 @@ import ar.edu.unmdp.tpg.mision.MisionRetornoSeguro;
 import ar.edu.unmdp.tpg.naves.Nave;
 import ar.edu.unmdp.tpg.naves.NaveFactory;
 import ar.edu.unmdp.tpg.naves.Recursos;
+import ar.edu.unmdp.tpg.motorwarp.MotorWarp;
 import ar.edu.unmdp.tpg.tripulacion.Alferez;
 import ar.edu.unmdp.tpg.tripulacion.Capitan;
 import ar.edu.unmdp.tpg.tripulacion.Consejero;
@@ -37,8 +40,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Main de prueba de la Entrega 1: recorre los escenarios de la ficha de inicio
- * (A, B, C y D), un escenario de contratos (E) y la liquidacion de haberes, y
+ * Main de prueba: recorre los escenarios de la ficha de inicio (A, B, C y D) con
+ * los costos y el Motor Warp de la Parte 2 (Anexo), un escenario de contratos (E),
+ * la navegacion por un tablero con obstaculos y la liquidacion de haberes, y
  * compara cada resultado con el esperado usando el Verificador.
  *
  * Para comprobar un rechazo se usa el esquema try/catch de la teoria de
@@ -86,36 +90,53 @@ public class PruebaEscenarios {
     // ---------- Escenario A: ejecucion correcta ----------
 
     private static void escenarioA(Universo universo) throws NaveException {
-        titulo("ESCENARIO A - Ejecucion correcta de M-01, M-02 y M-03");
+        titulo("ESCENARIO A - Ejecucion correcta de M-01, M-02 y M-03 (costos del Anexo)");
         universo.seleccionarNave("EXP-1");
         AsistenteDeComando nave = universo.getNaveActiva();
         System.out.println("Nave seleccionada: " + nave.idNave());
         mostrarEstado(nave);
+        // Tablero sin elementos: no hay obstaculos, asi que todos los saltos son simples (2 de combustible).
         Tablero tablero = crearTableroVacio();
 
-        // M-01: despegue 4 combustible y 4 desgaste; entrega 5 de energia y 5 de combustible.
-        InformeMision m01 = ejecutarYMostrar(nave, new MisionIntercepcion(nave, tablero, "Carguero Orion", "sin propulsion"));
+        // M-01: despegue 4/5/4; cada salto 2 de combustible; entrega lo que pide la aliada (10 y 10).
+        Posicion partida = tablero.getPosicionNave();
+        InformeMision m01 = ejecutarYMostrar(nave, new MisionIntercepcion(nave, tablero, "Carguero Orion", "sin propulsion", 10, 10));
+        int saltos = distancia(partida, tablero.getObjetivo());
         verificador.verificar("M-01 exitosa", m01.fueExitosa());
-        verificador.verificarRecursos("M-01: consumos del informe", 9, 5, 4,
+        verificador.verificar("M-01: la nave quedó en la coordenada de la nave aliada",
+            tablero.getPosicionNave().equals(tablero.getObjetivo()));
+        verificador.verificarRecursos("M-01: consumos del informe (" + saltos + " saltos)",
+            4 + 2 * saltos + 10, 5 + 10, 4,
             m01.getCombustibleConsumido(), m01.getEnergiaConsumida(), m01.getDesgasteGenerado());
-        verificador.verificarRecursos("M-01: recursos de la nave al cerrar", 51, 75, 4,
+        verificador.verificarRecursos("M-01: recursos de la nave al cerrar",
+            60 - (4 + 2 * saltos + 10), 80 - 15, 4,
             nave.combustibleDisponible(), nave.energiaDisponible(), nave.desgasteActual());
-        verificador.verificarIgual("M-01: motor tras el salto", "Disponible", nave.estadoDelMotor());
+        verificador.verificarIgual("M-01: entregado a la aliada (energía)", 10, m01.getBalance().getEnergiaEntregada());
+        verificador.verificarIgual("M-01: motor al terminar", "Disponible", nave.estadoDelMotor());
 
-        // M-02: despegue 4 combustible y 4 desgaste; recoleccion 5 de energia; entre 1 y 5 gemas.
-        InformeMision m02 = ejecutarYMostrar(nave, new MisionRecoleccion(nave, tablero, "Nebulosa K-7", "muestra de gas"));
+        // M-02: despegue 4/10/4; cada salto 2 de combustible; entre 20 y 100 gemas.
+        int combustibleAntes = nave.combustibleDisponible();
+        int energiaAntes = nave.energiaDisponible();
+        partida = tablero.getPosicionNave();
+        InformeMision m02 = ejecutarYMostrar(nave, new MisionRecoleccion(nave, tablero, "Nebulosa K-7"));
+        saltos = distancia(partida, tablero.getObjetivo());
         verificador.verificar("M-02 exitosa", m02.fueExitosa());
-        verificador.verificarRecursos("M-02: consumos del informe", 4, 5, 4,
+        verificador.verificarRecursos("M-02: consumos del informe (" + saltos + " saltos)", 4 + 2 * saltos, 10, 4,
             m02.getCombustibleConsumido(), m02.getEnergiaConsumida(), m02.getDesgasteGenerado());
-        verificador.verificarRecursos("M-02: recursos de la nave al cerrar", 47, 70, 8,
+        verificador.verificarRecursos("M-02: recursos de la nave al cerrar",
+            combustibleAntes - 4 - 2 * saltos, energiaAntes - 10, 8,
             nave.combustibleDisponible(), nave.energiaDisponible(), nave.desgasteActual());
-        verificador.verificar("M-02: gemas recolectadas entre 1 y 5 (obtenido " + nave.gemasDisponibles() + ")",
-            nave.gemasDisponibles() >= 1 && nave.gemasDisponibles() <= 5);
+        verificador.verificar("M-02: gemas recolectadas entre 20 y 100 (obtenido " + nave.gemasDisponibles() + ")",
+            nave.gemasDisponibles() >= 20 && nave.gemasDisponibles() <= 100);
 
-        // M-03: despegue 4 combustible y 4 desgaste; al llegar a la base recarga a 100 y repara.
+        // M-03: despegue 4/0/4; al llegar a la base (punto de partida) recarga a 100 y repara.
+        partida = tablero.getPosicionNave();
         InformeMision m03 = ejecutarYMostrar(nave, new MisionRetornoSeguro(nave, tablero, "Base Andromeda"));
+        saltos = distancia(partida, new Posicion(tablero.getX() / 2, tablero.getY() / 2));
         verificador.verificar("M-03 exitosa", m03.fueExitosa());
-        verificador.verificarRecursos("M-03: consumos del informe", 4, 0, 4,
+        verificador.verificar("M-03: la nave volvió al punto de partida",
+            tablero.getPosicionNave().equals(new Posicion(tablero.getX() / 2, tablero.getY() / 2)));
+        verificador.verificarRecursos("M-03: consumos del informe (" + saltos + " saltos)", 4 + 2 * saltos, 0, 4,
             m03.getCombustibleConsumido(), m03.getEnergiaConsumida(), m03.getDesgasteGenerado());
         verificador.verificarRecursos("M-03: nave reabastecida y reparada", 100, 100, 0,
             nave.combustibleDisponible(), nave.energiaDisponible(), nave.desgasteActual());
@@ -128,8 +149,6 @@ public class PruebaEscenarios {
         int cierreM03 = indiceDesde(eventos, 0, "M-03 - Retorno seguro finalizada: EXITOSA");
         verificador.verificar("Bitácora registra el cierre de M-01, M-02 y M-03 en ese orden",
             cierreM01 >= 0 && cierreM01 < cierreM02 && cierreM02 < cierreM03);
-        verificador.verificar("Bitácora registra el ciclo del Motor Warp",
-            indiceDesde(eventos, 0, "Motor Warp en En warp") >= 0);
     }
 
     private static InformeMision ejecutarYMostrar(AsistenteDeComando nave, Mision mision) throws NaveException {
@@ -152,8 +171,8 @@ public class PruebaEscenarios {
         mostrarEstado(nave);
         Tablero tablero = crearTableroVacio();
 
-        // Recolecciones sucesivas: cada una gasta 4 combustible, 5 energia y 4 desgaste.
-        // La energia (60) alcanza para 11; la 12.a dejaria la nave sin energia y se rechaza.
+        // Recolecciones sucesivas: cada despegue gasta 10 de energia (Anexo).
+        // La energia (60) alcanza para 5; la 6.a dejaria la nave sin energia y se rechaza.
         int realizadas = 0;
         boolean rechazada = false;
         while (!rechazada && realizadas < 20) {
@@ -162,7 +181,7 @@ public class PruebaEscenarios {
             int desgasteAntes = nave.desgasteActual();
             int eventosAntes = nave.consultarBitacora().size();
             try {
-                nave.ejecutarMision(new MisionRecoleccion(nave, tablero, "Asteroide " + (realizadas + 1), "mineral"));
+                nave.ejecutarMision(new MisionRecoleccion(nave, tablero, "Asteroide " + (realizadas + 1)));
                 realizadas++;
             } catch (MisionNoViableException error) {
                 rechazada = true;
@@ -181,76 +200,73 @@ public class PruebaEscenarios {
                     eventos.get(eventos.size() - 1).getCategoria());
             }
         }
-        verificador.verificarIgual("Recolecciones completadas antes del rechazo", 11, realizadas);
-        verificador.verificarRecursos("CAR-1 tras el escenario B", 56, 5, 44,
-            nave.combustibleDisponible(), nave.energiaDisponible(), nave.desgasteActual());
+        verificador.verificarIgual("Recolecciones completadas antes del rechazo", 5, realizadas);
+        verificador.verificarIgual("Energía de CAR-1 tras el escenario B", 10, nave.energiaDisponible());
+        verificador.verificarIgual("Desgaste de CAR-1 tras el escenario B", 20, nave.desgasteActual());
         verificador.verificarIgual("Motor de CAR-1 tras el rechazo", "Disponible", nave.estadoDelMotor());
     }
 
     // ---------- Escenario C: Motor Warp ----------
 
     private static void escenarioC(Universo universo) throws NaveException {
-        titulo("ESCENARIO C - Motor Warp");
+        titulo("ESCENARIO C - Motor Warp (patron State, Anexo)");
         universo.seleccionarNave("COM-1");
         AsistenteDeComando nave = universo.getNaveActiva();
         System.out.println("Nave seleccionada: " + nave.idNave());
+        mostrarEstado(nave);
         int eventosAntes = nave.consultarBitacora().size();
 
-        System.out.println("Secuencia valida:");
+        System.out.println("Salto simple: 2 de combustible, avanza 1 casillero:");
         verificador.verificarIgual("Estado inicial", "Disponible", nave.estadoDelMotor());
-        nave.prepararSalto();
-        verificador.verificarIgual("prepararSalto", "Preparando salto", nave.estadoDelMotor());
-        nave.iniciarSalto();
-        verificador.verificarIgual("iniciarSalto", "En warp", nave.estadoDelMotor());
-        nave.finalizarSalto();
-        verificador.verificarIgual("finalizarSalto", "Enfriamiento", nave.estadoDelMotor());
-        nave.completarEnfriamiento();
-        verificador.verificarIgual("completarEnfriamiento", "Disponible", nave.estadoDelMotor());
+        verificador.verificarIgual("saltar() avanza", 1, nave.saltar());
+        verificador.verificarRecursos("Tras el salto simple", 78, 100, 0,
+            nave.combustibleDisponible(), nave.energiaDisponible(), nave.desgasteActual());
+        verificador.verificarIgual("Sigue Disponible", "Disponible", nave.estadoDelMotor());
 
-        System.out.println("Transiciones invalidas:");
-        int erroresAntes = contarCategoria(nave.consultarBitacora(), "ERROR");
+        System.out.println("Salto warp: 2 turnos de preparacion, salto de 2 casilleros y 1 de enfriamiento:");
+        verificador.verificarIgual("Turno 1 de preparación: no avanza", 0, nave.saltarWarp());
+        verificador.verificarIgual("Estado", "Preparando salto", nave.estadoDelMotor());
+        verificador.verificarIgual("Turno 2 de preparación: no avanza", 0, nave.saltarWarp());
+        verificador.verificarIgual("Estado", "En warp", nave.estadoDelMotor());
+        verificador.verificarIgual("Salto warp: avanza 2", 2, nave.saltarWarp());
+        verificador.verificarRecursos("El salto consume 5 de energía", 78, 95, 0,
+            nave.combustibleDisponible(), nave.energiaDisponible(), nave.desgasteActual());
+        verificador.verificarIgual("Estado", "Enfriamiento", nave.estadoDelMotor());
+        verificador.verificarIgual("Turno de enfriamiento: no avanza", 0, nave.saltar());
+        verificador.verificarRecursos("El enfriamiento genera 3 de desgaste", 78, 95, 3,
+            nave.combustibleDisponible(), nave.energiaDisponible(), nave.desgasteActual());
+        verificador.verificarIgual("Vuelve a Disponible", "Disponible", nave.estadoDelMotor());
+        verificador.verificarIgual("La bitácora registra los 4 cambios del motor", 4,
+            contarCategoria(nave.consultarBitacora(), "MOTOR") - contarCategoria(nave.consultarBitacora().subList(0, eventosAntes), "MOTOR"));
 
+        System.out.println("Preparacion sin energia y salto abortado (motor sobre recursos de prueba):");
+        Recursos recursos = new Recursos(50, 4, 0);
+        MotorWarp motor = new MotorWarp(recursos);
+        motor.saltarWarp();
+        motor.saltarWarp();
+        verificador.verificarIgual("Sin 5 de energía se queda preparando", "Preparando salto", motor.getEstadoActual());
+        recursos.cargarEnergia(10);
+        motor.saltarWarp();
+        motor.saltarWarp();
+        verificador.verificarIgual("Con energía completa los 2 turnos", "En warp", motor.getEstadoActual());
+        recursos.consumirEnergia(12);
+        verificador.verificarIgual("Sin energía al saltar: se aborta y no avanza", 0, motor.saltarWarp());
+        verificador.verificarIgual("Vuelve a preparación", "Preparando salto", motor.getEstadoActual());
+        verificador.verificarIgual("saltar() cancela la preparación y avanza 1", 1, motor.saltar());
+        verificador.verificarIgual("Queda Disponible", "Disponible", motor.getEstadoActual());
+        verificador.verificarIgual("El salto simple costó 2 de combustible", 48, recursos.getCombustible());
+
+        System.out.println("Salto sin combustible: se rechaza sin cambios:");
+        Recursos sinCombustible = new Recursos(1, 50, 0);
+        MotorWarp motorSinCombustible = new MotorWarp(sinCombustible);
         try {
-            nave.iniciarSalto();
-            verificador.faltoRechazo("iniciarSalto desde Disponible");
-        } catch (TransicionInvalidaException error) {
-            verificador.rechazoEsperado("iniciarSalto desde Disponible", error);
+            motorSinCombustible.saltar();
+            verificador.faltoRechazo("saltar() con 1 de combustible");
+        } catch (RecursoInsuficienteException error) {
+            verificador.rechazoEsperado("saltar() con 1 de combustible", error);
         }
-        verificador.verificarIgual("Estado tras el rechazo", "Disponible", nave.estadoDelMotor());
-
-        try {
-            nave.finalizarSalto();
-            verificador.faltoRechazo("finalizarSalto desde Disponible");
-        } catch (TransicionInvalidaException error) {
-            verificador.rechazoEsperado("finalizarSalto desde Disponible", error);
-        }
-        verificador.verificarIgual("Estado tras el rechazo", "Disponible", nave.estadoDelMotor());
-
-        nave.prepararSalto();
-        try {
-            nave.prepararSalto();
-            verificador.faltoRechazo("prepararSalto desde Preparando salto");
-        } catch (TransicionInvalidaException error) {
-            verificador.rechazoEsperado("prepararSalto desde Preparando salto", error);
-        }
-        verificador.verificarIgual("Estado tras el rechazo", "Preparando salto", nave.estadoDelMotor());
-
-        try {
-            nave.completarEnfriamiento();
-            verificador.faltoRechazo("completarEnfriamiento desde Preparando salto");
-        } catch (TransicionInvalidaException error) {
-            verificador.rechazoEsperado("completarEnfriamiento desde Preparando salto", error);
-        }
-        verificador.verificarIgual("Estado tras el rechazo", "Preparando salto", nave.estadoDelMotor());
-
-        // Se completa el ciclo para dejar el motor Disponible.
-        nave.iniciarSalto();
-        nave.finalizarSalto();
-        nave.completarEnfriamiento();
-        verificador.verificarIgual("Motor de vuelta en Disponible", "Disponible", nave.estadoDelMotor());
-
-        int erroresDespues = contarCategoria(nave.consultarBitacora(), "ERROR");
-        verificador.verificarIgual("Rechazos registrados en la bitácora como ERROR", 4, erroresDespues - erroresAntes);
+        verificador.verificarIgual("El combustible no cambió", 1, sinCombustible.getCombustible());
+        verificador.verificarIgual("El motor no cambió", "Disponible", motorSinCombustible.getEstadoActual());
         mostrarBitacoraDesde(nave, eventosAntes);
     }
 
@@ -260,15 +276,16 @@ public class PruebaEscenarios {
         titulo("ESCENARIO D - Contrato invalido y mantenimiento");
         universo.seleccionarNave("CAR-1");
         AsistenteDeComando nave = universo.getNaveActiva();
-        System.out.println("Nave seleccionada: " + nave.idNave() + " (quedo sin energia en el escenario B)");
+        System.out.println("Nave seleccionada: " + nave.idNave() + " (quedo con poca energia en el escenario B)");
         mostrarEstado(nave);
         int eventosAntes = nave.consultarBitacora().size();
 
         System.out.println("Cargas validas:");
-        nave.cargarEnergia(60);
-        verificador.verificarIgual("cargarEnergia(60) sobre 5", 65, nave.energiaDisponible());
-        nave.cargarCombustible(40);
-        verificador.verificarIgual("cargarCombustible(40) sobre 56", 96, nave.combustibleDisponible());
+        nave.cargarEnergia(55);
+        verificador.verificarIgual("cargarEnergia(55) sobre 10", 65, nave.energiaDisponible());
+        int faltaPara96 = 96 - nave.combustibleDisponible();
+        nave.cargarCombustible(faltaPara96);
+        verificador.verificarIgual("cargarCombustible(" + faltaPara96 + ") hasta 96", 96, nave.combustibleDisponible());
 
         System.out.println("Cargas que exceden la capacidad maxima:");
         try {
@@ -277,7 +294,7 @@ public class PruebaEscenarios {
         } catch (LimiteRecursoExcedidoException error) {
             verificador.rechazoEsperado("cargarCombustible(20) con 96", error);
         }
-        verificador.verificarRecursos("Recursos sin cambios tras el rechazo", 96, 65, 44,
+        verificador.verificarRecursos("Recursos sin cambios tras el rechazo", 96, 65, 20,
             nave.combustibleDisponible(), nave.energiaDisponible(), nave.desgasteActual());
 
         try {
@@ -286,7 +303,7 @@ public class PruebaEscenarios {
         } catch (LimiteRecursoExcedidoException error) {
             verificador.rechazoEsperado("cargarEnergia(36) con 65", error);
         }
-        verificador.verificarRecursos("Recursos sin cambios tras el rechazo", 96, 65, 44,
+        verificador.verificarRecursos("Recursos sin cambios tras el rechazo", 96, 65, 20,
             nave.combustibleDisponible(), nave.energiaDisponible(), nave.desgasteActual());
         verificador.verificar("La bitácora registra los rechazos de carga",
             indiceDesde(nave.consultarBitacora(), eventosAntes, "no se pudo cargar") >= 0);
@@ -357,7 +374,7 @@ public class PruebaEscenarios {
         verificador.verificarIgual("La bitácora no aceptó el evento vacío", eventosAntes, nave.consultarBitacora().size());
         AsistenteDeComando otro = universo.obtener("COM-1");
         try {
-            nave.ejecutarMision(new MisionRecoleccion(otro, tablero, "Punto X", "muestra"));
+            nave.ejecutarMision(new MisionRecoleccion(otro, tablero, "Punto X"));
             verificador.faltoRechazo("Misión encomendada a otro asistente");
         } catch (AssertionError error) {
             verificador.rechazoEsperado("Misión encomendada a otro asistente", error);
@@ -367,7 +384,7 @@ public class PruebaEscenarios {
         System.out.println("Rechazos de dominio (excepciones que el programa gestiona):");
         verificador.verificar("Sin tripulantes, la tripulación no está lista", !nave.tripulacionLista());
         try {
-            nave.ejecutarMision(new MisionRecoleccion(nave, tablero, "Punto X", "muestra"));
+            nave.ejecutarMision(new MisionRecoleccion(nave, tablero, "Punto X"));
             verificador.faltoRechazo("Misión con la tripulación incompleta");
         } catch (MisionNoViableException error) {
             verificador.rechazoEsperado("Misión con la tripulación incompleta", error);
@@ -385,20 +402,19 @@ public class PruebaEscenarios {
         }
         verificador.verificarIgual("La tripulación no cambió", 5, nave.cantidadTripulantes());
 
-        nave.prepararSalto();
+        nave.saltarWarp();   // el motor queda Preparando salto
         try {
-            nave.ejecutarMision(new MisionRecoleccion(nave, tablero, "Punto X", "muestra"));
+            nave.ejecutarMision(new MisionRecoleccion(nave, tablero, "Punto X"));
             verificador.faltoRechazo("Misión con el Motor Warp ocupado");
         } catch (MisionNoViableException error) {
             verificador.rechazoEsperado("Misión con el Motor Warp ocupado", error);
         }
         verificador.verificarRecursos("Recursos intactos tras el rechazo", 60, 80, 0,
             nave.combustibleDisponible(), nave.energiaDisponible(), nave.desgasteActual());
-        nave.iniciarSalto();
-        nave.finalizarSalto();
-        nave.completarEnfriamiento();
+        nave.saltar();       // un salto simple cancela la preparación: el motor vuelve a Disponible
+        verificador.verificarIgual("El salto simple canceló la preparación", "Disponible", nave.estadoDelMotor());
 
-        Mision unaVez = new MisionRecoleccion(nave, tablero, "Punto Y", "muestra");
+        Mision unaVez = new MisionRecoleccion(nave, tablero, "Punto Y");
         nave.ejecutarMision(unaVez);
         try {
             nave.ejecutarMision(unaVez);
@@ -423,6 +439,67 @@ public class PruebaEscenarios {
             verificador.rechazoEsperado("Pedir al universo una nave que no existe", error);
             verificador.verificarIgual("La excepción guarda el id buscado", "ZZZ-9", error.getIdNave());
         }
+    }
+
+    // ---------- Navegacion por un tablero con obstaculos (Parte 2) ----------
+
+    private static void escenarioNavegacion() throws NaveException {
+        titulo("NAVEGACION - Travesia por un tablero con asteroides (radar corto, salto simple y warp)");
+        AsistenteDeComando nave = new AsistenteDeComandoBasico(NaveFactory.createNave("NAV-1", "combate"), new Bitacora());
+        asignarTripulacion(nave, "NAV-1");
+        Tablero tablero;
+        try {
+            tablero = new Tablero(7, 7, FabricaDeElementos.crearElementos(14, 0, 0));
+        } catch (DimensionesDeTableroInconsistentesException e) {
+            throw new IllegalStateException(e);
+        } catch (CantidadDeElementosSuperaCasillaException e) {
+            throw new IllegalStateException(e);
+        }
+        // El recorrido depende del azar (Destino mueve los asteroides): se verifica que el
+        // balance de cada informe coincida con lo que la nave hizo turno a turno.
+        int warpsTotales = 0;
+        for (int i = 1; i <= 6 && !nave.naveDestruida(); i++) {
+            Mision mision = (i % 2 == 1) ? new MisionRecoleccion(nave, tablero, "Campo " + i)
+                                         : new MisionRetornoSeguro(nave, tablero, "Base");
+            InformeMision informe;
+            try {
+                informe = nave.ejecutarMision(mision);
+            } catch (MisionNoViableException rechazo) {
+                System.out.println("Mision " + i + " rechazada: " + rechazo.getMessage());
+                continue;
+            }
+            int simples = contarAcciones(informe, "salto a (");
+            int warps = contarAcciones(informe, "salto warp");
+            int impactos = contarAcciones(informe, "Impacto de asteroide");
+            warpsTotales += warps;
+            System.out.println(informe.resumen() + ": " + simples + " saltos simples, " + warps
+                + " saltos warp, " + impactos + " impactos");
+            verificador.verificarIgual("Misión " + i + ": combustible de navegación = 2 por salto simple",
+                2 * simples, informe.getBalance().getCombustibleNavegacion());
+            verificador.verificarIgual("Misión " + i + ": energía de navegación = 5 por salto warp",
+                5 * warps, informe.getBalance().getEnergiaNavegacion());
+            verificador.verificarIgual("Misión " + i + ": desgaste de navegación = 3 por enfriamiento",
+                3 * warps, informe.getBalance().getDesgasteNavegacion());
+            verificador.verificarIgual("Misión " + i + ": energía perdida = 10 por impacto",
+                10 * impactos, informe.getBalance().getEnergiaPerdida());
+            if (!nave.naveDestruida()) {
+                verificador.verificarIgual("Misión " + i + ": el motor termina Disponible", "Disponible", nave.estadoDelMotor());
+            } else {
+                verificador.verificar("Misión " + i + ": la nave destruida hace fallar la misión", !informe.fueExitosa());
+            }
+        }
+        System.out.println("Saltos warp en total: " + warpsTotales);
+        mostrarEstado(nave);
+    }
+
+    private static int contarAcciones(InformeMision informe, String texto) {
+        int cantidad = 0;
+        for (String accion : informe.getAcciones()) {
+            if (accion.contains(texto)) {
+                cantidad++;
+            }
+        }
+        return cantidad;
     }
 
     // ---------- Haberes: 4 cargos, 3 origenes, decoradores combinados ----------
@@ -483,15 +560,21 @@ public class PruebaEscenarios {
 
     // ---------- Armado del universo ----------
 
-    // Tablero sin elementos: asi los escenarios de la parte 1 dan siempre el mismo resultado
+    // Tablero de 7 x 7 sin elementos: sin obstaculos todos los saltos son simples, y el costo de
+    // cada mision se puede calcular con la distancia recorrida.
     private static Tablero crearTableroVacio() {
         try {
-            return new Tablero(10, 10, new ArrayList<>());
+            return new Tablero(7, 7, new ArrayList<>());
         } catch (DimensionesDeTableroInconsistentesException e) {
             throw new IllegalStateException(e);
         } catch (CantidadDeElementosSuperaCasillaException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    // Saltos que hace el radar de largo alcance: avanza en diagonal y luego en linea recta.
+    private static int distancia(Posicion desde, Posicion hasta) {
+        return Math.max(Math.abs(desde.getX() - hasta.getX()), Math.abs(desde.getY() - hasta.getY()));
     }
 
     private static void registrarNave(Universo universo, String id, String tipo) throws NaveException {
@@ -640,6 +723,13 @@ public class PruebaEscenarios {
                 verificador.escenarioInterrumpido("Escenario E", error);
             } catch (AssertionError error) {
                 verificador.escenarioInterrumpido("Escenario E", error);
+            }
+            try {
+                escenarioNavegacion();
+            } catch (NaveException error) {
+                verificador.escenarioInterrumpido("Navegación", error);
+            } catch (AssertionError error) {
+                verificador.escenarioInterrumpido("Navegación", error);
             }
             try {
                 escenarioHaberes(universo);

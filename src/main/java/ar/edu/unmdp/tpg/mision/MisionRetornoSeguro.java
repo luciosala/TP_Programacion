@@ -5,10 +5,13 @@ import ar.edu.unmdp.tpg.destino.Posicion;
 import ar.edu.unmdp.tpg.destino.Tablero;
 import ar.edu.unmdp.tpg.excepciones.NaveException;
 /**
- * M-03: completar el regreso simulado a una zona designada.
+ * M-03: regresar a la base de origen (punto de partida del recorrido, el centro
+ * del tablero) para recargar recursos y reparar el desgaste.
  *
- * Es exitosa cuando se confirma el arribo y la nave sigue operativa al llegar.
- * No tiene costo de accion final.
+ * Según el Anexo:
+ * - Despegue: 4 de combustible, 0 de energía y 4 de desgaste.
+ * - Al llegar a la base no hay consumos adicionales; como recompensa se recargan
+ *   al 100% la energía y el combustible y el mantenimiento deja el desgaste en 0.
  */
 public class MisionRetornoSeguro extends Mision {
 
@@ -30,14 +33,15 @@ public class MisionRetornoSeguro extends Mision {
      * @param zonaDestino zona a la que debe regresar la nave
      */
     public MisionRetornoSeguro(AsistenteDeComando asistente, Tablero tablero, String zonaDestino) {
-        super("M-03 - Retorno seguro", "Completar el regreso simulado a una zona designada", asistente, tablero);
+        super("M-03 - Retorno seguro", "Regresar a la base de origen para recargar y reparar la nave", asistente, tablero);
         assert zonaDestino != null && !zonaDestino.isBlank() : "La zona de destino no puede ser nula ni vacía";
 
         this.zonaDestino = zonaDestino;
     }
 
+    // Anexo: el despegue de M-03 no consume energía
     @Override
-    protected int costoAccionFinal() {
+    protected int energiaDespegue() {
         return 0;
     }
 
@@ -54,7 +58,10 @@ public class MisionRetornoSeguro extends Mision {
 
     @Override
     protected void alLlegar() {
-        registrarAccion("Base alcanzada: se recargarán los recursos y se reparará el desgaste");
+        balance().registrarRecarga(100 - asistente.combustibleDisponible(),
+                                   100 - asistente.energiaDisponible(),
+                                   asistente.desgasteActual());
+        registrarAccion("Base alcanzada: se recargarán los recursos al 100% y se reparará el desgaste");
     }
 
     @Override

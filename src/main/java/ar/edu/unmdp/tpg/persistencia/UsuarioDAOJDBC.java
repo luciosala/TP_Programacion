@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Optional;
 
 /**
  * Implementación del DAO de usuarios con JDBC.
@@ -51,18 +50,18 @@ public class UsuarioDAOJDBC implements UsuarioDAO {
     }
 
     @Override
-    public Optional<UsuarioDTO> buscarPorNombre(String nombreUsuario) throws PersistenciaException {
+    public UsuarioDTO buscarPorNombre(String nombreUsuario) throws PersistenciaException {
         try (Connection conexion = conexionBD.abrir();
              PreparedStatement sentencia = conexion.prepareStatement(SQL_BUSCAR)) {
             sentencia.setString(1, nombreUsuario);
             try (ResultSet fila = sentencia.executeQuery()) {
                 if (!fila.next()) {
-                    return Optional.empty();
+                    return null;   // no existe
                 }
-                return Optional.of(new UsuarioDTO(
+                return new UsuarioDTO(
                     fila.getString("nombre_usuario"),
                     fila.getString("hash_contrasena"),
-                    fila.getString("sal")));
+                    fila.getString("sal"));
             }
         } catch (SQLException e) {
             throw new PersistenciaException("No se pudo buscar el usuario " + nombreUsuario, e);

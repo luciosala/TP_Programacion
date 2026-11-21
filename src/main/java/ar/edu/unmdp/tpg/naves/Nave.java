@@ -6,11 +6,11 @@ import ar.edu.unmdp.tpg.excepciones.TripulacionInvalidaException;
 import ar.edu.unmdp.tpg.tripulacion.Tripulante;
 import ar.edu.unmdp.tpg.excepciones.LimiteRecursoExcedidoException;
 import ar.edu.unmdp.tpg.excepciones.RecursoInsuficienteException;
-import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
 import ar.edu.unmdp.tpg.elementos.ElementoDelUniverso;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -194,6 +194,18 @@ abstract public class Nave implements ElementoDelUniverso {
      */
     public int cantidadTripulantes() {
         return tripulacion.size();
+    }
+
+    /**
+     * Consulta la tripulación, para mostrarla (por ejemplo, en la vista de tripulantes).
+     *
+     * Postcondiciones:
+     * - Devuelve una lista no modificable, en el orden en que se asignaron.
+     *
+     * @return tripulantes de la nave
+     */
+    public List<Tripulante> getTripulacion() {
+        return Collections.unmodifiableList(tripulacion);
     }
 
     /**
@@ -475,55 +487,37 @@ abstract public class Nave implements ElementoDelUniverso {
     // ---------- Motor Warp: la nave delega en su MotorWarp ----------
 
     /**
-     * Ordena al Motor Warp preparar un salto.
+     * Turno de salto simple: la nave delega en su Motor Warp, que decide según
+     * su estado (patrón State). Después controla si la nave quedó en nivel letal.
      *
      * Postcondiciones:
-     * - El motor queda en estado Preparando salto.
-     * - Si la transicion se rechaza, el estado del motor permanece sin cambios.
+     * - Devuelve cuántos casilleros debe avanzar la nave (0 o 1).
+     * - Si la nave queda sin combustible, energía o con desgaste 100, queda destruida.
      *
-     * @throws TransicionInvalidaException rechazo de dominio: el motor no esta en estado Disponible
+     * @return casilleros que avanza la nave en este turno
+     * @throws RecursoInsuficienteException rechazo de dominio: no hay combustible
+     *         para el salto; no se modifica nada
      */
-    public void prepararSalto() throws TransicionInvalidaException {
-        motorWarp.prepararSalto();
+    public int saltar() throws RecursoInsuficienteException {
+        int casilleros = motorWarp.saltar();
+        controlarDestruccion();
+        return casilleros;
     }
 
     /**
-     * Ordena al Motor Warp iniciar el salto.
+     * Turno de la maniobra warp: la nave delega en su Motor Warp (patrón State).
+     * Después controla si la nave quedó en nivel letal.
      *
      * Postcondiciones:
-     * - El motor queda en estado En warp.
-     * - Si la transicion se rechaza, el estado del motor permanece sin cambios.
+     * - Devuelve cuántos casilleros debe avanzar la nave (0 o 2).
+     * - Si la nave queda sin energía o con desgaste 100, queda destruida.
      *
-     * @throws TransicionInvalidaException rechazo de dominio: el motor no esta en estado Preparando salto
+     * @return casilleros que avanza la nave en este turno
      */
-    public void iniciarSalto() throws TransicionInvalidaException {
-        motorWarp.iniciarSalto();
-    }
-
-    /**
-     * Ordena al Motor Warp finalizar el salto.
-     *
-     * Postcondiciones:
-     * - El motor queda en estado Enfriamiento.
-     * - Si la transicion se rechaza, el estado del motor permanece sin cambios.
-     *
-     * @throws TransicionInvalidaException rechazo de dominio: el motor no esta en estado En warp
-     */
-    public void finalizarSalto() throws TransicionInvalidaException {
-        motorWarp.finalizarSalto();
-    }
-
-    /**
-     * Ordena al Motor Warp completar el enfriamiento.
-     *
-     * Postcondiciones:
-     * - El motor queda en estado Disponible.
-     * - Si la transicion se rechaza, el estado del motor permanece sin cambios.
-     *
-     * @throws TransicionInvalidaException rechazo de dominio: el motor no esta en estado Enfriamiento
-     */
-    public void completarEnfriamiento() throws TransicionInvalidaException {
-        motorWarp.completarEnfriamiento();
+    public int saltarWarp() {
+        int casilleros = motorWarp.saltarWarp();
+        controlarDestruccion();
+        return casilleros;
     }
 
     /**
@@ -591,6 +585,21 @@ abstract public class Nave implements ElementoDelUniverso {
             default:
                 return encuentro + "pacto de paz";
         }
+    }
+
+    // Una nave enemiga no es un obstáculo: el encuentro se resuelve con la batalla
+    @Override
+    public boolean esObstaculo() {
+        return false;
+    }
+
+    // Tres primeras letras del tipo (Exp, Car, Com); los restos de una nave destruida, "Res"
+    @Override
+    public String abreviatura() {
+        if (estaDestruida()) {
+            return "Res";
+        }
+        return getClass().getSimpleName().substring(0, 3);
     }
 
     @Override

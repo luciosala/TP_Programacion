@@ -1,34 +1,39 @@
 package ar.edu.unmdp.tpg.motorwarp;
 
-import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
+import ar.edu.unmdp.tpg.excepciones.RecursoInsuficienteException;
 
 /**
- * Estado del Motor Warp. Cada subclase sabe a que estado puede pasar y rechaza
- * el resto de las transiciones.
+ * Interfaz común de los estados del Motor Warp (patrón State, Clase 11).
  *
- * PATRON STATE: el motor no decide con ifs que transicion es valida; delega en su
- * estado actual, y cada transicion devuelve el estado siguiente.
+ * Cada estado implementa las dos operaciones del motor a su manera. Igual que en
+ * el ejemplo del vehículo de la teoría, cada estado recibe en su constructor la
+ * referencia al motor (el contexto) y, cuando corresponde, le setea el estado
+ * siguiente.
  *
- * Contrato comun de las cuatro transiciones:
- * - No modifican el estado receptor: los estados son inmutables.
- * - Si la transicion es valida, devuelven el estado siguiente, que no es nulo.
- * - Si no lo es, lanzan TransicionInvalidaException y el motor conserva su estado.
- *
- * Ciclo valido: Disponible -> Preparando salto -> En warp -> Enfriamiento -> Disponible.
+ * Contrato de las operaciones: devuelven cuántos casilleros avanza la nave en
+ * ese turno. La nave (y no el motor) es la que se mueve en el tablero.
  */
-public abstract class Estado {
+interface Estado {
 
-    abstract Estado prepararSalto() throws TransicionInvalidaException;
+    /**
+     * Turno de salto simple.
+     *
+     * @return casilleros que avanza la nave (0 o 1)
+     * @throws RecursoInsuficienteException si no hay combustible para el salto;
+     *         en ese caso no cambian los recursos
+     */
+    int saltar() throws RecursoInsuficienteException;
 
-    abstract Estado iniciarSalto() throws TransicionInvalidaException;
+    /**
+     * Turno de la maniobra warp.
+     *
+     * @return casilleros que avanza la nave (0 o 2)
+     */
+    int saltarWarp();
 
-    abstract Estado finalizarSalto() throws TransicionInvalidaException;
+    /** @return nombre del estado, para la bitácora y la vista */
+    String nombre();
 
-    abstract Estado completarEnfriamiento() throws TransicionInvalidaException;
-
-    abstract String nombre();
-    
-    boolean estaDisponible() {
-        return false;
-    }
+    /** @return true solo en el estado Disponible */
+    boolean estaDisponible();
 }

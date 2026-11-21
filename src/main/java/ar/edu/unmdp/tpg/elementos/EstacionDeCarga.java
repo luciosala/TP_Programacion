@@ -20,6 +20,17 @@ public abstract class EstacionDeCarga implements ElementoDelUniverso {
     // Lo único que cambia entre estaciones: cuánto recargar
     protected abstract int calcularRecarga(int valorActual);
 
+    // Una estación es una ayuda, no un obstáculo
+    @Override
+    public final boolean esObstaculo() {
+        return false;
+    }
+
+    @Override
+    public String abreviatura() {
+        return "Est";
+    }
+
     @Override
     public String toString() {
         return "Estación de carga";

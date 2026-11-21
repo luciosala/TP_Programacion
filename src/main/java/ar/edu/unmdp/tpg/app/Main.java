@@ -7,6 +7,7 @@ import ar.edu.unmdp.tpg.bitacora.EventoBitacora;
 import ar.edu.unmdp.tpg.destino.CantidadDeElementosSuperaCasillaException;
 import ar.edu.unmdp.tpg.destino.DimensionesDeTableroInconsistentesException;
 import ar.edu.unmdp.tpg.destino.Tablero;
+import ar.edu.unmdp.tpg.elementos.FabricaDeElementos;
 import ar.edu.unmdp.tpg.excepciones.NaveException;
 import ar.edu.unmdp.tpg.mision.InformeMision;
 import ar.edu.unmdp.tpg.mision.Mision;
@@ -22,7 +23,6 @@ import ar.edu.unmdp.tpg.tripulacion.Teniente;
 import ar.edu.unmdp.tpg.tripulacion.Tripulante;
 import ar.edu.unmdp.tpg.universo.Universo;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,7 +35,7 @@ import java.util.List;
  * del modelo.
  *
  * La verificacion de los escenarios con resultados esperados esta en
- * test.PruebaEscenarios.
+ * test.PruebaEscenarios. La aplicacion con interfaz grafica es app.MainGrafico.
  */
 public class Main {
 
@@ -54,11 +54,12 @@ public class Main {
 
             universo.seleccionarNave("EXP-1");
             AsistenteDeComando nave = universo.getNaveActiva();
-            Tablero tablero = new Tablero(10, 10, new ArrayList<>());
+            // Tablero con asteroides, estaciones de carga y una nave enemiga (Parte 2)
+            Tablero tablero = new Tablero(10, 10, FabricaDeElementos.crearElementos(10, 3, 1));
 
             mostrarEstado(nave);
             ejecutar(nave, new MisionIntercepcion(nave, tablero, "Carguero Orion", "sin propulsion"));
-            ejecutar(nave, new MisionRecoleccion(nave, tablero, "Nebulosa K-7", "muestra de gas"));
+            ejecutar(nave, new MisionRecoleccion(nave, tablero, "Nebulosa K-7"));
             ejecutar(nave, new MisionRetornoSeguro(nave, tablero, "Base Andromeda"));
 
             System.out.println();

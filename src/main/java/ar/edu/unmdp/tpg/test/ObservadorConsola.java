@@ -9,7 +9,7 @@ import ar.edu.unmdp.tpg.destino.Observador;
 public class ObservadorConsola implements Observador {
 
     @Override
-    public void actualizar() {
-        System.out.println("  [aviso] el tablero cambió");
+    public void actualizar(String mensaje) {
+        System.out.println("  [aviso] " + mensaje);
     }
 }

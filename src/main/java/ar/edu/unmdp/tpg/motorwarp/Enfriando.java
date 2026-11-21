@@ -1,13 +1,34 @@
 package ar.edu.unmdp.tpg.motorwarp;
 
-import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
-
 /**
- * El motor esta enfriandose despues de un salto.
- *
- * Unica transicion valida: completarEnfriamiento(), que devuelve el motor a Disponible.
+ * Estado Enfriamiento: después del salto warp el motor no puede volver a estar
+ * disponible de inmediato. El turno siguiente se usa para disipar el calor, lo
+ * que le genera a la nave 3 puntos de desgaste, y el motor queda Disponible.
+ * Durante ese turno la nave no se mueve, se pida el salto que se pida.
  */
-public class Enfriando extends Estado{
+class Enfriando implements Estado {
+
+    private final MotorWarp motor;
+
+    Enfriando(MotorWarp motor) {
+        this.motor = motor;
+    }
+
+    @Override
+    public int saltar() {
+        return enfriar();
+    }
+
+    @Override
+    public int saltarWarp() {
+        return enfriar();
+    }
+
+    private int enfriar() {
+        motor.getRecursos().sufrirDesgaste(MotorWarp.DESGASTE_ENFRIAMIENTO);
+        motor.setEstado(new Disponible(motor));
+        return 0;
+    }
 
     @Override
     public String nombre() {
@@ -15,34 +36,7 @@ public class Enfriando extends Estado{
     }
 
     @Override
-    public Estado prepararSalto() throws TransicionInvalidaException {
-         throw new TransicionInvalidaException(
-            "No se puede preparar salto si esta enfriando"
-         );
+    public boolean estaDisponible() {
+        return false;
     }
-
-    @Override
-    public Estado iniciarSalto() throws TransicionInvalidaException {
-        throw new TransicionInvalidaException(
-            "No se puede iniciar el salto mientras esta enfriando"
-        );
-    }
-    @Override
-    public Estado completarEnfriamiento(){
-        return new Disponible();
-    }
-    @Override
-    public Estado finalizarSalto() throws TransicionInvalidaException {
-         throw new TransicionInvalidaException(
-            "No se puede finalizar el salto mientras se enfria"
-        );
-    }
-    
-
-
-
-
-
-
-
 }

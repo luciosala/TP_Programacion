@@ -4,46 +4,76 @@ import ar.edu.unmdp.tpg.asistente.AsistenteDeComando;
 import ar.edu.unmdp.tpg.destino.Posicion;
 import ar.edu.unmdp.tpg.destino.Tablero;
 
+import java.util.Random;
+
 /**
- * M-01: interceptar un objetivo y completar su asistencia.
+ * M-01: alcanzar a una nave aliada que solicita auxilio y entregarle recursos
+ * (energía y/o combustible) para que pueda sobrevivir.
  *
- * Es exitosa cuando se establece contacto con el objetivo y se completa la
- * asistencia. Su accion final cuesta 5 de energia.
+ * Según el Anexo:
+ * - Despegue: 4 de combustible, 5 de energía y 4 de desgaste.
+ * - Al coincidir en la misma coordenada con la nave aliada se transfieren los
+ *   recursos solicitados, entre 0 y 50 de energía y entre 0 y 50 de combustible.
+ *   Si la nave los gastó en el trayecto, la misión falla.
  */
 public class MisionIntercepcion extends Mision {
 
-    private final String objetivo;
-    private final String estadoObjetivo;
+    /** Máximo de cada recurso que puede solicitar la nave aliada. */
+    public static final int MAXIMO_SOLICITADO = 50;
+
+    private final String naveAliada;
+    private final String estadoAliada;
+    private final int energiaSolicitada;
+    private final int combustibleSolicitado;
 
     /**
-     * Construye la mision de intercepcion y asistencia.
+     * Construye la misión con una solicitud de auxilio al azar (entre 0 y 50 de
+     * energía y entre 0 y 50 de combustible).
      *
      * Precondiciones (assert):
-     * - asistente no es nulo.
-     * - objetivo no es nulo, vacio ni contiene solo espacios.
-     * - estadoObjetivo no es nulo, vacio ni contiene solo espacios.
+     * - asistente y tablero no son nulos.
+     * - naveAliada y estadoAliada no son nulos ni vacíos.
      *
-     * Postcondiciones:
-     * - La mision queda lista para ejecutarse una vez, sobre la nave de ese asistente.
-     * - La mision conserva el objetivo y su estado para el informe.
-     * - La nave no se modifica al construir la mision.
-     *
-     * @param asistente asistente que coordina la mision
-     * @param objetivo nave o punto a interceptar
-     * @param estadoObjetivo estado en que se encuentra el objetivo
+     * @param asistente asistente que coordina la misión
+     * @param tablero tablero de la travesía
+     * @param naveAliada nombre de la nave que pide auxilio
+     * @param estadoAliada estado en que se encuentra la nave aliada
      */
-    public MisionIntercepcion(AsistenteDeComando asistente, Tablero tablero, String objetivo, String estadoObjetivo){
-        super("M-01 - Intercepción y asistencia", "Interceptar un objetivo y completar su asistencia", asistente, tablero);
-        assert objetivo != null && !objetivo.isBlank() : "El objetivo no puede ser nulo ni vacío";
-        assert estadoObjetivo != null && !estadoObjetivo.isBlank() : "El estado del objetivo no puede ser nulo ni vacío";
-
-        this.objetivo = objetivo;
-        this.estadoObjetivo = estadoObjetivo;
+    public MisionIntercepcion(AsistenteDeComando asistente, Tablero tablero, String naveAliada, String estadoAliada) {
+        this(asistente, tablero, naveAliada, estadoAliada,
+             new Random().nextInt(MAXIMO_SOLICITADO + 1), new Random().nextInt(MAXIMO_SOLICITADO + 1));
     }
 
+    /**
+     * Construye la misión con una solicitud de auxilio conocida (para pruebas reproducibles).
+     *
+     * Precondiciones (assert):
+     * - las de la otra versión del constructor.
+     * - energiaSolicitada y combustibleSolicitado están entre 0 y 50.
+     *
+     * @param asistente asistente que coordina la misión
+     * @param tablero tablero de la travesía
+     * @param naveAliada nombre de la nave que pide auxilio
+     * @param estadoAliada estado en que se encuentra la nave aliada
+     * @param energiaSolicitada energía que solicita la nave aliada
+     * @param combustibleSolicitado combustible que solicita la nave aliada
+     */
+    public MisionIntercepcion(AsistenteDeComando asistente, Tablero tablero, String naveAliada, String estadoAliada,
+                              int energiaSolicitada, int combustibleSolicitado) {
+        super("M-01 - Intercepción y asistencia", "Alcanzar a una nave aliada y transferirle recursos", asistente, tablero);
+        assert naveAliada != null && !naveAliada.isBlank() : "La nave aliada no puede ser nula ni vacía";
+        assert estadoAliada != null && !estadoAliada.isBlank() : "El estado de la nave aliada no puede ser nulo ni vacío";
+        assert energiaSolicitada >= 0 && energiaSolicitada <= MAXIMO_SOLICITADO : "La energía solicitada debe estar entre 0 y 50";
+        assert combustibleSolicitado >= 0 && combustibleSolicitado <= MAXIMO_SOLICITADO : "El combustible solicitado debe estar entre 0 y 50";
+
+        this.naveAliada = naveAliada;
+        this.estadoAliada = estadoAliada;
+        this.energiaSolicitada = energiaSolicitada;
+        this.combustibleSolicitado = combustibleSolicitado;
+    }
 
     @Override
-    protected int costoAccionFinal() {
+    protected int energiaDespegue() {
         return 5;
     }
 
@@ -55,18 +85,23 @@ public class MisionIntercepcion extends Mision {
 
     @Override
     protected String descripcionObjetivo() {
-        return "Asistir a " + objetivo + " (estado: " + estadoObjetivo + ")";
+        return "Asistir a " + naveAliada + " (estado: " + estadoAliada + "), que solicita "
+            + energiaSolicitada + " de energía y " + combustibleSolicitado + " de combustible";
     }
 
-    // M-01 entrega energía (costoAccionFinal) y combustible a la nave aliada
+    @Override
+    protected int energiaAEntregar() {
+        return energiaSolicitada;
+    }
+
     @Override
     protected int combustibleAEntregar() {
-        return 5;
+        return combustibleSolicitado;
     }
 
     @Override
     protected void alLlegar() {
-        registrarAccion("Contacto con " + objetivo + ": se entregarán " + costoAccionFinal()
-                + " de energía y " + combustibleAEntregar() + " de combustible");
+        registrarAccion("Contacto con " + naveAliada + " en la misma coordenada: se le transferirán "
+            + energiaSolicitada + " de energía y " + combustibleSolicitado + " de combustible");
     }
 }

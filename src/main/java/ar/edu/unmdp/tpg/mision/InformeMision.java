@@ -7,11 +7,12 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Resultado de una mision ya cerrada: que se hizo, como termino, cuanto costo y
- * en que estado quedo la nave.
+ * Informe Final de Misión (fase Evaluar): qué se hizo, cómo terminó, el balance
+ * detallado de recursos y en qué estado quedó la nave al llegar.
  *
- * Es inmutable: se construye al cerrar la mision y no cambia despues, por lo que
- * sigue reflejando el cierre aunque la nave siga operando.
+ * Es inmutable: se construye en la evaluación y no cambia después, por lo que
+ * sigue reflejando la misión aunque la nave siga operando. Lo que se entrega,
+ * recolecta o recarga en el cierre ya figura en el balance.
  */
 public final class InformeMision {
 
@@ -19,129 +20,103 @@ public final class InformeMision {
     private final String descripcion;
     private final String objetivo;
     private final List<String> acciones;
-
-    private final int combustibleConsumido;
-    private final int energiaConsumida;
-    private final int desgasteGenerado;
-
+    private final BalanceDeRecursos balance;
     private final boolean exito;
 
-    // Foto del estado de la nave al cerrar la misión
+    // Foto del estado de la nave al evaluar (antes del cierre)
     private final String idNave;
     private final int combustibleFinal;
     private final int energiaFinal;
     private final int desgasteFinal;
+    private final boolean destruida;
     private final boolean requiereMantenimiento;
 
     /**
-     * Construye el informe de una mision cerrada.
+     * Construye el informe de una misión.
      *
      * Precondiciones (assert):
-     * - nave no es nula.
-     * - acciones no es nula.
-     * - Las tres cantidades consumidas son mayores o iguales a 0.
+     * - mision no es nula ni vacía; descripcion, objetivo, acciones, balance y nave no son nulos.
      *
      * Postcondiciones:
-     * - El informe conserva el nombre, la descripcion, el objetivo y los consumos recibidos.
-     * - El informe guarda una foto del estado de la nave en este momento: id, combustible,
-     *   energia, desgaste y si requiere mantenimiento.
-     * - El informe es inmutable y su lista de acciones no se puede modificar.
-     * - La nave no se modifica.
+     * - Guarda una copia de las acciones y una foto del estado de la nave.
      *
-     * @param mision nombre de la mision ejecutada
-     * @param descripcion descripcion de la mision
+     * @param mision nombre de la misión
+     * @param descripcion descripción de la misión
      * @param objetivo objetivo evaluado
-     * @param acciones acciones realizadas durante la mision, en orden
-     * @param combustibleConsumido combustible consumido por la mision
-     * @param energiaConsumida energia consumida por la mision
-     * @param desgasteGenerado desgaste generado por la mision
-     * @param exito resultado de la evaluacion
-     * @param nave nave de la que se toma el estado final
+     * @param acciones acciones realizadas, en orden
+     * @param balance balance de recursos de la misión
+     * @param exito resultado de la misión
+     * @param nave nave que realizó la misión
      */
     public InformeMision(String mision, String descripcion, String objetivo,
-                         List<String> acciones,
-                         int combustibleConsumido, int energiaConsumida, int desgasteGenerado,
+                         List<String> acciones, BalanceDeRecursos balance,
                          boolean exito, Nave nave) {
-
         assert mision != null && !mision.isBlank() : "El informe requiere el nombre de la misión";
         assert descripcion != null && objetivo != null : "El informe requiere descripción y objetivo";
         assert acciones != null : "El informe requiere la lista de acciones";
-        assert combustibleConsumido >= 0 && energiaConsumida >= 0 && desgasteGenerado >= 0
-            : "Los consumos del informe no pueden ser negativos";
+        assert balance != null : "El informe requiere el balance de recursos";
         assert nave != null : "El informe requiere la nave de la misión";
 
         this.mision = mision;
         this.descripcion = descripcion;
         this.objetivo = objetivo;
         this.acciones = Collections.unmodifiableList(new ArrayList<>(acciones));
-
-        this.combustibleConsumido = combustibleConsumido;
-        this.energiaConsumida = energiaConsumida;
-        this.desgasteGenerado = desgasteGenerado;
+        this.balance = balance;
         this.exito = exito;
-
         this.idNave = nave.getId();
         this.combustibleFinal = nave.getCombustible();
         this.energiaFinal = nave.getEnergia();
         this.desgasteFinal = nave.getDesgaste();
+        this.destruida = nave.estaDestruida();
         this.requiereMantenimiento = nave.requiereMantenimiento();
     }
 
     public String getMision() { return mision; }
     public String getDescripcion() { return descripcion; }
     public String getObjetivo() { return objetivo; }
-
-    /** Acciones realizadas durante la misión, en orden. La lista no se puede modificar. */
     public List<String> getAcciones() { return acciones; }
-
-    public int getCombustibleConsumido() { return combustibleConsumido; }
-    public int getEnergiaConsumida() { return energiaConsumida; }
-    public int getDesgasteGenerado() { return desgasteGenerado; }
-
-    /**
-     * Informa como termino la mision.
-     *
-     * Postcondiciones:
-     * - El informe no se modifica.
-     * - Devuelve true si y solo si la mision cumplio su objetivo y pudo completar su accion final.
-     *
-     * @return si la mision fue exitosa
-     */
+    public BalanceDeRecursos getBalance() { return balance; }
+    public int getCombustibleConsumido() { return balance.getCombustibleConsumido(); }
+    public int getEnergiaConsumida() { return balance.getEnergiaConsumida(); }
+    public int getDesgasteGenerado() { return balance.getDesgasteGenerado(); }
     public boolean fueExitosa() { return exito; }
-
     public String getIdNave() { return idNave; }
     public int getCombustibleFinal() { return combustibleFinal; }
     public int getEnergiaFinal() { return energiaFinal; }
     public int getDesgasteFinal() { return desgasteFinal; }
+    public boolean naveDestruida() { return destruida; }
     public boolean requiereMantenimiento() { return requiereMantenimiento; }
+
+    /** Resumen de una línea, para listados. */
+    public String resumen() {
+        return mision + " - " + (exito ? "EXITOSA" : "FALLIDA") + " - nave " + idNave;
+    }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-
         sb.append("INFORME DE MISION\n");
         sb.append("Mision: ").append(mision).append("\n");
         sb.append("Descripcion: ").append(descripcion).append("\n");
         sb.append("Objetivo: ").append(objetivo).append("\n");
         sb.append("Resultado: ").append(exito ? "EXITOSA" : "FALLIDA").append("\n");
-
         sb.append("Acciones realizadas:\n");
         for (String accion : acciones) {
             sb.append("  - ").append(accion).append("\n");
         }
-
+        sb.append("Balance de recursos:\n").append(balance).append("\n");
         sb.append("Recursos consumidos: ")
-          .append(combustibleConsumido).append(" de combustible, ")
-          .append(energiaConsumida).append(" de energia, ")
-          .append(desgasteGenerado).append(" de desgaste\n");
-
-        sb.append("Estado de la nave al llegar al destino ").append(idNave).append(": ")
-          .append("combustible ").append(combustibleFinal).append(", ")
+          .append(getCombustibleConsumido()).append(" de combustible, ")
+          .append(getEnergiaConsumida()).append(" de energia, ")
+          .append(getDesgasteGenerado()).append(" de desgaste\n");
+        sb.append("Estado de la nave ").append(idNave).append(" al evaluar: ");
+        if (destruida) {
+            sb.append("DESTRUIDA, ");
+        }
+        sb.append("combustible ").append(combustibleFinal).append(", ")
           .append("energia ").append(energiaFinal).append(", ")
           .append("desgaste ").append(desgasteFinal).append("\n");
-
         sb.append("Requiere mantenimiento: ").append(requiereMantenimiento ? "si" : "no");
-
         return sb.toString();
     }
 }

@@ -1,6 +1,6 @@
 package ar.edu.unmdp.tpg.destino;
-
 import ar.edu.unmdp.tpg.elementos.ElementoDelUniverso;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,8 +31,8 @@ public class Destino {
      * <p><b>Postcondiciones:</b> cada seleccionado se mueve a lo sumo una vez.
      * Los intentos fuera de límites, hacia un elemento o hacia el objetivo se
      * descartan. Se conservan los elementos, la nave y el objetivo actual.
-     * Al terminar, notifica a los observadores del tablero, incluso si ningún
-     * elemento se movió.</p>
+     * Al terminar, notifica a los observadores del tablero con un mensaje que
+     * indica cuántos elementos se movieron, incluso si ninguno se movió.</p>
      */
     public void turnoDestino() {
         HashMap<Posicion, ElementoDelUniverso> elementos = tablero.obtenerElementos();
@@ -40,6 +40,7 @@ public class Destino {
         Collections.shuffle(seleccion, azar);
         Posicion objetivo = tablero.getObjetivo();
         int cantidad = seleccion.size() / 2;
+        int movidos = 0;
         for (int i = 0; i < cantidad; i++) {
             Posicion actual = seleccion.get(i);
             int direccion = azar.nextInt(8);
@@ -50,8 +51,10 @@ public class Destino {
                 ElementoDelUniverso elemento = elementos.remove(actual);
                 elementos.put(nueva, elemento);
                 tablero.moverElemento(actual, nueva);
+                movidos++;
             }
         }
-        tablero.notificarActualizacion();
+        tablero.notificarActualizacion("Finalizó el turno de Destino: se movieron "
+                + movidos + " de " + cantidad + " elementos seleccionados.");
     }
 }

@@ -4,7 +4,6 @@ import ar.edu.unmdp.tpg.persistencia.PersistenciaException;
 import ar.edu.unmdp.tpg.persistencia.UsuarioDAO;
 import ar.edu.unmdp.tpg.persistencia.UsuarioDTO;
 
-import java.util.Optional;
 
 /**
  * Reglas del acceso al sistema: registrar usuarios e iniciar sesión.
@@ -81,11 +80,10 @@ public class ServicioDeAcceso {
         validarNoVacio(nombreUsuario, "El nombre de usuario");
         validarNoVacio(contrasena, "La contraseña");
 
-        Optional<UsuarioDTO> encontrado = usuarioDAO.buscarPorNombre(nombreUsuario);
-        if (encontrado.isEmpty()) {
+        UsuarioDTO usuario = usuarioDAO.buscarPorNombre(nombreUsuario);
+        if (usuario == null) {
             throw new CredencialesInvalidasException();
         }
-        UsuarioDTO usuario = encontrado.get();
         if (!HashContrasena.coincide(contrasena, usuario.getSal(), usuario.getHashContrasena())) {
             throw new CredencialesInvalidasException();
         }

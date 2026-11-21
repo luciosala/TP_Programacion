@@ -75,6 +75,22 @@ public class Universo {
     }
 
     /**
+     * Consulta los ids de las naves registradas, en el orden en que se registraron.
+     *
+     * Postcondiciones:
+     * - Devuelve una lista nueva; el universo no cambia.
+     *
+     * @return ids de las naves registradas
+     */
+    public List<String> idsDeNaves() {
+        List<String> ids = new ArrayList<>();
+        for (AsistenteDeComando asistente : asistentes) {
+            ids.add(asistente.idNave());
+        }
+        return ids;
+    }
+
+    /**
      * Invariante de clase del universo.
      *
      * @return true si el universo esta en un estado valido

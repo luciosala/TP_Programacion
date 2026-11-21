@@ -1,6 +1,5 @@
 package ar.edu.unmdp.tpg.persistencia;
 
-import java.util.Optional;
 
 /**
  * PATRON DAO (Data Access Object): define QUÉ operaciones de datos existen sobre
@@ -35,11 +34,11 @@ public interface UsuarioDAO {
      *
      * Postcondiciones:
      * - No modifica la base.
-     * - Devuelve Optional.empty() si no existe.
+     * - Devuelve null si no existe.
      *
      * @throws PersistenciaException si la base falla
      */
-    Optional<UsuarioDTO> buscarPorNombre(String nombreUsuario) throws PersistenciaException;
+    UsuarioDTO buscarPorNombre(String nombreUsuario) throws PersistenciaException;
 
     /**
      * @return true si ya hay un usuario registrado con ese nombre

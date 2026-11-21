@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 /**
  * Sabe cómo abrir conexiones JDBC a la base de datos y crear el esquema.
@@ -99,9 +100,12 @@ public final class ConexionBD {
             int comentario = linea.indexOf("--");
             sinComentarios.append(comentario >= 0 ? linea.substring(0, comentario) : linea).append('\n');
         }
-        return java.util.Arrays.stream(sinComentarios.toString().split(";"))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .toArray(String[]::new);
+        ArrayList<String> instrucciones = new ArrayList<>();
+        for (String instruccion : sinComentarios.toString().split(";")) {
+            if (!instruccion.trim().isEmpty()) {
+                instrucciones.add(instruccion.trim());
+            }
+        }
+        return instrucciones.toArray(new String[0]);
     }
 }

@@ -1,150 +1,133 @@
 package ar.edu.unmdp.tpg.motorwarp;
 
-import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
+import ar.edu.unmdp.tpg.excepciones.RecursoInsuficienteException;
+import ar.edu.unmdp.tpg.naves.Recursos;
 
 /**
- * Motor Warp de una nave. Conoce en que estado esta y delega en el las cuatro
- * transiciones del ciclo de salto.
+ * Motor Warp de una nave (patrón State, Clase 11).
  *
- * PATRON STATE: el motor no consulta su estado con ifs ni con un enum; le pide al
- * estado actual la transicion y se queda con el estado que este le devuelve. Para
- * agregar un estado nuevo alcanza con una subclase de Estado.
+ * El motor es la clase de contexto: guarda su estado actual y le delega las dos
+ * únicas operaciones que expone hacia el exterior, saltar() y saltarWarp()
+ * (Anexo: "La clase del motor solo deberá exponer públicamente dos operaciones").
+ * Cada estado decide qué hacer y, si corresponde, le setea al motor el estado
+ * siguiente. El motor no usa ningún if sobre el estado.
  *
- * Contratos:
- * - Que el estado actual no admita una transicion es un rechazo del dominio:
- *   se informa con TransicionInvalidaException (nunca en silencio) y el
- *   asistente lo registra en la bitacora.
- * - Las postcondiciones de cada transicion se comprueban con assert: si se
- *   acepta, el motor cambia de estado; si se rechaza, conserva el mismo.
+ * Estados: Disponible, Preparando salto, En warp y Enfriamiento.
  *
- * Invariantes (metodo invariante()):
- * - El estado actual nunca es nulo.
- * - Una transicion rechazada no cambia el estado del motor.
+ * Costos (Anexo de Misiones y Motor Warp):
+ * - Salto simple: 2 de combustible, avanza 1 casillero.
+ * - Salto warp: 2 turnos de preparación (en cada uno se evalúa que haya 5 de
+ *   energía), luego el salto consume 5 de energía y avanza 2 casilleros, y por
+ *   último 1 turno de enfriamiento que genera 3 de desgaste.
+ *
+ * Además de las dos operaciones, el motor ofrece dos consultas de solo lectura
+ * (getEstadoActual y estaDisponible), que no cambian nada y se usan para la
+ * bitácora y la vista.
+ *
+ * Invariante: el estado actual y los recursos no son nulos.
  */
-public class MotorWarp{
-    private Estado estadoActual;
+public class MotorWarp {
+
+    /** Combustible que consume un salto simple. */
+    public static final int COMBUSTIBLE_SALTO = 2;
+    /** Energía que consume el salto warp. */
+    public static final int ENERGIA_SALTO_WARP = 5;
+    /** Desgaste que genera el enfriamiento posterior al salto warp. */
+    public static final int DESGASTE_ENFRIAMIENTO = 3;
+    /** Turnos de preparación antes del salto warp. */
+    public static final int TURNOS_PREPARACION = 2;
+
+    private final Recursos recursos;
+    private Estado estado;
 
     /**
-     * Construye el Motor Warp de una nave.
+     * Crea el motor en estado Disponible, asociado a los recursos de su nave.
+     *
+     * Precondiciones (assert):
+     * - recursos no es nulo.
      *
      * Postcondiciones:
-     * - El motor queda en estado Disponible.
-     * - El motor esta en condiciones de preparar un salto.
+     * - El motor queda Disponible.
+     *
+     * @param recursos recursos de la nave, que el motor consume al saltar
      */
-    public MotorWarp(){
-        estadoActual=new Disponible();
-        assert estadoActual.estaDisponible() : "El motor debe comenzar Disponible";
-        assert invariante() : "Fallo invariante de MotorWarp";
+    public MotorWarp(Recursos recursos) {
+        assert recursos != null : "El motor necesita los recursos de la nave";
+        this.recursos = recursos;
+        this.estado = new Disponible(this);
+        assert estaDisponible() : "El motor debe comenzar Disponible";
     }
 
-    /**
-     * Invariante de clase del motor.
-     *
-     * @return true si el motor tiene un estado actual
-     */
     private boolean invariante() {
-        return estadoActual != null;
-    }
-    /**
-     * Prepara el motor para realizar un salto.
-     *
-     * Postcondiciones:
-     * - El motor queda en estado Preparando salto.
-     * - Si la operación se rechaza, el estado del motor permanece sin cambios.
-     *
-     * @throws TransicionInvalidaException rechazo de dominio: el motor no está en estado Disponible
-     */
-    public void prepararSalto() throws TransicionInvalidaException {
-        Estado anterior = estadoActual;
-        try {
-            estadoActual = estadoActual.prepararSalto();
-        } catch (TransicionInvalidaException rechazo) {
-            assert estadoActual == anterior : "Una transición rechazada no debe cambiar el estado";
-            throw rechazo;
-        }
-        assert estadoActual != anterior : "Una transición aceptada debe cambiar el estado";
-        assert invariante() : "Fallo invariante de MotorWarp";
+        return estado != null && recursos != null;
     }
 
     /**
-     * Inicia el salto del motor.
+     * Salto simple: el comportamiento depende del estado actual.
+     * - Disponible: consume 2 de combustible y avanza 1 casillero.
+     * - Preparando salto / En warp: cancela la maniobra warp y hace un salto simple.
+     * - Enfriamiento: el turno se usa para enfriar (+3 de desgaste); no avanza.
      *
      * Postcondiciones:
-     * - El motor queda en estado En warp.
-     * - Si la operación se rechaza, el estado del motor permanece sin cambios.
+     * - Si no hay combustible para el salto, se lanza la excepción y no cambian
+     *   los recursos. Si había una maniobra warp en curso, queda cancelada.
      *
-     * @throws TransicionInvalidaException rechazo de dominio: el motor no está en estado Preparando salto
+     * @return casilleros que avanza la nave en este turno (0 o 1)
+     * @throws RecursoInsuficienteException si no alcanza el combustible del salto
      */
-    public void iniciarSalto() throws TransicionInvalidaException {
-        Estado anterior = estadoActual;
-        try {
-            estadoActual = estadoActual.iniciarSalto();
-        } catch (TransicionInvalidaException rechazo) {
-            assert estadoActual == anterior : "Una transición rechazada no debe cambiar el estado";
-            throw rechazo;
-        }
-        assert estadoActual != anterior : "Una transición aceptada debe cambiar el estado";
+    public int saltar() throws RecursoInsuficienteException {
+        int casilleros = estado.saltar();
+        assert casilleros == 0 || casilleros == 1 : "Un salto simple avanza 0 o 1 casillero";
         assert invariante() : "Fallo invariante de MotorWarp";
+        return casilleros;
     }
 
     /**
-     * Finaliza el salto e inicia el enfriamiento del motor.
+     * Salto warp: cada llamada es un turno de la maniobra.
+     * - Disponible: empieza la preparación (primer turno de preparación).
+     * - Preparando salto: si hay 5 de energía cuenta un turno; al completar 2
+     *   queda En warp. Si no hay energía, sigue en preparación.
+     * - En warp: si hay 5 de energía, la consume y avanza 2 casilleros, y pasa a
+     *   Enfriamiento; si no, aborta y vuelve a Preparando salto.
+     * - Enfriamiento: el turno se usa para enfriar (+3 de desgaste); no avanza.
      *
-     * Postcondiciones:
-     * - El motor queda en estado Enfriamiento.
-     * - Si la operación se rechaza, el estado del motor permanece sin cambios.
-     *
-     * @throws TransicionInvalidaException rechazo de dominio: el motor no está en estado En warp
+     * @return casilleros que avanza la nave en este turno (0 o 2)
      */
-    public void finalizarSalto() throws TransicionInvalidaException {
-        Estado anterior = estadoActual;
-        try {
-            estadoActual = estadoActual.finalizarSalto();
-        } catch (TransicionInvalidaException rechazo) {
-            assert estadoActual == anterior : "Una transición rechazada no debe cambiar el estado";
-            throw rechazo;
-        }
-        assert estadoActual != anterior : "Una transición aceptada debe cambiar el estado";
+    public int saltarWarp() {
+        int casilleros = estado.saltarWarp();
+        assert casilleros == 0 || casilleros == 2 : "Un turno de warp avanza 0 o 2 casilleros";
         assert invariante() : "Fallo invariante de MotorWarp";
+        return casilleros;
     }
 
     /**
-     * Completa el enfriamiento del motor.
-     *
-     * Postcondiciones:
-     * - El motor queda en estado Disponible.
-     * - Si la operación se rechaza, el estado del motor permanece sin cambios.
-     *
-     * @throws TransicionInvalidaException rechazo de dominio: el motor no está en estado Enfriamiento
-     */
-    public void completarEnfriamiento() throws TransicionInvalidaException {
-        Estado anterior = estadoActual;
-        try {
-            estadoActual = estadoActual.completarEnfriamiento();
-        } catch (TransicionInvalidaException rechazo) {
-            assert estadoActual == anterior : "Una transición rechazada no debe cambiar el estado";
-            throw rechazo;
-        }
-        assert estadoActual != anterior : "Una transición aceptada debe cambiar el estado";
-        assert invariante() : "Fallo invariante de MotorWarp";
-    }
-
-    /**
-     * Consulta el nombre del estado actual.
-     *
-     * Postcondiciones:
-     * - El motor no se modifica.
-     * - Devuelve uno de: Disponible, Preparando salto, En warp, Enfriamiento.
+     * Consulta de solo lectura.
      *
      * @return nombre del estado actual del motor
      */
-    public String getEstadoActual() { 
-        return estadoActual.nombre(); 
+    public String getEstadoActual() {
+        return estado.nombre();
     }
-    
-    /** @return si el motor está en condiciones de iniciar una operación. */
+
+    /**
+     * Consulta de solo lectura.
+     *
+     * @return true si el motor está Disponible
+     */
     public boolean estaDisponible() {
-        return estadoActual.estaDisponible();
+        return estado.estaDisponible();
     }
-    
+
+    // ---------- Uso interno de los estados (visibilidad de paquete) ----------
+
+    /** Los estados realizan la transición seteando el estado siguiente. */
+    void setEstado(Estado nuevo) {
+        assert nuevo != null : "El estado del motor no puede ser nulo";
+        this.estado = nuevo;
+    }
+
+    /** Los estados consumen los recursos de la nave a través del motor. */
+    Recursos getRecursos() {
+        return recursos;
+    }
 }

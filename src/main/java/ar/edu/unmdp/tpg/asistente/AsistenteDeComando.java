@@ -2,18 +2,20 @@ package ar.edu.unmdp.tpg.asistente;
 
 import ar.edu.unmdp.tpg.elementos.ElementoDelUniverso;
 import ar.edu.unmdp.tpg.bitacora.EventoBitacora;
+import ar.edu.unmdp.tpg.destino.Observador;
 import ar.edu.unmdp.tpg.haberes.Haber;
+import ar.edu.unmdp.tpg.mision.BalanceDeRecursos;
 import ar.edu.unmdp.tpg.mision.InformeMision;
 import ar.edu.unmdp.tpg.excepciones.LimiteRecursoExcedidoException;
 import ar.edu.unmdp.tpg.mision.Mision;
 import ar.edu.unmdp.tpg.excepciones.NaveException;
 import ar.edu.unmdp.tpg.excepciones.RecursoInsuficienteException;
-import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
 import ar.edu.unmdp.tpg.excepciones.TripulacionInvalidaException;
 import ar.edu.unmdp.tpg.tripulacion.Tripulante;
 
 import java.util.List;
 
+import java.time.LocalDate;
 import java.time.YearMonth;
 
 /**
@@ -167,48 +169,30 @@ public interface AsistenteDeComando {
     void consumirEnergia(int cantidad) throws RecursoInsuficienteException;
 
     /**
-     * Ordena al Motor Warp preparar un salto.
+     * Ordena a la nave un turno de salto simple (lo resuelve el Motor Warp
+     * según su estado, patrón State).
      *
      * Postcondiciones:
-     * - Si la transición es válida, el motor queda en Preparando salto y queda registrado.
-     * - Si no lo es, el motor no cambia de estado y queda registrado el rechazo.
+     * - Devuelve los casilleros que avanza la nave (0 o 1).
+     * - Si el motor cambia de estado, el cambio queda registrado en la bitácora.
+     * - Si se rechaza, no se modifica nada y queda registrado el rechazo.
      *
-     * @throws TransicionInvalidaException rechazo de dominio: el estado actual no admite preparar el salto
+     * @return casilleros que avanza la nave en este turno
+     * @throws RecursoInsuficienteException rechazo de dominio: no hay combustible para el salto
      */
-    void prepararSalto() throws TransicionInvalidaException;
+    int saltar() throws RecursoInsuficienteException;
 
     /**
-     * Ordena al Motor Warp iniciar el salto.
+     * Ordena a la nave un turno de la maniobra warp (lo resuelve el Motor Warp
+     * según su estado, patrón State).
      *
      * Postcondiciones:
-     * - Si la transición es válida, el motor queda En warp y queda registrado.
-     * - Si no lo es, el motor no cambia de estado y queda registrado el rechazo.
+     * - Devuelve los casilleros que avanza la nave (0 o 2).
+     * - Si el motor cambia de estado, el cambio queda registrado en la bitácora.
      *
-     * @throws TransicionInvalidaException rechazo de dominio: el estado actual no admite iniciar el salto
+     * @return casilleros que avanza la nave en este turno
      */
-    void iniciarSalto() throws TransicionInvalidaException;
-
-    /**
-     * Ordena al Motor Warp finalizar el salto.
-     *
-     * Postcondiciones:
-     * - Si la transición es válida, el motor queda en Enfriamiento y queda registrado.
-     * - Si no lo es, el motor no cambia de estado y queda registrado el rechazo.
-     *
-     * @throws TransicionInvalidaException rechazo de dominio: el estado actual no admite finalizar el salto
-     */
-    void finalizarSalto() throws TransicionInvalidaException;
-
-    /**
-     * Ordena al Motor Warp completar el enfriamiento.
-     *
-     * Postcondiciones:
-     * - Si la transición es válida, el motor queda Disponible y queda registrado.
-     * - Si no lo es, el motor no cambia de estado y queda registrado el rechazo.
-     *
-     * @throws TransicionInvalidaException rechazo de dominio: el estado actual no admite completar el enfriamiento
-     */
-    void completarEnfriamiento() throws TransicionInvalidaException;
+    int saltarWarp();
 
     /**
      * Consulta en qué estado está el Motor Warp.
@@ -261,7 +245,7 @@ public interface AsistenteDeComando {
      * - Las tres cantidades consumidas son mayores o iguales a 0.
      *
      * Postcondiciones:
-     * - Devuelve un informe con los consumos recibidos y el estado de la nave en este momento.
+     * - Devuelve un informe con el balance recibido y el estado de la nave en este momento.
      * - El informe es inmutable: refleja el cierre y no cambia si la nave cambia después.
      * - La nave y la bitácora no se modifican.
      *
@@ -269,14 +253,12 @@ public interface AsistenteDeComando {
      * @param descripcion descripción de la misión
      * @param objetivo objetivo evaluado
      * @param acciones acciones realizadas durante la misión, en orden
-     * @param combustibleConsumido combustible consumido por la misión
-     * @param energiaConsumida energía consumida por la misión
-     * @param desgasteGenerado desgaste generado por la misión
+     * @param balance balance de recursos ganados, consumidos y perdidos
      * @param exito resultado de la evaluación
      * @return el informe de la misión
      */
-    InformeMision crearInforme(String mision, String descripcion, String objetivo,List<String> acciones,
-                                            int combustibleConsumido, int energiaConsumida, int desgasteGenerado,boolean exito);
+    InformeMision crearInforme(String mision, String descripcion, String objetivo, List<String> acciones,
+                               BalanceDeRecursos balance, boolean exito);
 
     /**
      * Consulta si la nave conserva un estado operativo válido.
@@ -353,6 +335,32 @@ public interface AsistenteDeComando {
     int cantidadTripulantes();
 
     /**
+     * Consulta la tripulación de la nave (por ejemplo, para listarla en la vista).
+     *
+     * Postcondiciones:
+     * - Devuelve una lista no modificable; la nave no cambia.
+     *
+     * @return tripulantes de la nave, en el orden en que se asignaron
+     */
+    List<Tripulante> consultarTripulacion();
+
+    /**
+     * Registra un consejo dado por un consejero de la nave (cuenta para su haber).
+     *
+     * Precondiciones (assert):
+     * - fecha y descripcion no son nulas; descripcion no es vacía.
+     *
+     * Postcondiciones:
+     * - El consejo queda registrado en el tripulante y en la bitácora.
+     *
+     * @param idTripulante id del consejero
+     * @param fecha fecha del consejo
+     * @param descripcion qué aconsejó
+     * @throws TripulacionInvalidaException si no hay un tripulante con ese id o no es consejero
+     */
+    void registrarConsejo(String idTripulante, LocalDate fecha, String descripcion) throws TripulacionInvalidaException;
+
+    /**
      * Ordena liquidar el haber mensual de un tripulante para un período dado.
      *
      * Precondiciones (assert):
@@ -397,4 +405,19 @@ public interface AsistenteDeComando {
      * @return los eventos de la bitácora, en orden temporal
      */
     List<EventoBitacora> consultarBitacora();
+
+    /**
+     * Suscribe un observador a la bitácora de la nave (patrón Observer): recibe
+     * el texto de cada evento que se registre a partir de ahora.
+     *
+     * @param observador quien quiere enterarse de los eventos
+     */
+    void agregarObservadorBitacora(Observador observador);
+
+    /**
+     * Quita un observador de la bitácora. Si no estaba suscripto, no hace nada.
+     *
+     * @param observador observador a quitar
+     */
+    void quitarObservadorBitacora(Observador observador);
 }

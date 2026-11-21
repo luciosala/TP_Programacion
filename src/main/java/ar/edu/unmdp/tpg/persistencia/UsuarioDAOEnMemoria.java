@@ -2,7 +2,6 @@ package ar.edu.unmdp.tpg.persistencia;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Implementación del DAO que guarda los usuarios en un Map, sin base de datos.
@@ -26,8 +25,8 @@ public class UsuarioDAOEnMemoria implements UsuarioDAO {
     }
 
     @Override
-    public Optional<UsuarioDTO> buscarPorNombre(String nombreUsuario) {
-        return Optional.ofNullable(usuarios.get(nombreUsuario));
+    public UsuarioDTO buscarPorNombre(String nombreUsuario) {
+        return usuarios.get(nombreUsuario);   // null si no existe
     }
 
     @Override

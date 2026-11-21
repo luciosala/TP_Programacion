@@ -20,6 +20,17 @@ public class Asteroide implements ElementoDelUniverso  {
         return resultado;
     }
 
+    // Los asteroides son el obstáculo que la nave intenta esquivar con un salto warp
+    @Override
+    public boolean esObstaculo() {
+        return true;
+    }
+
+    @Override
+    public String abreviatura() {
+        return "Ast";
+    }
+
     @Override
     public String toString() {
         return "Asteroide";

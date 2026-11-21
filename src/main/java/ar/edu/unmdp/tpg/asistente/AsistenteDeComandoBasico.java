@@ -3,7 +3,9 @@ package ar.edu.unmdp.tpg.asistente;
 import ar.edu.unmdp.tpg.elementos.ElementoDelUniverso;
 import ar.edu.unmdp.tpg.bitacora.Bitacora;
 import ar.edu.unmdp.tpg.bitacora.EventoBitacora;
+import ar.edu.unmdp.tpg.destino.Observador;
 import ar.edu.unmdp.tpg.haberes.Haber;
+import ar.edu.unmdp.tpg.mision.BalanceDeRecursos;
 import ar.edu.unmdp.tpg.mision.InformeMision;
 import ar.edu.unmdp.tpg.excepciones.LimiteRecursoExcedidoException;
 import ar.edu.unmdp.tpg.haberes.LiquidacionHaberes;
@@ -11,12 +13,12 @@ import ar.edu.unmdp.tpg.mision.Mision;
 import ar.edu.unmdp.tpg.naves.Nave;
 import ar.edu.unmdp.tpg.excepciones.NaveException;
 import ar.edu.unmdp.tpg.excepciones.RecursoInsuficienteException;
-import ar.edu.unmdp.tpg.excepciones.TransicionInvalidaException;
 import ar.edu.unmdp.tpg.excepciones.TripulacionInvalidaException;
 import ar.edu.unmdp.tpg.tripulacion.Tripulante;
 
 import java.util.List;
 
+import java.time.LocalDate;
 import java.time.YearMonth;
 
 /**
@@ -204,68 +206,36 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
 
     // Motor Warp
     /**
-     * Ordena al Motor Warp preparar un salto.
-     *
-     * Postcondiciones:
-     * - Si la transicion es valida, el motor cambia de estado y queda registrado.
-     * - Si no lo es, el motor no cambia y queda registrado el rechazo.
-     *
-     * @throws TransicionInvalidaException si el estado actual no admite preparar el salto
+     * Turno de salto simple. Registra en la bitácora el cambio de estado del
+     * motor, si lo hubo, y el rechazo, si no alcanzó el combustible.
      */
     @Override
-    public void prepararSalto() throws TransicionInvalidaException {
-        bitacora.registrar("COMANDO", "Orden recibida: preparar salto");
+    public int saltar() throws RecursoInsuficienteException {
+        String antes = nave.getEstadoMotor();
         try {
-            nave.prepararSalto();
-            bitacora.registrar("MOTOR", "Motor Warp en " + nave.getEstadoMotor());
-        } catch (TransicionInvalidaException error) {
-            bitacora.registrar("ERROR", "Motor Warp: " + error.getMessage());
+            int casilleros = nave.saltar();
+            registrarCambioDeMotor(antes);
+            return casilleros;
+        } catch (RecursoInsuficienteException error) {
+            bitacora.registrar("ERROR", "Nave " + nave.getId() + ": no se pudo saltar: " + error.getMessage());
             throw error;
         }
     }
 
-    /**
-     * @throws TransicionInvalidaException si el estado actual no admite iniciar el salto
-     */
+    /** Turno de la maniobra warp. Registra en la bitácora el cambio de estado del motor, si lo hubo. */
     @Override
-    public void iniciarSalto() throws TransicionInvalidaException {
-        bitacora.registrar("COMANDO", "Orden recibida: iniciar salto");
-        try {
-            nave.iniciarSalto();
-            bitacora.registrar("MOTOR", "Motor Warp en " + nave.getEstadoMotor());
-        } catch (TransicionInvalidaException error) {
-            bitacora.registrar("ERROR", "Motor Warp: " + error.getMessage());
-            throw error;
-        }
+    public int saltarWarp() {
+        String antes = nave.getEstadoMotor();
+        int casilleros = nave.saltarWarp();
+        registrarCambioDeMotor(antes);
+        return casilleros;
     }
 
-    /**
-     * @throws TransicionInvalidaException si el estado actual no admite finalizar el salto
-     */
-    @Override
-    public void finalizarSalto() throws TransicionInvalidaException {
-        bitacora.registrar("COMANDO", "Orden recibida: finalizar salto");
-        try {
-            nave.finalizarSalto();
-            bitacora.registrar("MOTOR", "Motor Warp en " + nave.getEstadoMotor());
-        } catch (TransicionInvalidaException error) {
-            bitacora.registrar("ERROR", "Motor Warp: " + error.getMessage());
-            throw error;
-        }
-    }
-
-    /**
-     * @throws TransicionInvalidaException si el estado actual no admite completar el enfriamiento
-     */
-    @Override
-    public void completarEnfriamiento() throws TransicionInvalidaException {
-        bitacora.registrar("COMANDO", "Orden recibida: completar enfriamiento");
-        try {
-            nave.completarEnfriamiento();
-            bitacora.registrar("MOTOR", "Motor Warp en " + nave.getEstadoMotor());
-        } catch (TransicionInvalidaException error) {
-            bitacora.registrar("ERROR", "Motor Warp: " + error.getMessage());
-            throw error;
+    // La bitácora registra los cambios del Motor Warp (E1-05)
+    private void registrarCambioDeMotor(String estadoAnterior) {
+        String estadoActual = nave.getEstadoMotor();
+        if (!estadoActual.equals(estadoAnterior)) {
+            bitacora.registrar("MOTOR", "Motor Warp: " + estadoAnterior + " -> " + estadoActual);
         }
     }
 
@@ -323,17 +293,14 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
      * @param descripcion descripcion de la mision
      * @param objetivo objetivo evaluado
      * @param acciones acciones realizadas durante la mision
-     * @param combustibleConsumido combustible consumido por la mision
-     * @param energiaConsumida energia consumida por la mision
-     * @param desgasteGenerado desgaste generado por la mision
+     * @param balance balance de recursos de la mision
      * @param exito resultado de la evaluacion
      * @return el informe de la mision
      */
     @Override
-    public InformeMision crearInforme(String mision, String descripcion, String objetivo,List<String> acciones,
-                                      int combustibleConsumido, int energiaConsumida, int desgasteGenerado,boolean exito) {
-        return new InformeMision(mision, descripcion, objetivo, acciones,
-            combustibleConsumido, energiaConsumida, desgasteGenerado, exito, nave);
+    public InformeMision crearInforme(String mision, String descripcion, String objetivo, List<String> acciones,
+                                      BalanceDeRecursos balance, boolean exito) {
+        return new InformeMision(mision, descripcion, objetivo, acciones, balance, exito, nave);
     }
 
 
@@ -397,6 +364,24 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
         return nave.cantidadTripulantes();
     }
 
+    @Override
+    public List<Tripulante> consultarTripulacion() {
+        return nave.getTripulacion();
+    }
+
+    @Override
+    public void registrarConsejo(String idTripulante, LocalDate fecha, String descripcion)
+            throws TripulacionInvalidaException {
+        assert idTripulante != null && !idTripulante.isBlank() : "El id del tripulante no puede ser nulo ni vacío";
+        Tripulante tripulante = nave.buscarTripulantePorId(idTripulante);
+        if (tripulante == null || !tripulante.esConsejero()) {
+            bitacora.registrar("ERROR", "No se pudo registrar el consejo: " + idTripulante + " no es un consejero de la nave");
+            throw new TripulacionInvalidaException(idTripulante + " no es un consejero de la nave " + nave.getId());
+        }
+        tripulante.registrarConsejo(fecha, descripcion);
+        bitacora.registrar("COMANDO", "Consejo registrado por " + idTripulante + ": " + descripcion);
+    }
+
 
     // Haberes
     /**
@@ -448,5 +433,16 @@ public class AsistenteDeComandoBasico implements AsistenteDeComando {
     @Override
      public List<EventoBitacora> consultarBitacora() {
         return bitacora.consultarEventos();
+    }
+
+    @Override
+    public void agregarObservadorBitacora(Observador observador) {
+        assert observador != null : "El observador no puede ser nulo";
+        bitacora.agregarObservador(observador);
+    }
+
+    @Override
+    public void quitarObservadorBitacora(Observador observador) {
+        bitacora.quitarObservador(observador);
     }
 }

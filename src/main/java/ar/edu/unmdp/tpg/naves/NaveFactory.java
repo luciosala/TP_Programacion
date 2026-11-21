@@ -46,14 +46,16 @@ import ar.edu.unmdp.tpg.motorwarp.MotorWarp;
             assert id != null && !id.isBlank() : "El id no puede ser nulo ni vacio";
             assert esTipoValido(tipo) : "Tipo de nave desconocido: " + tipo;
 
-            MotorWarp motorWarp = new MotorWarp();
             Nave nave;
             if (tipo.equalsIgnoreCase("combate")) {
-                nave = new Combate(id, tipo, new Recursos(80, 100, 0), motorWarp);
+                Recursos recursos = new Recursos(80, 100, 0);
+                nave = new Combate(id, tipo, recursos, new MotorWarp(recursos));
             } else if (tipo.equalsIgnoreCase("carguero")) {
-                nave = new Carguera(id, tipo, new Recursos(100, 60, 0), motorWarp);
+                Recursos recursos = new Recursos(100, 60, 0);
+                nave = new Carguera(id, tipo, recursos, new MotorWarp(recursos));
             } else if (tipo.equalsIgnoreCase("exploradora")) {
-                nave = new Exploradora(id, tipo, new Recursos(60, 80, 0), motorWarp);
+                Recursos recursos = new Recursos(60, 80, 0);
+                nave = new Exploradora(id, tipo, recursos, new MotorWarp(recursos));
             } else {
                 // Solo se llega aca con las aserciones desactivadas.
                 throw new IllegalArgumentException("Tipo de nave desconocido: " + tipo);
