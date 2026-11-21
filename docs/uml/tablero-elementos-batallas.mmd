@@ -1,0 +1,88 @@
+---
+title: Tablero, elementos del universo y batallas (Double Dispatch)
+---
+classDiagram
+    direction TB
+    class Observable {
+        <<abstract - catedra>>
+        +agregarObservador(Observador)
+        +quitarObservador(Observador)
+        +notificarObservadores()
+    }
+    class Observador {
+        <<interface - catedra>>
+        +actualizar()
+    }
+    class Tablero {
+        <<catedra>>
+        +Tablero(x, y, elementos)
+        +getPosicionNave() Posicion
+        +moverNave(Posicion)
+        +inspeccionarPosicion() ElementoDelUniverso
+        +observarAlrededores() ElementoDelUniverso[3][3]
+        +obtenerObjetivo() Posicion
+        +verTablero() ElementoDelUniverso[x][y]
+    }
+    class Destino {
+        <<catedra>>
+        +Destino(Tablero)
+        +turnoDestino()
+    }
+    class Posicion {
+        -x int
+        -y int
+    }
+    class ElementoDelUniverso {
+        <<interface>>
+        +interactuarCon(Nave) String
+    }
+    class Asteroide {
+        -danioEnergia int
+    }
+    class EstacionDeCarga {
+        <<abstract>>
+        +interactuarCon(Nave) String
+        #calcularRecarga(valorActual)* int
+    }
+    class EstacionDeCargaFija {
+        -monto int
+    }
+    class EstacionDeCargaPorcentual {
+        -porcentaje int
+    }
+    class Nave {
+        <<abstract>>
+        -gemas int
+        +estaDestruida() boolean
+        +recibirImpacto(danio)
+        +recargar(combustible, energia)
+        +agregarGemas(cantidad)
+        +enfrentar(Nave enemiga) ResultadoBatalla
+        #recibirDesafioDe(Nave retadora)* ResultadoBatalla
+        #contraExploradora()* ResultadoBatalla
+        #contraCarguera()* ResultadoBatalla
+        #contraCombate()* ResultadoBatalla
+    }
+    class Exploradora
+    class Carguera
+    class Combate
+    class ResultadoBatalla {
+        <<enum>>
+        GANA
+        PIERDE
+        PACTO_DE_PAZ
+    }
+    Observable <|-- Tablero
+    Observable o--> "*" Observador : avisa
+    Destino --> Tablero : mueve elementos cada turno
+    Tablero o--> "*" ElementoDelUniverso : casillas
+    Tablero --> Posicion
+    ElementoDelUniverso <|.. Asteroide
+    ElementoDelUniverso <|.. EstacionDeCarga
+    ElementoDelUniverso <|.. Nave : una nave enemiga es un elemento
+    EstacionDeCarga <|-- EstacionDeCargaFija
+    EstacionDeCarga <|-- EstacionDeCargaPorcentual
+    Nave <|-- Exploradora
+    Nave <|-- Carguera
+    Nave <|-- Combate
+    Nave ..> ResultadoBatalla : double dispatch

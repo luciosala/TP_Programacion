@@ -5,7 +5,6 @@ import ar.edu.unmdp.tpg.visor.modelo.UniversoParalelo;
 import ar.edu.unmdp.tpg.visor.vista.VentanaVisor;
 
 import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
 
 /**
  * Arranca el visor del universo paralelo por separado del resto del juego.
@@ -17,10 +16,8 @@ public class MainVisor {
     public static final int CAPACIDAD_PLATAFORMA = 3;
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            VentanaVisor vista = abrir(CAPACIDAD_PLATAFORMA);
-            vista.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        });
+        VentanaVisor vista = abrir(CAPACIDAD_PLATAFORMA);
+        vista.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
     /**

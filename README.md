@@ -145,3 +145,56 @@ Todo el código está bajo `src/main/java/ar/edu/unmdp/tpg/`:
 | `haberes` | Liquidación de haberes (patrón Decorator) |
 | `bitacora` | `Bitacora` y `EventoBitacora` |
 | `excepciones` | Excepciones del dominio |
+
+## Interfaz gráfica (Entrega 2)
+
+El programa con ventanas es `gui.MainGUI`:
+
+```
+mvn compile exec:exec -Dprograma=ar.edu.unmdp.tpg.gui.MainGUI
+```
+
+Sin Maven, con el JDK instalado, alcanza con hacer doble clic en
+`ejecutar_ventanas.bat` (compila y abre las ventanas). `ejecutar_pruebas.bat` corre
+`PruebaEscenarios`, o la clase que se le pase como argumento. Si en `lib/` no está el
+jar de H2, los usuarios se guardan en memoria (ver `lib/LEEME.txt`).
+
+Arranca con la pantalla de acceso (login y registro de usuarios, guardados en la
+base H2 con DAO/DTO). Al ingresar se abre la ventana principal con tres pestañas,
+una por sección de la consigna, más el botón que abre el visor del universo
+paralelo:
+
+| Pestaña | Vista | Controlador | Qué hace |
+|---|---|---|---|
+| Creación | `PanelCreacion` | `ControladorCreacion` | Crea naves con `NaveFactory` y las registra en el `Universo`; crea tripulantes y los asigna a una nave. |
+| Tripulantes | `PanelTripulantes` | `ControladorTripulantes` | Lista la tripulación de una nave con el salario del mes (Decorator). |
+| Control de la nave | `PanelControl` | `ControladorControl` | Recursos, bitácora, informes, iniciar misión, carga y mantenimiento, y el tablero en vivo. |
+
+Cómo está armado (paquete `gui`):
+
+- **MVC.** Cada vista implementa una interfaz (`IVistaAcceso`, `IVistaCreacion`,
+  `IVistaTripulantes`, `IVistaControl`) y solo muestra y lee datos. Cada
+  controlador implementa `ActionListener`, se registra en su vista con
+  `setActionListener(this)` y es el único que habla con el modelo. `MainGUI` crea
+  el modelo, las vistas y los controladores y los conecta. El modelo no conoce a
+  ninguno de los dos.
+- **Observer.** `ControladorControl` implementa `Observador` y se registra en el
+  `Tablero` de la cátedra. Cada vez que la nave se mueve o `Destino` termina su
+  turno, el tablero avisa y el controlador refresca en la vista el tablero, los
+  recursos y la bitácora.
+- **La misión corre en un hilo aparte.** Tiene `Thread.sleep` entre turnos; si
+  corriera en el hilo de Swing la ventana quedaría congelada hasta que termine.
+  Como los avisos del tablero llegan desde ese hilo, los cambios en la vista se
+  encolan con `SwingUtilities.invokeLater`.
+- La validación de formato (por ejemplo, que la antigüedad sea un número) la hace
+  la vista; las reglas del dominio las sigue controlando el modelo.
+- El tablero inicial (`universo.TableroInicial`) es de 10x10 con asteroides,
+  estaciones de carga y naves desconocidas repartidos al azar.
+- En el tablero se dibujan la base (la casilla central, marcada con B), el
+  objetivo de la misión en curso (X) y las casillas que le faltan recorrer a la nave.
+- **La base es el único lugar donde se carga.** Cargar combustible, cargar energía y
+  hacer mantenimiento (operaciones de la Entrega 1) solo se permiten con la nave en
+  la base, que es el centro del tablero: donde arranca la nave y adonde vuelve M-03,
+  que según el Anexo recarga los tanques y repara. Fuera de la base los botones quedan
+  deshabilitados y el controlador rechaza la orden. Una nave que se queda sin
+  combustible lejos de la base queda varada; si llega a 0, se destruye.

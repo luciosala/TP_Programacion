@@ -22,19 +22,22 @@ import java.awt.event.ActionListener;
  * Controlador de la seccion de creacion (MVC): crea naves con la NaveFactory y las
  * registra en el Universo, y crea tripulantes y los asigna a traves del asistente.
  *
- * Cuando se crea una nave avisa a los demas controladores (con el Runnable recibido)
- * para que actualicen sus combos de naves.
+ * Cuando se crea una nave o un tripulante les avisa a los controladores de las otras
+ * pestanas, para que actualicen sus combos de naves.
  */
 public class ControladorCreacion implements ActionListener {
 
     private final IVistaCreacion vista;
     private final Universo universo;
-    private final Runnable alCambiarNaves;
+    private final ControladorTripulantes controladorTripulantes;
+    private final ControladorControl controladorControl;
 
-    public ControladorCreacion(IVistaCreacion vista, Universo universo, Runnable alCambiarNaves) {
+    public ControladorCreacion(IVistaCreacion vista, Universo universo,
+                               ControladorTripulantes controladorTripulantes, ControladorControl controladorControl) {
         this.vista = vista;
         this.universo = universo;
-        this.alCambiarNaves = alCambiarNaves;
+        this.controladorTripulantes = controladorTripulantes;
+        this.controladorControl = controladorControl;
         vista.setActionListener(this);
         vista.mostrarNaves(universo.idsDeNaves());
     }
@@ -64,7 +67,8 @@ public class ControladorCreacion implements ActionListener {
             universo.registrar(asistente);
             vista.mostrarNaves(universo.idsDeNaves());
             vista.mostrarAviso("Nave " + id + " (" + vista.getTipoNave() + ") creada");
-            alCambiarNaves.run();
+            controladorTripulantes.actualizarNaves();
+            controladorControl.actualizarNaves();
         } catch (NaveException error) {
             vista.mostrarError(error.getMessage());
         }
@@ -90,7 +94,8 @@ public class ControladorCreacion implements ActionListener {
             universo.obtener(idNave).asignarTripulante(tripulante);
             vista.limpiarTripulante();
             vista.mostrarAviso("Tripulante " + tripulante.getId() + " asignado a " + idNave);
-            alCambiarNaves.run();
+            controladorTripulantes.actualizarNaves();
+            controladorControl.actualizarNaves();
         } catch (NaveException error) {
             vista.mostrarError(error.getMessage());
         }

@@ -151,22 +151,62 @@ public class ControladorControl implements ActionListener, Observador {
         hayMisionEnCurso = true;
         vista.habilitarMision(false);
 
-        // La mision corre en su propio hilo para no congelar la ventana (ver comentario de la clase)
-        Thread hiloMision = new Thread(() -> {
+        // La mision corre en su propio hilo para no congelar la ventana (ver comentario de la clase).
+        // Igual que en la teoria: una tarea Runnable, new Thread(tarea) y start().
+        Thread hiloMision = new Thread(new EjecucionDeMision(mision), "Mision " + asistente.idNave());
+        hiloMision.start();
+    }
+
+    /**
+     * Tarea que ejecuta la mision en un hilo aparte. Cuando termina, le pasa el
+     * informe (o el error) a la vista a traves del hilo de Swing.
+     */
+    private class EjecucionDeMision implements Runnable {
+
+        private final Mision mision;
+
+        EjecucionDeMision(Mision mision) {
+            this.mision = mision;
+        }
+
+        @Override
+        public void run() {
+            String resultado;
+            boolean exito;
             try {
                 InformeMision informe = asistente.ejecutarMision(mision);
-                SwingUtilities.invokeLater(() -> vista.agregarInforme(informe.toString()));
+                resultado = informe.toString();
+                exito = true;
             } catch (NaveException error) {
-                SwingUtilities.invokeLater(() -> vista.mostrarError(error.getMessage()));
-            } finally {
-                SwingUtilities.invokeLater(() -> {
-                    hayMisionEnCurso = false;
-                    vista.habilitarMision(true);
-                    refrescar();
-                });
+                resultado = error.getMessage();
+                exito = false;
             }
-        }, "Mision " + asistente.idNave());
-        hiloMision.start();
+            SwingUtilities.invokeLater(new MostrarResultado(resultado, exito));
+        }
+    }
+
+    /** Lo que hay que hacer en el hilo de Swing cuando la mision termino. */
+    private class MostrarResultado implements Runnable {
+
+        private final String resultado;
+        private final boolean exito;
+
+        MostrarResultado(String resultado, boolean exito) {
+            this.resultado = resultado;
+            this.exito = exito;
+        }
+
+        @Override
+        public void run() {
+            if (exito) {
+                vista.agregarInforme(resultado);
+            } else {
+                vista.mostrarError(resultado);
+            }
+            hayMisionEnCurso = false;
+            vista.habilitarMision(true);
+            refrescar();
+        }
     }
 
     private Mision crearMision(int indice) {
@@ -182,7 +222,12 @@ public class ControladorControl implements ActionListener, Observador {
     @Override
     public void actualizar() {
         // Llega desde el hilo de la mision: el refresco de la vista va al hilo de Swing
-        SwingUtilities.invokeLater(this::refrescar);
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                refrescar();
+            }
+        });
     }
 
     /** Vuelve a leer el modelo y se lo pasa a la vista. */

@@ -4,46 +4,41 @@ import ar.edu.unmdp.tpg.acceso.ServicioDeAcceso;
 import ar.edu.unmdp.tpg.asistente.AsistenteDeComando;
 import ar.edu.unmdp.tpg.asistente.AsistenteDeComandoBasico;
 import ar.edu.unmdp.tpg.bitacora.Bitacora;
+import ar.edu.unmdp.tpg.destino.Tablero;
 import ar.edu.unmdp.tpg.excepciones.NaveException;
+import ar.edu.unmdp.tpg.gui.controlador.ControladorAcceso;
+import ar.edu.unmdp.tpg.gui.controlador.ControladorControl;
+import ar.edu.unmdp.tpg.gui.controlador.ControladorCreacion;
+import ar.edu.unmdp.tpg.gui.controlador.ControladorPrincipal;
+import ar.edu.unmdp.tpg.gui.controlador.ControladorTripulantes;
+import ar.edu.unmdp.tpg.gui.vista.VentanaAcceso;
+import ar.edu.unmdp.tpg.gui.vista.VentanaPrincipal;
 import ar.edu.unmdp.tpg.naves.NaveFactory;
+import ar.edu.unmdp.tpg.persistencia.ConexionBD;
+import ar.edu.unmdp.tpg.persistencia.PersistenciaException;
+import ar.edu.unmdp.tpg.persistencia.UsuarioDAO;
+import ar.edu.unmdp.tpg.persistencia.UsuarioDAOEnMemoria;
+import ar.edu.unmdp.tpg.persistencia.UsuarioDAOJDBC;
 import ar.edu.unmdp.tpg.tripulacion.Alferez;
 import ar.edu.unmdp.tpg.tripulacion.Capitan;
 import ar.edu.unmdp.tpg.tripulacion.Consejero;
 import ar.edu.unmdp.tpg.tripulacion.Origen;
 import ar.edu.unmdp.tpg.tripulacion.Teniente;
 import ar.edu.unmdp.tpg.tripulacion.Tripulante;
-import ar.edu.unmdp.tpg.destino.Tablero;
-import ar.edu.unmdp.tpg.gui.controlador.ControladorAcceso;
-import ar.edu.unmdp.tpg.gui.controlador.ControladorControl;
-import ar.edu.unmdp.tpg.gui.controlador.ControladorCreacion;
-import ar.edu.unmdp.tpg.gui.controlador.ControladorTripulantes;
-import ar.edu.unmdp.tpg.gui.vista.VentanaAcceso;
-import ar.edu.unmdp.tpg.gui.vista.VentanaPrincipal;
-import ar.edu.unmdp.tpg.persistencia.ConexionBD;
-import ar.edu.unmdp.tpg.persistencia.PersistenciaException;
-import ar.edu.unmdp.tpg.persistencia.UsuarioDAO;
-import ar.edu.unmdp.tpg.persistencia.UsuarioDAOEnMemoria;
-import ar.edu.unmdp.tpg.persistencia.UsuarioDAOJDBC;
 import ar.edu.unmdp.tpg.universo.TableroInicial;
 import ar.edu.unmdp.tpg.universo.Universo;
-import ar.edu.unmdp.tpg.visor.MainVisor;
-
-import javax.swing.SwingUtilities;
 
 /**
- * Programa principal con interfaz grafica. Es el que arma el MVC: crea el modelo,
- * las vistas y los controladores, y los conecta. Ninguna clase del modelo conoce
- * a las vistas ni a los controladores.
+ * Programa principal con interfaz grafica. Como en la teoria: el main crea el
+ * modelo, la vista y el controlador, y los conecta. Ninguna clase del modelo
+ * conoce a las vistas ni a los controladores.
  *
- * Primero se muestra la pantalla de acceso. Cuando el login sale bien, se abre la
- * ventana principal con las secciones de creacion, tripulantes y control, y el
- * boton del visor.
+ * Primero se abre la pantalla de acceso. Cuando el login sale bien, el
+ * ControladorAcceso llama a abrirPrincipal(), que arma la ventana principal.
  *
  * Ejecutar con: mvn compile exec:exec -Dprograma=ar.edu.unmdp.tpg.gui.MainGUI
- *
  * Con el argumento "demo" arranca con una nave ya creada y tripulada (solo en
- * memoria: la consigna dice que las naves no se persisten), para no tener que
- * cargarla a mano en la presentacion.
+ * memoria: la consigna dice que las naves no se persisten).
  */
 public class MainGUI {
 
@@ -51,13 +46,15 @@ public class MainGUI {
 
     public static void main(String[] args) {
         modoDemo = args.length > 0 && args[0].equalsIgnoreCase("demo");
-        SwingUtilities.invokeLater(() -> {
-            ServicioDeAcceso servicio = new ServicioDeAcceso(crearUsuarioDAO());
-            VentanaAcceso ventanaAcceso = new VentanaAcceso();
-            ControladorAcceso controladorAcceso = new ControladorAcceso(ventanaAcceso, servicio,
-                () -> abrirPrincipal(ventanaAcceso.getUsuario()));
-            ventanaAcceso.mostrar();
-        });
+
+        // Modelo
+        ServicioDeAcceso servicio = new ServicioDeAcceso(crearUsuarioDAO());
+        // Vista
+        VentanaAcceso ventanaAcceso = new VentanaAcceso();
+        // Controlador
+        ControladorAcceso controladorAcceso = new ControladorAcceso(ventanaAcceso, servicio);
+
+        ventanaAcceso.mostrar();
     }
 
     /** Usa la base H2 (DAO JDBC). Si la base no esta disponible, sigue con el DAO en memoria. */
@@ -72,8 +69,11 @@ public class MainGUI {
         }
     }
 
-    /** Arma el modelo y la ventana principal con sus tres controladores. */
-    static void abrirPrincipal(String usuario) {
+    /**
+     * Arma la ventana principal. Lo llama el ControladorAcceso cuando el usuario ingreso.
+     * Hay un controlador por cada seccion (pestana) de la ventana.
+     */
+    public static void abrirPrincipal(String usuario) {
         // Modelo
         Universo universo = new Universo();
         Tablero tablero = TableroInicial.crear();
@@ -84,17 +84,14 @@ public class MainGUI {
         // Vista
         VentanaPrincipal ventana = new VentanaPrincipal(usuario);
 
-        // Controladores: uno por seccion. Los de tripulantes y control se enteran de
-        // las naves nuevas a traves del aviso del controlador de creacion.
-        ControladorTripulantes tripulantes = new ControladorTripulantes(ventana.getVistaTripulantes(), universo);
-        ControladorControl control = new ControladorControl(ventana.getVistaControl(), universo, tablero);
-        new ControladorCreacion(ventana.getVistaCreacion(), universo, () -> {
-            tripulantes.actualizarNaves();
-            control.actualizarNaves();
-        });
-
-        // El visor es un modulo aparte: el boton solo lo abre
-        ventana.setVisorListener(e -> MainVisor.abrir(MainVisor.CAPACIDAD_PLATAFORMA));
+        // Controladores
+        ControladorTripulantes controladorTripulantes =
+            new ControladorTripulantes(ventana.getVistaTripulantes(), universo);
+        ControladorControl controladorControl =
+            new ControladorControl(ventana.getVistaControl(), universo, tablero);
+        ControladorCreacion controladorCreacion =
+            new ControladorCreacion(ventana.getVistaCreacion(), universo, controladorTripulantes, controladorControl);
+        ControladorPrincipal controladorPrincipal = new ControladorPrincipal(ventana);
 
         ventana.mostrar();
     }

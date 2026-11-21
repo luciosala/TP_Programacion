@@ -92,10 +92,13 @@ public class VentanaVisor extends JFrame implements IVistaVisor, ObservadorVisor
      */
     @Override
     public void actualizar(String evento) {
-        SwingUtilities.invokeLater(() -> {
-            consola.append(evento + "\n");
-            recortar();
-            consola.setCaretPosition(consola.getDocument().getLength());   // autoscroll
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                consola.append(evento + "\n");
+                recortar();
+                consola.setCaretPosition(consola.getDocument().getLength());   // autoscroll
+            }
         });
     }
 

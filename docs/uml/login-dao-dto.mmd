@@ -1,0 +1,45 @@
+---
+title: Login y registro (DAO / DTO con H2)
+---
+classDiagram
+    direction LR
+    class ServicioDeAcceso {
+        +ServicioDeAcceso(UsuarioDAO)
+        +registrar(nombre, contrasena)
+        +iniciarSesion(nombre, contrasena) Sesion
+    }
+    class Sesion {
+        -nombreUsuario String
+        -inicio Instant
+    }
+    class HashContrasena {
+        hashea la contrasena con sal
+    }
+    class UsuarioDAO {
+        <<interface>>
+        +insertar(UsuarioDTO)
+        +buscarPorNombre(nombre) Optional~UsuarioDTO~
+        +existe(nombre) boolean
+    }
+    class UsuarioDAOJDBC {
+        +UsuarioDAOJDBC(ConexionBD)
+    }
+    class UsuarioDAOEnMemoria {
+        para pruebas
+    }
+    class UsuarioDTO {
+        -nombreUsuario String
+        -hashContrasena String
+        -sal String
+    }
+    class ConexionBD {
+        +porDefecto() ConexionBD
+        +inicializarEsquema()
+    }
+    ServicioDeAcceso --> UsuarioDAO
+    ServicioDeAcceso ..> Sesion : devuelve
+    ServicioDeAcceso ..> HashContrasena : usa
+    UsuarioDAO <|.. UsuarioDAOJDBC
+    UsuarioDAO <|.. UsuarioDAOEnMemoria
+    UsuarioDAO ..> UsuarioDTO : guarda y devuelve
+    UsuarioDAOJDBC --> ConexionBD : base H2

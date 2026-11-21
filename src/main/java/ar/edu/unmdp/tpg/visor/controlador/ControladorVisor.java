@@ -22,7 +22,12 @@ public class ControladorVisor implements ActionListener {
         this.vista = vista;
         this.universo = universo;
         vista.setActionListener(this);
-        vista.alCerrar(universo::detenerTodo);
+        vista.alCerrar(new Runnable() {
+            @Override
+            public void run() {
+                universo.detenerTodo();   // al cerrar el visor se interrumpen los hilos
+            }
+        });
     }
 
     @Override

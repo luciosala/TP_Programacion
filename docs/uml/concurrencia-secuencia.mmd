@@ -1,0 +1,36 @@
+---
+title: Concurrencia - Un ciclo del productor-consumidor (plataforma de capacidad 1 para que se vea la espera)
+---
+sequenceDiagram
+    autonumber
+    participant G as Generadora 1 (hilo)
+    participant P as PlataformaDeCarga (monitor)
+    participant N as Nave 1 (hilo)
+    participant C as CanalDeEventos
+    participant V as VentanaVisor (hilo de Swing)
+
+    Note over G,N: Los dos hilos arrancan con start() y corren a la vez
+
+    N->>C: publicar("Nave 1 solicitando batería")
+    C-->>V: actualizar(...) → invokeLater
+    N->>P: retirar("Nave 1")   [toma el candado]
+    Note over P: while (baterias vacía) → wait()<br/>suelta el candado y se duerme
+    P-->>C: publicar("Nave 1 esperando por falta de baterías")
+
+    G->>G: sleep(TIEMPO_PRODUCCION), new Bateria
+    G->>C: publicar("Batería producida por Generadora 1")
+    G->>P: depositar(bateria, "Generadora 1")   [toma el candado]
+    Note over P: while (llena) → no está llena, sigue<br/>baterias.add(bateria)<br/>notifyAll() → despierta a Nave 1
+    P-->>G: vuelve (suelta el candado)
+
+    Note over P: Nave 1 se despierta dentro de retirar(),<br/>vuelve a evaluar el while: ya hay batería, sale<br/>baterias.remove(0) y notifyAll()
+    P-->>N: Batería #1
+    N->>C: publicar("Batería retirada y utilizada por Nave 1")
+    C-->>V: actualizar(...) → invokeLater
+    N->>N: sleep(TIEMPO_CONSUMO)
+
+    G->>G: sleep, new Bateria #2
+    G->>P: depositar(bateria 2) [plataforma llena, capacidad 1]
+    Note over P: while (llena) → wait()<br/>Generadora 1 se duerme hasta que alguien retire
+
+    Note over G,N: Cada hilo repite su for 10 veces y termina.<br/>Si una se queda esperando sin que nadie la despierte,<br/>se destraba creando otra nave o generadora desde los botones.
