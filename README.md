@@ -2,6 +2,8 @@
 
 Software embarcado de una nave interestelar tripulada — TPG 2026, Programación C.
 
+Entrega vigente: **Entrega 2** (etiqueta `entrega-e2`). La Entrega 1 quedó identificada con la etiqueta `entrega-e1`.
+
 ## Requisitos
 
 - JDK 17 o superior
@@ -9,8 +11,13 @@ Software embarcado de una nave interestelar tripulada — TPG 2026, Programació
 
 ## Configuración local
 
-No requiere configuración adicional: no usa base de datos, archivos externos ni
-variables de entorno. Alcanza con tener instalados el JDK y Maven.
+- **Base de datos:** se usa H2 embebida (dependencia `com.h2database:h2` del `pom.xml`, la baja Maven).
+  No hay que instalar nada: al iniciar, el sistema crea la base en `./datos/tpg.mv.db` (relativo a la carpeta
+  desde donde se ejecuta) y ejecuta `database/schema.sql`, que usa `IF NOT EXISTS` y no borra datos.
+  Usuario `sa`, sin contraseña. La carpeta `datos/` está en el `.gitignore`.
+- Solo se persisten las credenciales de los usuarios (nombre y hash de la contraseña con su sal).
+  Naves, tripulantes y misiones no se guardan (Enunciado Parte 2).
+- Para empezar de cero, borrar la carpeta `datos/`.
 
 ## Compilación
 
@@ -18,112 +25,113 @@ variables de entorno. Alcanza con tener instalados el JDK y Maven.
 mvn clean compile
 ```
 
-## Ejecución
+## Iniciar el sistema (interfaz gráfica)
 
 ```
-mvn exec:java
+mvn compile exec:exec
 ```
 
-El programa no pide datos por consola: ejecuta de corrido los cinco escenarios de
-demostración y escribe el resultado en pantalla. Para guardarlo en un archivo:
+`exec:exec` lanza una JVM aparte con `-ea`, porque las precondiciones del modelo se comprueban con `assert`.
+Por defecto arranca `ar.edu.unmdp.tpg.app.MainGrafico`.
 
-```
-mvn -q exec:java > docs/ejecuciones.txt
-```
+Recorrido sugerido:
 
-Sin Maven, desde la raíz del proyecto:
+1. **Acceso:** en la ficha *Registrarse* dar de alta un usuario (3 a 30 caracteres, contraseña de 4 o más) y
+   después ingresar en *Iniciar sesión*. En una ejecución posterior el usuario sigue existiendo.
+2. **Creación:** escribir un id, elegir el tipo de nave y *Crear nave*. Asignarle un **capitán y cuatro
+   tripulantes más** (sin eso la nave no puede iniciar misiones).
+3. **Tripulantes:** tabla con la tripulación y el salario del mes de cada uno, y el detalle concepto por
+   concepto. Se puede registrar un consejo del consejero seleccionado.
+4. **Control de la Nave:** iniciar M-01, M-02 o M-03 y ver el avance en el tablero, los recursos, la
+   bitácora y el historial de informes, que se actualizan solos. Con la nave quieta se puede cargar
+   combustible o energía y hacer mantenimiento.
+5. **Visor Recóndito:** agregar naves consumidoras y generadoras de energía y ver los eventos de la
+   plataforma de carga en vivo.
 
-```
-javac -encoding UTF-8 -d target/classes $(find src/main/java -name "*.java")
-java -cp target/classes ar.edu.unmdp.tpg.app.Main
-```
-
-En PowerShell la compilación se escribe así:
-
-```
-javac -encoding UTF-8 -d target\classes (Get-ChildItem -Recurse src\main\java -Filter *.java).FullName
-java -cp target\classes ar.edu.unmdp.tpg.app.Main
-```
-
-## Escenarios de la demostración
-
-`Main` arranca creando las tres naves con `NaveFactory`, les asigna su tripulación
-y las registra en el `Universo`. Después recorre estos escenarios:
-
-| Escenario | Qué demuestra | Resultado esperado |
-|---|---|---|
-| A | Ejecución correcta de M-01, M-02 y M-03 sobre EXP-1 | Las tres misiones son exitosas. La nave pasa de 60/80/0 a 48/70/12 en combustible, energía y desgaste. El motor recorre el ciclo completo de salto y vuelve a Disponible. |
-| B | Límite de recursos: recolecciones sucesivas sobre CAR-1 hasta el rechazo | Se completan 12 recolecciones; la nº 13 se rechaza en la preparación por energía insuficiente y **no modifica ningún recurso**. La nave queda en 52/0/48. |
-| C | Motor Warp: ciclo válido y transiciones inválidas sobre COM-1 | El ciclo Disponible → Preparando salto → En warp → Enfriamiento → Disponible funciona. Cada transición inválida se rechaza con su excepción y el motor conserva su estado. |
-| D | Contrato inválido y mantenimiento | Las cargas fuera de rango se rechazan sin tocar los recursos. El mantenimiento deja el desgaste en 0. |
-| Haberes | Liquidación con Decorator, período octubre 2026 | Capitán 3020 PG, Consejero 786 PG, Teniente 454 PG, Alférez 221 PG. Del consejero se cuentan solo los 3 consejos del período liquidado; el de otro mes queda afuera. |
-
-La salida completa de una corrida está en [`docs/ejecuciones.txt`](docs/ejecuciones.txt).
+Referencias del tablero: `NAV` nave, `OBJ` objetivo de la misión, `BAS` base de origen (centro),
+`Ast` asteroide, `Est` estación de carga, `Exp`/`Car`/`Com` naves enemigas, `Res` restos de una nave destruida.
 
 ## Verificación
 
-Para verificar la entrega:
+Verificación de escenarios con resultados esperados (sale con código 0 si todo coincide):
 
-1. Compilar con `mvn clean compile`.
-2. Ejecutar con `mvn exec:java`.
-3. Comparar la salida con los resultados esperados de la tabla de escenarios.
+```
+mvn compile exec:exec -Dprograma=ar.edu.unmdp.tpg.test.PruebaEscenarios
+```
 
-En [`docs/evidencias.md`](docs/evidencias.md) está, para cada requerimiento E1 y cada
-evidencia mínima exigida, dónde se verifica y qué resultado se espera.
+Otras verificaciones:
+
+| Programa | Qué verifica |
+|---|---|
+| `ar.edu.unmdp.tpg.test.PruebaEscenarios` | Escenarios A, B, C y D de la ficha con los costos y el Motor Warp del Anexo, contratos (E), navegación por un tablero con asteroides y haberes. |
+| `ar.edu.unmdp.tpg.test.PruebaElementos` | Asteroides, estaciones de carga y la tabla de batallas (Double Dispatch). |
+| `ar.edu.unmdp.tpg.test.PruebaAcceso` | Registro e inicio de sesión con DAO/DTO y JDBC sobre H2. Ejecutarlo dos veces comprueba que el usuario persiste. |
+| `ar.edu.unmdp.tpg.test.PruebaTablero` | Integración del Tablero y Destino de la cátedra y su Observer. |
+| `ar.edu.unmdp.tpg.visor.PruebaVisor` | Productor-Consumidor: la plataforma nunca supera su capacidad. |
+| `ar.edu.unmdp.tpg.app.Main` | Demostración por consola de las tres misiones sobre un tablero con elementos. |
+
+Cada uno se ejecuta con `mvn compile exec:exec -Dprograma=<clase>`.
+
+La salida de una corrida de `PruebaEscenarios` está en [`docs/ejecuciones.txt`](docs/ejecuciones.txt).
+En [`docs/evidencias.md`](docs/evidencias.md) está, para cada requerimiento, dónde se verifica y qué se espera.
 
 ## Diagrama de clases
 
 ![Diagrama de clases](docs/uml-clases.png)
 
-El diagrama está en [`docs/uml-clases.png`](docs/uml-clases.png) y en
-[`docs/uml-clases.svg`](docs/uml-clases.svg). El fuente, en Mermaid, es
-[`docs/uml-clases.mmd`](docs/uml-clases.mmd).
+También en [`docs/uml-clases.svg`](docs/uml-clases.svg). El fuente, en Mermaid, es [`docs/uml-clases.mmd`](docs/uml-clases.mmd).
 
 ## Patrones de diseño
 
 | Patrón | Dónde está | Cómo se aplica |
 |---|---|---|
-| **Factory** | `naves.NaveFactory` | Único punto de creación de naves. El cliente pide un tipo y recibe la nave con sus recursos iniciales y su motor ya armados. Los constructores de `Combate`, `Carguera` y `Exploradora` son package private, así nadie crea una nave con valores que no le corresponden. |
-| **State** | `motorwarp.MotorWarp` y `motorwarp.Estado` | El motor no decide con `if` qué transición es válida: se la pide a su estado actual, y cada estado devuelve el siguiente o lanza `TransicionInvalidaException`. Agregar un estado es agregar una subclase. |
-| **Template Method** | `mision.Mision` | `realizarMision()` es `final` y fija el orden preparar → ejecutar → evaluarResultado → cerrar. Las misiones concretas solo completan los puntos de extensión (`ejecutaMision`, `condicionDeExito`, `costoAccionFinal`, `descripcionObjetivo`, `combustibleNecesario`, `desgasteQueGenera`), nunca la secuencia. |
-| **Decorator** | `haberes.Haber`, `haberes.DecoratorHaber` | `HaberBase` tiene el sueldo del cargo; cada adicional envuelve un haber y le suma su concepto. Las combinaciones se arman encadenando decoradores en `LiquidacionHaberes`, sin una subclase por combinación posible. |
+| **Factory** | `naves.NaveFactory`, `elementos.FabricaDeElementos`, `tripulacion.FabricaDeCargos` | El cliente pide un tipo y recibe el objeto armado sin conocer las clases concretas. Los constructores de `Combate`, `Carguera` y `Exploradora` son package private. |
+| **State** | `motorwarp.MotorWarp` y sus estados | El motor expone solo `saltar()` y `saltarWarp()` y se las delega a su estado actual. Cada estado decide (salto simple, turno de preparación, salto warp, enfriamiento) y le setea al motor el estado siguiente. No hay `if` sobre el estado. |
+| **Template Method** | `mision.Mision` | `realizarMision()` es `final` y fija preparar → ejecutar → evaluar → cerrar. Las misiones concretas solo redefinen los pasos que dependen de cada una (destino, energía de despegue, recursos a entregar, qué pasa al llegar y al cerrar). |
+| **Decorator** | `haberes.Haber`, `haberes.DecoratorHaber` | `HaberBase` tiene el sueldo del cargo; cada adicional envuelve un haber y le suma su concepto. |
+| **Double Dispatch** | `naves.Nave` y sus subtipos | `nave.enfrentar(enemiga)` llama a `enemiga.recibirDesafioDe(nave)`, que llama a `nave.contraXxx()`: el resultado depende de los dos tipos sin `instanceof`. |
+| **Observer** | `destino.Observable` / `destino.Observador` (de la cátedra) | Los usan el `Tablero`, la `Bitacora`, el `ModeloAplicacion` y el `CanalDeEventos` del visor. Las vistas se registran en los modelos y se actualizan solas; los modelos no conocen a las vistas. |
+| **MVC** | paquetes `vista`, `controlador`, `aplicacion` y `visor` | Cada vista implementa una interfaz con sus comandos; cada controlador implementa `ActionListener`, invoca al modelo y coordina la respuesta con la vista. |
+| **DAO / DTO** | `persistencia.UsuarioDAO`, `UsuarioDAOJDBC`, `UsuarioDTO` | El servicio de acceso solo conoce la interfaz DAO. El DTO lleva los datos del usuario entre la base y el servicio. |
+| **Productor-Consumidor con monitores** | `visor.modelo.PlataformaDeCarga` | Métodos `synchronized`, condiciones de guarda en `while` con `wait()` y `notifyAll()`. Cada generadora y cada nave consumidora es un `Thread`. |
 
-## Asistente de Comando
+## Navegación y Motor Warp
 
-`AsistenteDeComando` es la única vía entre el cliente y la nave. Conoce a la vez la
-nave, las misiones y la bitácora; las misiones no conocen ninguna de las tres: le
-piden al asistente que verifique recursos, los consuma, ordene al motor y registre
-lo ocurrido. Esto deja a `Mision` independiente de `Nave` y de `Bitacora`.
+En cada turno de la misión (Enunciado Parte 2 y Anexo):
 
-El `Universo` guarda los asistentes, no las naves, y depende de la interfaz: acepta
-cualquier variante de asistente sin modificarse.
+1. **Inspección:** si en la casilla de la nave hay un elemento, la nave interactúa con él (asteroide: −10 de
+   energía; estación: recarga; otra nave: batalla por Double Dispatch).
+2. **Escaneo:** el radar de corto alcance mira la próxima casilla de la ruta.
+3. **Movimiento:** si hay un asteroide adelante, la nave intenta el **salto warp** (2 turnos de preparación,
+   salto de 2 casilleros con 5 de energía y 1 turno de enfriamiento con 3 de desgaste). Si no, **salto
+   simple** (1 casillero, 2 de combustible).
+4. **Turno del tablero:** `Destino` mueve los elementos al azar.
+
+Si el combustible o la energía llegan a 0, o el desgaste a 100, la nave se destruye y la misión falla.
+
+Costos de cada misión (Anexo): despegue M-01 4/5/4, M-02 4/10/4, M-03 4/0/4 (combustible/energía/desgaste).
+Al llegar: M-01 entrega a la nave aliada lo que pidió (entre 0 y 50 de energía y de combustible), M-02 recolecta
+entre 20 y 100 gemas y M-03 recarga todo al 100 % y deja el desgaste en 0.
 
 ## Manejo de excepciones
 
-Todas las fallas del dominio derivan de `NaveException`, que extiende `Exception`
-(checked), de modo que quien invoca una operación está obligado a decidir qué hace
-con el error. Las excepciones son cinco:
+Todas las fallas del dominio derivan de `NaveException` (checked):
 
 | Excepción | Cuándo se lanza |
 |---|---|
-| `RecursoInsuficienteException` | La operación necesita más combustible o energía del disponible. |
+| `RecursoInsuficienteException` | La operación necesita más combustible o energía del disponible (por ejemplo, un salto sin combustible). |
 | `LimiteRecursoExcedidoException` | La operación dejaría un recurso por encima de 100. |
-| `TransicionInvalidaException` | Se le pide al Motor Warp una transición que su estado actual no admite. |
-| `MisionNoViableException` | La misión no puede iniciarse, o ya fue realizada. |
-| `TripulacionInvalidaException` | La nave no cumple la composición mínima de tripulación. |
+| `MisionNoViableException` | La misión no puede iniciarse (motor ocupado, tripulación incompleta, sin recursos), ya fue realizada o ya hay otra en curso. |
+| `TripulacionInvalidaException` | Tripulante repetido o consejo de alguien que no es consejero. |
+| `NaveYaRegistradaException` / `NaveNoRegistradaException` | Alta repetida o búsqueda de una nave inexistente en el `Universo`. |
 
-Las operaciones que las lanzan son atómicas: una operación rechazada no modifica
-ningún recurso ni el estado del motor. El Asistente de Comando captura las fallas
-en el borde del sistema, las registra en la bitácora con categoría `ERROR` y las
-vuelve a propagar.
+En el acceso: `UsuarioExistenteException` y `CredencialesInvalidasException` (reglas del servicio) y
+`PersistenciaException` (fallas de la base, en el DAO).
 
 ## Contratos
 
-Las clases públicas están documentadas con Javadoc, indicando precondiciones,
-postcondiciones e invariantes. Los contratos de las operaciones sobre la nave están
-en la interfaz `AsistenteDeComando`, que es el contrato que ve el cliente.
-
-Para generar la documentación:
+Las clases públicas están documentadas con Javadoc (precondiciones, postcondiciones e invariantes). Las
+precondiciones se comprueban con `assert`. Para generar la documentación:
 
 ```
 mvn javadoc:javadoc
@@ -135,13 +143,26 @@ Todo el código está bajo `src/main/java/ar/edu/unmdp/tpg/`:
 
 | Paquete | Contenido |
 |---|---|
-| `app` | `Main`: el programa de demostración. Es la única clase que usa la consola. |
-| `universo` | `Universo`: registra las naves listas para operar y elige con cuál se trabaja. |
+| `app` | `MainGrafico` (interfaz gráfica) y `Main` (demostración por consola). |
+| `aplicacion` | `ModeloAplicacion` (modelo de la aplicación del MVC) y `EjecucionDeMision` (hilo de la misión). |
+| `vista` | Ventanas y paneles Swing, cada uno con su interfaz `IVista...`. |
+| `controlador` | Controladores del MVC. |
+| `acceso` | `ServicioDeAcceso`, `Sesion` y las excepciones del acceso. |
+| `persistencia` | `UsuarioDAO`, `UsuarioDAOJDBC`, `UsuarioDAOEnMemoria`, `UsuarioDTO`, `ConexionBD`. |
+| `universo` | `Universo`: registra las naves y elige con cuál se opera. |
 | `asistente` | `AsistenteDeComando` y `AsistenteDeComandoBasico`: la vía entre el cliente y la nave. |
-| `naves` | `Nave`, tipos de nave, `NaveFactory`, `Recursos` |
-| `motorwarp` | `MotorWarp` y sus estados (patrón State) |
-| `mision` | Misiones M-01, M-02, M-03 (patrón Template Method) e `InformeMision` |
-| `tripulacion` | `Tripulante`, cargos, `Origen`, `Consejo` |
-| `haberes` | Liquidación de haberes (patrón Decorator) |
-| `bitacora` | `Bitacora` y `EventoBitacora` |
-| `excepciones` | Excepciones del dominio |
+| `naves` | `Nave`, tipos de nave, `NaveFactory`, `Recursos`, `ResultadoBatalla`. |
+| `motorwarp` | `MotorWarp` y sus estados (State). |
+| `mision` | Misiones (Template Method), radares, `BalanceDeRecursos` e `InformeMision`. |
+| `elementos` | `ElementoDelUniverso`, asteroides, estaciones de carga y `FabricaDeElementos`. |
+| `destino` | `Tablero`, `Destino`, `Posicion`, `Observable` y `Observador`, provistos por la cátedra (versión 2). |
+| `tripulacion` | `Tripulante`, cargos, `Origen`, `Consejo`, `FabricaDeCargos`. |
+| `haberes` | Liquidación de haberes (Decorator). |
+| `bitacora` | `Bitacora` (observable) y `EventoBitacora`. |
+| `visor` | Universo paralelo: productor-consumidor con su modelo, vista y controlador. |
+| `excepciones` | Excepciones del dominio. |
+| `test` | Programas de verificación. |
+
+## Entrega
+
+La etiqueta `entrega-e2` señala el commit que el grupo presenta para la Entrega 2.

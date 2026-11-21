@@ -1,415 +1,520 @@
 ---
-title: TPG 2026 - Software embarcado de una nave interestelar - Diagrama de clases
+title: TPG 2026 - Software embarcado de una nave interestelar - Diagrama de clases (Entrega 2)
 ---
 classDiagram
     direction TB
 
-    %% ============ PUNTO DE ENTRADA ============
+    %% ================= ARRANQUE =================
+    class MainGrafico {
+        +main(String[] args) void$
+    }
     class Main {
         +main(String[] args) void$
     }
 
-    %% ============ PAQUETE test ============
-    class PruebaEscenarios {
-        +main(String[] args) void$
+    %% ================= MVC: VISTAS =================
+    class IVistaAcceso {
+        <<interface>>
+        +setActionListener(ActionListener) void
+        +validarFormatoRegistro() String
+        +mostrarError(String) void
+    }
+    class IVistaPrincipal {
+        <<interface>>
+        +mostrar(String usuario) void
+    }
+    class IVistaCreacion {
+        <<interface>>
+        +validarFormatoNave() String
+        +validarFormatoTripulante() String
+        +mostrarNaves(List~String~, String) void
+    }
+    class IVistaTripulantes {
+        <<interface>>
+        +mostrarTripulantes(List~Tripulante~, List~Haber~, String) void
+    }
+    class IVistaControl {
+        <<interface>>
+        +validarFormatoCantidad() String
+        +getCantidad() int
+    }
+    class VentanaAcceso
+    class VentanaPrincipal
+    class PanelCreacion
+    class PanelTripulantes
+    class TablaTripulantesModel
+    class PanelControlNave {
+        +actualizar(String mensaje) void
+        -refrescar() void
+    }
+    class PanelTablero {
+        +dibujar(ElementoDelUniverso[][], Posicion, Posicion, Posicion) void
+    }
+    class AbstractTableModel {
+        <<Swing>>
     }
 
-    class Verificador {
+    VentanaAcceso ..|> IVistaAcceso
+    VentanaPrincipal ..|> IVistaPrincipal
+    PanelCreacion ..|> IVistaCreacion
+    PanelCreacion ..|> Observador
+    PanelTripulantes ..|> IVistaTripulantes
+    PanelTripulantes *-- TablaTripulantesModel
+    TablaTripulantesModel --|> AbstractTableModel
+    PanelControlNave ..|> IVistaControl
+    PanelControlNave ..|> Observador
+    PanelControlNave *-- PanelTablero
+    VentanaPrincipal o-- PanelCreacion
+    VentanaPrincipal o-- PanelTripulantes
+    VentanaPrincipal o-- PanelControlNave
+    VentanaPrincipal o-- PanelVisor
+
+    %% ================= MVC: CONTROLADORES =================
+    class ControladorAcceso {
+        +actionPerformed(ActionEvent) void
+    }
+    class ControladorCreacion {
+        +actionPerformed(ActionEvent) void
+    }
+    class ControladorTripulantes {
+        +actionPerformed(ActionEvent) void
+        +actualizarVista() void
+    }
+    class ControladorControl {
+        +actionPerformed(ActionEvent) void
+    }
+    ControladorAcceso --> IVistaAcceso
+    ControladorAcceso --> IVistaPrincipal
+    ControladorAcceso --> ServicioDeAcceso
+    ControladorCreacion --> IVistaCreacion
+    ControladorCreacion --> ModeloAplicacion
+    ControladorCreacion --> ControladorTripulantes
+    ControladorTripulantes --> IVistaTripulantes
+    ControladorTripulantes --> ModeloAplicacion
+    ControladorControl --> IVistaControl
+    ControladorControl --> ModeloAplicacion
+
+    %% ================= MODELO DE LA APLICACION =================
+    class ModeloAplicacion {
+        -universo: Universo
+        -tableros: HashMap~String, Tablero~
+        -informes: List~InformeMision~
+        -misionEnCurso: boolean
+        -fotoTablero: ElementoDelUniverso[][]
+        +crearNave(String id, String tipo) void
+        +seleccionarNave(String id) void
+        +asignarTripulante(...) void
+        +registrarConsejo(String, String) void
+        +liquidarHaber(Tripulante) Haber
+        +cargarCombustible(int) void
+        +cargarEnergia(int) void
+        +realizarMantenimiento() void
+        +iniciarIntercepcion() void
+        +iniciarRecoleccion() void
+        +iniciarRetorno() void
+        +hayMisionEnCurso() boolean
+        +getInformes() List~InformeMision~
+        +getFotoTablero() ElementoDelUniverso[][]
+    }
+    class EjecucionDeMision {
+        +run() void
+    }
+    class Thread {
+        <<Java>>
+    }
+    ModeloAplicacion --|> Observable
+    ModeloAplicacion *-- Universo
+    ModeloAplicacion --> Tablero
+    ModeloAplicacion ..> EjecucionDeMision : crea
+    EjecucionDeMision --|> Thread
+    EjecucionDeMision --> AsistenteDeComando
+    EjecucionDeMision --> Mision
+
+    %% ================= OBSERVER (clases de la catedra) =================
+    class Observable {
+        <<abstract>>
+        -observadores: ArrayList~Observador~
+        +agregarObservador(Observador) void
+        +quitarObservador(Observador) void
+        +notificarObservadores(String mensaje) void
+    }
+    class Observador {
+        <<interface>>
+        +actualizar(String mensaje) void
+    }
+    Observable o-- Observador
+
+    %% ================= DESTINO Y TABLERO (provistos por la catedra) =================
+    class Tablero {
+        +getPosicionNave() Posicion
+        +moverNave(Posicion) void
+        +inspeccionarPosicion() ElementoDelUniverso
+        +observarAlrededores() ElementoDelUniverso[][]
+        +obtenerObjetivo() Posicion
+        +getObjetivo() Posicion
+        +verTablero() ElementoDelUniverso[][]
+    }
+    class Destino {
+        +turnoDestino() void
+    }
+    class Posicion {
         <<final>>
-        -comprobaciones: int
-        -fallos: int
-        +asercionesActivas() boolean$
-        +verificar(String, boolean) void
-        +verificarIgual(String, int, int) void
-        +verificarRecursos(...) void
-        +rechazoEsperado(String, Throwable) void
-        +faltoRechazo(String) void
-        +imprimirResumen() void
+        +getX() int
+        +getY() int
     }
+    Tablero --|> Observable
+    Tablero o-- ElementoDelUniverso
+    Destino --> Tablero
 
+    %% ================= UNIVERSO Y ASISTENTE =================
     class Universo {
         -asistentes: List~AsistenteDeComando~
         -naveActiva: AsistenteDeComando
         +registrar(AsistenteDeComando) void
-        +estaRegistrada(String idNave) boolean
-        +cantidadNaves() int
-        +obtener(String idNave) AsistenteDeComando throws NaveNoRegistradaException
-        +seleccionarNave(String idNave) void throws NaveNoRegistradaException
-        +hayNaveActiva() boolean
+        +obtener(String idNave) AsistenteDeComando
+        +seleccionarNave(String idNave) void
         +getNaveActiva() AsistenteDeComando
-        -buscarPorId(String idNave) AsistenteDeComando
-        -invariante() boolean
+        +idsDeNaves() List~String~
     }
-
-    %% ============ MEDIADOR ============
     class AsistenteDeComando {
         <<interface>>
-        +idNave() String
         +asignarTripulante(Tripulante) void
-        +tripulacionLista() boolean
+        +consultarTripulacion() List~Tripulante~
+        +registrarConsejo(String, LocalDate, String) void
         +cargarCombustible(int) void
         +cargarEnergia(int) void
         +realizarMantenimiento() void
         +verificarRecursos(int, int, int) void
         +consumirParaMision(int, int, int) void
-        +consumirEnergia(int) void
-        +prepararSalto() void
-        +iniciarSalto() void
-        +finalizarSalto() void
-        +completarEnfriamiento() void
+        +saltar() int
+        +saltarWarp() int
         +estadoDelMotor() String
         +motorDisponible() boolean
+        +interactuarCon(ElementoDelUniverso) String
         +ejecutarMision(Mision) InformeMision
-        +crearInforme(...) InformeMision
-        +naveEstaOperativa() boolean
+        +crearInforme(..., BalanceDeRecursos, boolean) InformeMision
         +liquidarHaberes(YearMonth, Tripulante) Haber
         +registrarEvento(String, String) void
         +consultarBitacora() List~EventoBitacora~
+        +agregarObservadorBitacora(Observador) void
     }
-
     class AsistenteDeComandoBasico {
         -nave: Nave
         -bitacora: Bitacora
-        +AsistenteDeComandoBasico(Nave, Bitacora)
     }
+    Universo o-- AsistenteDeComando
+    AsistenteDeComandoBasico ..|> AsistenteDeComando
+    AsistenteDeComandoBasico --> Nave
+    AsistenteDeComandoBasico *-- Bitacora
 
-    %% ============ NAVES (FACTORY) ============
-    class NaveFactory {
-        <<Factory>>
-        +esTipoValido(String tipo) boolean$
-        +createNave(String id, String tipo) Nave$
-    }
-
-    class Nave {
-        <<abstract>>
-        -id: String
-        -tipo: String
-        -recursos: Recursos
-        -motorWarp: MotorWarp
-        -tripulacion: List~Tripulante~
-        +agregarTripulante(Tripulante) void
-        +buscarTripulantePorId(String) Tripulante
-        +cantidadTripulantes() int
-        +tripulacionLista() boolean
-        +estaOperativa() boolean
-        -invariante() boolean
-        +verificarDisponibilidad(int, int, int) void
-        +consumirParaMision(int, int, int) void
-        +prepararSalto() void
-        +iniciarSalto() void
-        +finalizarSalto() void
-        +completarEnfriamiento() void
-        +getEstadoMotor() String
-        +motorDisponible() boolean
-    }
-
-    class Combate { ~Combate(...) }
-    class Carguera { ~Carguera(...) }
-    class Exploradora { ~Exploradora(...) }
-
-    class Recursos {
-        <<final>>
-        -combustible: int
-        -energia: int
-        -desgaste: int
-        +cargarCombustible(int) void
-        +cargarEnergia(int) void
-        +consumirEnergia(int) void
-        +consumirCombustible(int) void
-        +agregarDesgaste(int) void
-        +verificarDisponibilidad(int, int, int) void
-        +consumirParaMision(int, int, int) void
-        +requiereMantenimiento() boolean
-        +realizarMantenimiento() void
-        -invariante() boolean
-    }
-
-    %% ============ MOTOR WARP (STATE) ============
-    class MotorWarp {
-        -estadoActual: Estado
-        +prepararSalto() void
-        +iniciarSalto() void
-        +finalizarSalto() void
-        +completarEnfriamiento() void
-        +getEstadoActual() String
-        +estaDisponible() boolean
-        -invariante() boolean
-    }
-
-    class Estado {
-        <<abstract>>
-        ~prepararSalto() Estado
-        ~iniciarSalto() Estado
-        ~finalizarSalto() Estado
-        ~completarEnfriamiento() Estado
-        ~nombre() String
-        ~estaDisponible() boolean
-    }
-
-    class Disponible { ~prepararSalto() Estado }
-    class PrepararSalto { ~iniciarSalto() Estado }
-    class EnWarp { ~finalizarSalto() Estado }
-    class Enfriando { ~completarEnfriamiento() Estado }
-
-    %% ============ MISIONES (TEMPLATE METHOD) ============
-    class Mision {
-        <<abstract>>
-        -nombre: String
-        -descripcion: String
-        #asistente: AsistenteDeComando
-        -fase: Fase
-        -informe: InformeMision
-        -acciones: List~String~
-        +realizarMision() InformeMision
-        +estaEncomendadaA(AsistenteDeComando) boolean
-        #preparar() void
-        #ejecutar() boolean
-        #evaluar(boolean exito) InformeMision
-        #cerrar(boolean exito) void
-        -saltar() void
-        -invariante() boolean
-        #registrarAccion(String) void
-        #destinoDeLaMision()* Posicion
-        #costoAccionFinal()* int
-        #descripcionObjetivo()* String
-        #combustibleNecesario() int
-        #desgasteQueGenera() int
-        #combustibleAEntregar() int
-        #alLlegar() void
-        #impactarAlCerrar() void
-    }
-
-    class Fase {
-        <<enumeration>>
-        CREADA
-        PREPARADA
-        EJECUTADA
-        EVALUADA
-        CERRADA
-    }
-
-    class MisionIntercepcion {
-        -objetivo: String
-        -estadoObjetivo: String
-    }
-
-    class MisionRecoleccion {
-        -puntoInteres: String
-        -elemento: String
-        -gemasEncontradas: int
-    }
-
-    class MisionRetornoSeguro {
-        -zonaDestino: String
-    }
-
-    class InformeMision {
-        <<final>>
-        -mision: String
-        -objetivo: String
-        -acciones: List~String~
-        -combustibleConsumido: int
-        -energiaConsumida: int
-        -desgasteGenerado: int
-        -exito: boolean
-        -idNave: String
-        -combustibleFinal: int
-        -energiaFinal: int
-        -desgasteFinal: int
-        -requiereMantenimiento: boolean
-        +fueExitosa() boolean
-        +toString() String
-    }
-
-    %% ============ BITACORA ============
+    %% ================= BITACORA =================
     class Bitacora {
         -eventos: List~EventoBitacora~
         +registrar(String, String) void
         +consultarEventos() List~EventoBitacora~
-        -invariante() boolean
     }
-
     class EventoBitacora {
         <<final>>
         -categoria: String
         -descripcion: String
         -timestamp: Instant
     }
+    Bitacora --|> Observable
+    Bitacora *-- EventoBitacora
 
-    %% ============ TRIPULACION ============
+    %% ================= NAVES (FACTORY + DOUBLE DISPATCH) =================
+    class ElementoDelUniverso {
+        <<interface>>
+        +interactuarCon(Nave) String
+        +esObstaculo() boolean
+        +abreviatura() String
+    }
+    class Nave {
+        <<abstract>>
+        -id: String
+        -destruida: boolean
+        -gemas: int
+        +agregarTripulante(Tripulante) void
+        +tripulacionLista() boolean
+        +getTripulacion() List~Tripulante~
+        +saltar() int
+        +saltarWarp() int
+        +recibirImpacto(int) void
+        +recargar(int, int) void
+        +enfrentar(Nave enemiga) ResultadoBatalla
+        #recibirDesafioDe(Nave) ResultadoBatalla*
+        #contraExploradora() ResultadoBatalla*
+        #contraCarguera() ResultadoBatalla*
+        #contraCombate() ResultadoBatalla*
+    }
+    class Exploradora
+    class Carguera
+    class Combate
+    class ResultadoBatalla {
+        <<enumeration>>
+        GANA
+        PIERDE
+        PACTO_DE_PAZ
+    }
+    class NaveFactory {
+        <<Factory>>
+        +createNave(String id, String tipo) Nave$
+    }
+    class Recursos {
+        <<final>>
+        -combustible: int
+        -energia: int
+        -desgaste: int
+        +consumirCombustible(int) void
+        +consumirEnergia(int) void
+        +perderEnergia(int) void
+        +sufrirDesgaste(int) void
+        +recargar(int, int) void
+        +enNivelLetal() boolean
+    }
+    Nave ..|> ElementoDelUniverso
+    Exploradora --|> Nave
+    Carguera --|> Nave
+    Combate --|> Nave
+    Nave *-- Recursos
+    Nave *-- MotorWarp
+    Nave o-- Tripulante
+    Nave ..> ResultadoBatalla
+    NaveFactory ..> Nave : crea
+
+    %% ================= ELEMENTOS DEL UNIVERSO =================
+    class Asteroide {
+        -danioEnergia: int
+    }
+    class EstacionDeCarga {
+        <<abstract>>
+        #calcularRecarga(int) int*
+    }
+    class EstacionDeCargaFija
+    class EstacionDeCargaPorcentual
+    class FabricaDeElementos {
+        <<Factory>>
+        +crearElementos(int, int, int) ArrayList~ElementoDelUniverso~$
+    }
+    Asteroide ..|> ElementoDelUniverso
+    EstacionDeCarga ..|> ElementoDelUniverso
+    EstacionDeCargaFija --|> EstacionDeCarga
+    EstacionDeCargaPorcentual --|> EstacionDeCarga
+    FabricaDeElementos ..> ElementoDelUniverso : crea
+    FabricaDeElementos ..> NaveFactory
+
+    %% ================= MOTOR WARP (STATE) =================
+    class MotorWarp {
+        -estado: Estado
+        -recursos: Recursos
+        +saltar() int
+        +saltarWarp() int
+        +getEstadoActual() String
+        +estaDisponible() boolean
+        ~setEstado(Estado) void
+    }
+    class Estado {
+        <<interface>>
+        +saltar() int
+        +saltarWarp() int
+        +nombre() String
+        +estaDisponible() boolean
+    }
+    class Disponible
+    class PrepararSalto {
+        -turnosPreparados: int
+    }
+    class EnWarp
+    class Enfriando
+    MotorWarp o-- Estado
+    MotorWarp --> Recursos
+    Disponible ..|> Estado
+    PrepararSalto ..|> Estado
+    EnWarp ..|> Estado
+    Enfriando ..|> Estado
+
+    %% ================= MISIONES (TEMPLATE METHOD) =================
+    class Mision {
+        <<abstract>>
+        #asistente: AsistenteDeComando
+        #tablero: Tablero
+        -ruta: List~Posicion~
+        +realizarMision() InformeMision
+        #preparar() void
+        #ejecutar() boolean
+        #evaluar(boolean) InformeMision
+        #cerrar(boolean) void
+        #destinoDeLaMision() Posicion*
+        #descripcionObjetivo() String*
+        #energiaDespegue() int*
+        #combustibleAEntregar() int
+        #energiaAEntregar() int
+        #alLlegar() void
+        #impactarAlCerrar() void
+    }
+    class MisionIntercepcion {
+        -energiaSolicitada: int
+        -combustibleSolicitado: int
+    }
+    class MisionRecoleccion {
+        -gemasEncontradas: int
+    }
+    class MisionRetornoSeguro
+    class RadarLargoAlcance {
+        +calcularRuta(Posicion, Posicion) List~Posicion~
+    }
+    class RadarCortoAlcance {
+        +hayObstaculoEn(Tablero, Posicion) boolean
+        +contarElementosCercanos(Tablero) int
+    }
+    class BalanceDeRecursos
+    class InformeMision {
+        <<final>>
+        +fueExitosa() boolean
+        +getBalance() BalanceDeRecursos
+        +resumen() String
+    }
+    MisionIntercepcion --|> Mision
+    MisionRecoleccion --|> Mision
+    MisionRetornoSeguro --|> Mision
+    Mision --> AsistenteDeComando
+    Mision --> Tablero
+    Mision *-- Destino
+    Mision *-- RadarLargoAlcance
+    Mision *-- RadarCortoAlcance
+    Mision *-- BalanceDeRecursos
+    Mision ..> InformeMision : produce
+    InformeMision --> BalanceDeRecursos
+
+    %% ================= TRIPULACION Y HABERES (DECORATOR) =================
     class Tripulante {
         -id: String
-        -nombre: String
-        -apellido: String
-        -cargo: Cargo
-        -origen: Origen
         -antiguedadAnios: int
-        -consejos: List~Consejo~
         +registrarConsejo(LocalDate, String) void
-        +cantidadConsejos() int
         +cantidadConsejos(YearMonth) int
-        +consultarConsejo(int) Consejo
-        +esConsejero() boolean
-        -invariante() boolean
     }
-
     class Cargo {
         <<abstract>>
-        +getNombre()* String
-        +getRemuneracionBase()* double
-        +getPorcentajeAntiguedad()* double
+        +getRemuneracionBase() double*
+        +getPorcentajeAntiguedad() double*
     }
-
-    class Capitan {
-        base = 1000 PG
-        antiguedad = 20%
-    }
-    class Consejero {
-        base = 600 PG
-        antiguedad = 5%
-    }
-    class Teniente {
-        base = 400 PG
-        antiguedad = 3%
-    }
-    class Alferez {
-        base = 200 PG
-        antiguedad = 0,5%
-    }
-
     class Origen {
         <<enumeration>>
         TERRICOLA
         VULCANO
         MARCIANO
-        -subsidioMensual: int
     }
-
-    class Consejo {
-        <<final>>
-        -fecha: LocalDate
-        -descripcion: String
+    class FabricaDeCargos {
+        <<Factory>>
+        +crear(String nombre) Cargo$
     }
-
-    %% ============ HABERES (DECORATOR) ============
-    class LiquidacionHaberes {
-        <<final>>
-        -periodo: YearMonth
-        +liquidar(Tripulante) Haber
-    }
-
+    Tripulante --> Cargo
+    Tripulante --> Origen
+    FabricaDeCargos ..> Cargo : crea
     class Haber {
         <<abstract>>
-        +calcularTotal()* double
-        +cantidadConceptos()* int
-        +consultarNombreConcepto(int)* String
-        +consultarImporteConcepto(int)* double
+        +calcularTotal() double*
     }
-
-    class HaberBase {
-        -nombreCargo: String
-        -remuneracionBase: double
-    }
-
+    class HaberBase
     class DecoratorHaber {
         <<abstract>>
-        #haber: Haber
-        +calcularTotal() double
-        #nombreConcepto()* String
-        #importeConcepto()* double
+        -haber: Haber
     }
-
-    class AdicionalAntiguedad {
-        -antiguedadAnios: int
-        -adicional: double
+    class AdicionalAntiguedad
+    class SubsidioPorOrigen
+    class AdicionalConsejos
+    class LiquidacionHaberes {
+        +liquidar(Tripulante) Haber
     }
-
-    class AdicionalConsejos {
-        -periodo: YearMonth
-        -cantidadConsejos: int
-    }
-
-    class SubsidioPorOrigen {
-        -origen: Origen
-    }
-
-    %% ============ EXCEPCIONES ============
-    class NaveException {
-        <<abstract>>
-    }
-    class RecursoInsuficienteException
-    class LimiteRecursoExcedidoException
-    class TransicionInvalidaException
-    class MisionNoViableException
-    class TripulacionInvalidaException
-    class NaveYaRegistradaException {
-        -idNave: String
-    }
-    class NaveNoRegistradaException {
-        -idNave: String
-    }
-
-    %% ============ RELACIONES ============
-    Main ..> Universo : usa
-    Main ..> NaveFactory : usa
-    Main ..> AsistenteDeComandoBasico : crea
-    PruebaEscenarios ..> Verificador : comprueba con
-    PruebaEscenarios ..> Universo : usa
-
-    Universo o-- "0..*" AsistenteDeComando : asistentes
-    AsistenteDeComandoBasico ..|> AsistenteDeComando
-    AsistenteDeComandoBasico *-- "1" Nave
-    AsistenteDeComandoBasico *-- "1" Bitacora
-    AsistenteDeComandoBasico ..> LiquidacionHaberes : usa
-    AsistenteDeComandoBasico ..> InformeMision : crea
-
-    NaveFactory ..> Nave : crea
-    Nave <|-- Combate
-    Nave <|-- Carguera
-    Nave <|-- Exploradora
-    Nave *-- "1" Recursos
-    Nave *-- "1" MotorWarp
-    Nave o-- "0..*" Tripulante : tripulacion
-
-    MotorWarp *-- "1" Estado : estadoActual
-    Estado <|-- Disponible
-    Estado <|-- PrepararSalto
-    Estado <|-- EnWarp
-    Estado <|-- Enfriando
-
-    Mision --> "1" AsistenteDeComando : asistente
-    Mision <|-- MisionIntercepcion
-    Mision <|-- MisionRecoleccion
-    Mision <|-- MisionRetornoSeguro
-    Mision ..> InformeMision : produce
-    Mision *-- "1" Fase : fase
-    AsistenteDeComandoBasico ..> Mision : ejecuta
-
-    Bitacora *-- "0..*" EventoBitacora : eventos
-
-    Tripulante *-- "1" Cargo
-    Tripulante --> "1" Origen
-    Tripulante o-- "0..*" Consejo : consejos
-    Cargo <|-- Capitan
-    Cargo <|-- Consejero
-    Cargo <|-- Teniente
-    Cargo <|-- Alferez
-
+    HaberBase --|> Haber
+    DecoratorHaber --|> Haber
+    DecoratorHaber o-- Haber
+    AdicionalAntiguedad --|> DecoratorHaber
+    SubsidioPorOrigen --|> DecoratorHaber
+    AdicionalConsejos --|> DecoratorHaber
     LiquidacionHaberes ..> Haber : compone
-    Haber <|-- HaberBase
-    Haber <|-- DecoratorHaber
-    DecoratorHaber o-- "1" Haber : haber
-    DecoratorHaber <|-- AdicionalAntiguedad
-    DecoratorHaber <|-- AdicionalConsejos
-    DecoratorHaber <|-- SubsidioPorOrigen
-    HaberBase ..> Tripulante : usa
-    AdicionalConsejos ..> Tripulante : usa
-    SubsidioPorOrigen ..> Origen : usa
 
-    NaveException <|-- RecursoInsuficienteException
-    NaveException <|-- LimiteRecursoExcedidoException
-    NaveException <|-- TransicionInvalidaException
-    NaveException <|-- MisionNoViableException
-    NaveException <|-- TripulacionInvalidaException
-    NaveException <|-- NaveYaRegistradaException
-    NaveException <|-- NaveNoRegistradaException
+    %% ================= ACCESO Y PERSISTENCIA (DAO / DTO / JDBC) =================
+    class ServicioDeAcceso {
+        +registrar(String, String) void
+        +iniciarSesion(String, String) Sesion
+    }
+    class Sesion {
+        <<final>>
+    }
+    class UsuarioDAO {
+        <<interface>>
+        +insertar(UsuarioDTO) void
+        +buscarPorNombre(String) UsuarioDTO
+        +existe(String) boolean
+    }
+    class UsuarioDAOJDBC
+    class UsuarioDAOEnMemoria
+    class UsuarioDTO {
+        <<final>>
+        -nombreUsuario: String
+        -hashContrasena: String
+        -sal: String
+    }
+    class ConexionBD {
+        <<final>>
+        +inicializarEsquema() void
+    }
+    ServicioDeAcceso --> UsuarioDAO
+    ServicioDeAcceso ..> Sesion : crea
+    UsuarioDAOJDBC ..|> UsuarioDAO
+    UsuarioDAOEnMemoria ..|> UsuarioDAO
+    UsuarioDAOJDBC --> ConexionBD
+    UsuarioDAO ..> UsuarioDTO
+
+    %% ================= VISOR RECONDITO (PRODUCTOR-CONSUMIDOR) =================
+    class UniversoParalelo {
+        +crearNave() String
+        +crearGeneradora() String
+    }
+    class PlataformaDeCarga {
+        -capacidad: int
+        -baterias: ArrayList~Bateria~
+        +depositar(Bateria, String) void
+        +retirar(String) Bateria
+    }
+    class GeneradoraDeEnergia {
+        +run() void
+    }
+    class NaveConsumidora {
+        +run() void
+    }
+    class Bateria {
+        <<final>>
+    }
+    class CanalDeEventos {
+        +publicar(String) void
+    }
+    class IVistaVisor {
+        <<interface>>
+        +mostrarCantidades(int, int) void
+    }
+    class PanelVisor
+    class ControladorVisor {
+        +actionPerformed(ActionEvent) void
+    }
+    UniversoParalelo *-- PlataformaDeCarga
+    UniversoParalelo *-- CanalDeEventos
+    UniversoParalelo ..> GeneradoraDeEnergia : crea
+    UniversoParalelo ..> NaveConsumidora : crea
+    GeneradoraDeEnergia --|> Thread
+    NaveConsumidora --|> Thread
+    GeneradoraDeEnergia --> PlataformaDeCarga
+    NaveConsumidora --> PlataformaDeCarga
+    PlataformaDeCarga o-- Bateria
+    CanalDeEventos --|> Observable
+    PanelVisor ..|> IVistaVisor
+    PanelVisor ..|> Observador
+    ControladorVisor --> IVistaVisor
+    ControladorVisor --> UniversoParalelo
+
+    %% ================= ARMADO =================
+    MainGrafico ..> ModeloAplicacion
+    MainGrafico ..> VentanaAcceso
+    MainGrafico ..> VentanaPrincipal
+    MainGrafico ..> UniversoParalelo

@@ -1,169 +1,294 @@
 
-=== Naves registradas en el universo ===
+=== CREACION - Tres naves mediante NaveFactory ===
 EXP-1 | combustible 60 | energia 80 | desgaste 0 | motor Disponible | tripulantes 5
 CAR-1 | combustible 100 | energia 60 | desgaste 0 | motor Disponible | tripulantes 5
 COM-1 | combustible 80 | energia 100 | desgaste 0 | motor Disponible | tripulantes 5
+  [OK]    Naves registradas en el universo (esperado 3, obtenido 3)
+  [OK]    EXP-1: recursos iniciales de la ficha (esperado 60/80/0, obtenido 60/80/0)
+  [OK]    EXP-1: motor inicial (esperado Disponible, obtenido Disponible)
+  [OK]    EXP-1: tripulantes (esperado 5, obtenido 5)
+  [OK]    EXP-1: tripulación lista (capitán + 4)
+  [OK]    CAR-1: recursos iniciales de la ficha (esperado 100/60/0, obtenido 100/60/0)
+  [OK]    CAR-1: motor inicial (esperado Disponible, obtenido Disponible)
+  [OK]    CAR-1: tripulantes (esperado 5, obtenido 5)
+  [OK]    CAR-1: tripulación lista (capitán + 4)
+  [OK]    COM-1: recursos iniciales de la ficha (esperado 80/100/0, obtenido 80/100/0)
+  [OK]    COM-1: motor inicial (esperado Disponible, obtenido Disponible)
+  [OK]    COM-1: tripulantes (esperado 5, obtenido 5)
+  [OK]    COM-1: tripulación lista (capitán + 4)
 
-=== ESCENARIO A - Ejecucion correcta de M-01, M-02 y M-03 ===
+=== ESCENARIO A - Ejecucion correcta de M-01, M-02 y M-03 (costos del Anexo) ===
 Nave seleccionada: EXP-1
 EXP-1 | combustible 60 | energia 80 | desgaste 0 | motor Disponible | tripulantes 5
 
 INFORME DE MISION
 Mision: M-01 - Intercepción y asistencia
-Descripcion: Interceptar un objetivo y completar su asistencia
-Objetivo: Asistir a Carguero Orion (estado: sin propulsion)
+Descripcion: Alcanzar a una nave aliada y transferirle recursos
+Objetivo: Asistir a Carguero Orion (estado: sin propulsion), que solicita 10 de energía y 10 de combustible
 Resultado: EXITOSA
 Acciones realizadas:
+  - Ruta calculada hacia (1,2) (2 casilleros): (2,2) (1,2)
   - Preparación completada
-  - Aproximación completada hasta Carguero Orion
-  - Estado del objetivo verificado: sin propulsion
-  - Asistencia completada
-  - Acción final completada
-Recursos consumidos: 4 de combustible, 5 de energia, 4 de desgaste
-Estado final de la nave EXP-1: combustible 56, energia 75, desgaste 4
+  - Despegue: -4 combustible, -5 energía, +4 desgaste
+  - Turno 1: salto a (2,2) (radar: 0 elementos cerca)
+  - Turno 2: salto a (1,2) (radar: 0 elementos cerca)
+  - Destino alcanzado: recursos verificados
+  - Contacto con Carguero Orion en la misma coordenada: se le transferirán 10 de energía y 10 de combustible
+Balance de recursos:
+  Despegue: -4 combustible, -5 energía, +4 desgaste
+  Navegación: -4 combustible (saltos), -0 energía (warp), +0 desgaste (enfriamiento)
+  Perdido en el trayecto: -0 energía
+  Ganado en el trayecto: +0 combustible, +0 energía
+  Acción final: entregados 10 combustible y 10 energía
+Recursos consumidos: 18 de combustible, 15 de energia, 4 de desgaste
+Estado de la nave EXP-1 al evaluar: combustible 52, energia 75, desgaste 4
 Requiere mantenimiento: no
-EXP-1 | combustible 56 | energia 75 | desgaste 4 | motor Disponible | tripulantes 5
+EXP-1 | combustible 42 | energia 65 | desgaste 4 | motor Disponible | tripulantes 5
 Bitacora:
-  [2026-10-09T20:27:47.251953750Z] COMANDO | Orden recibida: ejecutar MisionIntercepcion
-  [2026-10-09T20:27:47.252146432Z] MISION | M-01 - Intercepción y asistencia: Preparación completada
-  [2026-10-09T20:27:47.252257005Z] MISION | M-01 - Intercepción y asistencia: Aproximación completada hasta Carguero Orion
-  [2026-10-09T20:27:47.252330082Z] MISION | M-01 - Intercepción y asistencia: Estado del objetivo verificado: sin propulsion
-  [2026-10-09T20:27:47.252338437Z] MISION | M-01 - Intercepción y asistencia: Asistencia completada
-  [2026-10-09T20:27:47.252353207Z] MISION | M-01 - Intercepción y asistencia: Acción final completada
-  [2026-10-09T20:27:47.252358316Z] COMANDO | Orden recibida: preparar salto
-  [2026-10-09T20:27:47.252608745Z] MOTOR | Motor Warp en Preparando salto
-  [2026-10-09T20:27:47.252613628Z] COMANDO | Orden recibida: iniciar salto
-  [2026-10-09T20:27:47.252802061Z] MOTOR | Motor Warp en En warp
-  [2026-10-09T20:27:47.252808550Z] COMANDO | Orden recibida: finalizar salto
-  [2026-10-09T20:27:47.252848199Z] MOTOR | Motor Warp en Enfriamiento
-  [2026-10-09T20:27:47.252851232Z] COMANDO | Orden recibida: completar enfriamiento
-  [2026-10-09T20:27:47.252882465Z] MOTOR | Motor Warp en Disponible
-  [2026-10-09T20:27:47.253020943Z] MISION | M-01 - Intercepción y asistencia finalizada: EXITOSA
-  [2026-10-09T20:27:47.253467672Z] COMANDO | Orden resuelta: misión finalizada
+  [2026-11-21T01:36:29.509848301Z] COMANDO | Orden recibida: ejecutar MisionIntercepcion
+  [2026-11-21T01:36:29.515623493Z] MISION | M-01 - Intercepción y asistencia: Ruta calculada hacia (1,2) (2 casilleros): (2,2) (1,2)
+  [2026-11-21T01:36:29.515674664Z] MISION | M-01 - Intercepción y asistencia: Preparación completada
+  [2026-11-21T01:36:29.517135935Z] MISION | M-01 - Intercepción y asistencia: Despegue: -4 combustible, -5 energía, +4 desgaste
+  [2026-11-21T01:36:29.521421638Z] MISION | M-01 - Intercepción y asistencia: Turno 1: salto a (2,2) (radar: 0 elementos cerca)
+  [2026-11-21T01:36:29.521878591Z] MISION | M-01 - Intercepción y asistencia: Turno 2: salto a (1,2) (radar: 0 elementos cerca)
+  [2026-11-21T01:36:29.521937343Z] MISION | M-01 - Intercepción y asistencia: Destino alcanzado: recursos verificados
+  [2026-11-21T01:36:29.522188174Z] MISION | M-01 - Intercepción y asistencia: Contacto con Carguero Orion en la misma coordenada: se le transferirán 10 de energía y 10 de combustible
+  [2026-11-21T01:36:29.525758011Z] MISION | M-01 - Intercepción y asistencia finalizada: EXITOSA
+  [2026-11-21T01:36:29.525817605Z] COMANDO | Orden resuelta: misión finalizada
+  [OK]    M-01 exitosa
+  [OK]    M-01: la nave quedó en la coordenada de la nave aliada
+  [OK]    M-01: consumos del informe (2 saltos) (esperado 18/15/4, obtenido 18/15/4)
+  [OK]    M-01: recursos de la nave al cerrar (esperado 42/65/4, obtenido 42/65/4)
+  [OK]    M-01: entregado a la aliada (energía) (esperado 10, obtenido 10)
+  [OK]    M-01: motor al terminar (esperado Disponible, obtenido Disponible)
 
 INFORME DE MISION
 Mision: M-02 - Recolección
-Descripcion: Recolectar datos o una muestra en un punto de interés
-Objetivo: Recolectar muestra de gas en Nebulosa K-7
+Descripcion: Llegar a las riquezas espaciales y recolectar gemas
+Objetivo: Recolectar gemas en Nebulosa K-7
 Resultado: EXITOSA
 Acciones realizadas:
+  - Ruta calculada hacia (3,3) (2 casilleros): (2,3) (3,3)
   - Preparación completada
-  - Aproximación completada al punto Nebulosa K-7
-  - Elemento obtenido: muestra de gas
-  - Elemento registrado como obtenido
-  - Acción final completada
-Recursos consumidos: 4 de combustible, 5 de energia, 4 de desgaste
-Estado final de la nave EXP-1: combustible 52, energia 70, desgaste 8
+  - Despegue: -4 combustible, -10 energía, +4 desgaste
+  - Turno 1: salto a (2,3) (radar: 0 elementos cerca)
+  - Turno 2: salto a (3,3) (radar: 0 elementos cerca)
+  - Destino alcanzado: recursos verificados
+  - Gemas extraídas en Nebulosa K-7: 98
+Balance de recursos:
+  Despegue: -4 combustible, -10 energía, +4 desgaste
+  Navegación: -4 combustible (saltos), -0 energía (warp), +0 desgaste (enfriamiento)
+  Perdido en el trayecto: -0 energía
+  Ganado en el trayecto: +0 combustible, +0 energía
+  Acción final: +98 gemas
+Recursos consumidos: 8 de combustible, 10 de energia, 4 de desgaste
+Estado de la nave EXP-1 al evaluar: combustible 34, energia 55, desgaste 8
 Requiere mantenimiento: no
-EXP-1 | combustible 52 | energia 70 | desgaste 8 | motor Disponible | tripulantes 5
+EXP-1 | combustible 34 | energia 55 | desgaste 8 | motor Disponible | tripulantes 5
 Bitacora:
-  [2026-10-09T20:27:47.264260592Z] COMANDO | Orden recibida: ejecutar MisionRecoleccion
-  [2026-10-09T20:27:47.264286605Z] MISION | M-02 - Recolección: Preparación completada
-  [2026-10-09T20:27:47.264407485Z] MISION | M-02 - Recolección: Aproximación completada al punto Nebulosa K-7
-  [2026-10-09T20:27:47.264444053Z] MISION | M-02 - Recolección: Elemento obtenido: muestra de gas
-  [2026-10-09T20:27:47.264450936Z] MISION | M-02 - Recolección: Elemento registrado como obtenido
-  [2026-10-09T20:27:47.264457919Z] MISION | M-02 - Recolección: Acción final completada
-  [2026-10-09T20:27:47.264460138Z] COMANDO | Orden recibida: preparar salto
-  [2026-10-09T20:27:47.264465024Z] MOTOR | Motor Warp en Preparando salto
-  [2026-10-09T20:27:47.264466458Z] COMANDO | Orden recibida: iniciar salto
-  [2026-10-09T20:27:47.264470296Z] MOTOR | Motor Warp en En warp
-  [2026-10-09T20:27:47.264471573Z] COMANDO | Orden recibida: finalizar salto
-  [2026-10-09T20:27:47.264474855Z] MOTOR | Motor Warp en Enfriamiento
-  [2026-10-09T20:27:47.264477118Z] COMANDO | Orden recibida: completar enfriamiento
-  [2026-10-09T20:27:47.264480269Z] MOTOR | Motor Warp en Disponible
-  [2026-10-09T20:27:47.264485701Z] MISION | M-02 - Recolección finalizada: EXITOSA
-  [2026-10-09T20:27:47.264628183Z] COMANDO | Orden resuelta: misión finalizada
+  [2026-11-21T01:36:29.528404500Z] COMANDO | Orden recibida: ejecutar MisionRecoleccion
+  [2026-11-21T01:36:29.528522712Z] MISION | M-02 - Recolección: Ruta calculada hacia (3,3) (2 casilleros): (2,3) (3,3)
+  [2026-11-21T01:36:29.528554910Z] MISION | M-02 - Recolección: Preparación completada
+  [2026-11-21T01:36:29.528590170Z] MISION | M-02 - Recolección: Despegue: -4 combustible, -10 energía, +4 desgaste
+  [2026-11-21T01:36:29.528655300Z] MISION | M-02 - Recolección: Turno 1: salto a (2,3) (radar: 0 elementos cerca)
+  [2026-11-21T01:36:29.528728761Z] MISION | M-02 - Recolección: Turno 2: salto a (3,3) (radar: 0 elementos cerca)
+  [2026-11-21T01:36:29.528767537Z] MISION | M-02 - Recolección: Destino alcanzado: recursos verificados
+  [2026-11-21T01:36:29.529991303Z] MISION | M-02 - Recolección: Gemas extraídas en Nebulosa K-7: 98
+  [2026-11-21T01:36:29.530213749Z] RECURSOS | Nave EXP-1: gemas recolectadas (+98)
+  [2026-11-21T01:36:29.530249197Z] MISION | M-02 - Recolección finalizada: EXITOSA
+  [2026-11-21T01:36:29.530286723Z] COMANDO | Orden resuelta: misión finalizada
+  [OK]    M-02 exitosa
+  [OK]    M-02: consumos del informe (2 saltos) (esperado 8/10/4, obtenido 8/10/4)
+  [OK]    M-02: recursos de la nave al cerrar (esperado 34/55/8, obtenido 34/55/8)
+  [OK]    M-02: gemas recolectadas entre 20 y 100 (obtenido 98)
 
 INFORME DE MISION
 Mision: M-03 - Retorno seguro
-Descripcion: Completar el regreso simulado a una zona designada
+Descripcion: Regresar a la base de origen para recargar y reparar la nave
 Objetivo: Regresar de forma segura a Base Andromeda
 Resultado: EXITOSA
 Acciones realizadas:
+  - Ruta calculada hacia (3,3) (0 casilleros): 
   - Preparación completada
-  - Regreso simulado iniciado hacia Base Andromeda
-  - Arribo confirmado en Base Andromeda
-  - Estado operativo final verificado: true
-  - Acción final completada
+  - Despegue: -4 combustible, -0 energía, +4 desgaste
+  - Destino alcanzado: recursos verificados
+  - Base alcanzada: se recargarán los recursos al 100% y se reparará el desgaste
+Balance de recursos:
+  Despegue: -4 combustible, -0 energía, +4 desgaste
+  Navegación: -0 combustible (saltos), -0 energía (warp), +0 desgaste (enfriamiento)
+  Perdido en el trayecto: -0 energía
+  Ganado en el trayecto: +0 combustible, +0 energía
+  Acción final: recarga +70 combustible, +45 energía, desgaste -12
 Recursos consumidos: 4 de combustible, 0 de energia, 4 de desgaste
-Estado final de la nave EXP-1: combustible 48, energia 70, desgaste 12
+Estado de la nave EXP-1 al evaluar: combustible 30, energia 55, desgaste 12
 Requiere mantenimiento: no
-EXP-1 | combustible 48 | energia 70 | desgaste 12 | motor Disponible | tripulantes 5
+EXP-1 | combustible 100 | energia 100 | desgaste 0 | motor Disponible | tripulantes 5
 Bitacora:
-  [2026-10-09T20:27:47.265806520Z] COMANDO | Orden recibida: ejecutar MisionRetornoSeguro
-  [2026-10-09T20:27:47.265818955Z] MISION | M-03 - Retorno seguro: Preparación completada
-  [2026-10-09T20:27:47.266003004Z] MISION | M-03 - Retorno seguro: Regreso simulado iniciado hacia Base Andromeda
-  [2026-10-09T20:27:47.266042136Z] MISION | M-03 - Retorno seguro: Arribo confirmado en Base Andromeda
-  [2026-10-09T20:27:47.268036996Z] MISION | M-03 - Retorno seguro: Estado operativo final verificado: true
-  [2026-10-09T20:27:47.268046671Z] MISION | M-03 - Retorno seguro: Acción final completada
-  [2026-10-09T20:27:47.268048814Z] COMANDO | Orden recibida: preparar salto
-  [2026-10-09T20:27:47.268056267Z] MOTOR | Motor Warp en Preparando salto
-  [2026-10-09T20:27:47.268057833Z] COMANDO | Orden recibida: iniciar salto
-  [2026-10-09T20:27:47.268061716Z] MOTOR | Motor Warp en En warp
-  [2026-10-09T20:27:47.268062908Z] COMANDO | Orden recibida: finalizar salto
-  [2026-10-09T20:27:47.268066854Z] MOTOR | Motor Warp en Enfriamiento
-  [2026-10-09T20:27:47.268069532Z] COMANDO | Orden recibida: completar enfriamiento
-  [2026-10-09T20:27:47.268072579Z] MOTOR | Motor Warp en Disponible
-  [2026-10-09T20:27:47.268079787Z] MISION | M-03 - Retorno seguro finalizada: EXITOSA
-  [2026-10-09T20:27:47.268130639Z] COMANDO | Orden resuelta: misión finalizada
+  [2026-11-21T01:36:29.531462137Z] COMANDO | Orden recibida: ejecutar MisionRetornoSeguro
+  [2026-11-21T01:36:29.531519881Z] MISION | M-03 - Retorno seguro: Ruta calculada hacia (3,3) (0 casilleros): 
+  [2026-11-21T01:36:29.531549308Z] MISION | M-03 - Retorno seguro: Preparación completada
+  [2026-11-21T01:36:29.531584743Z] MISION | M-03 - Retorno seguro: Despegue: -4 combustible, -0 energía, +4 desgaste
+  [2026-11-21T01:36:29.531615170Z] MISION | M-03 - Retorno seguro: Destino alcanzado: recursos verificados
+  [2026-11-21T01:36:29.531646986Z] MISION | M-03 - Retorno seguro: Base alcanzada: se recargarán los recursos al 100% y se reparará el desgaste
+  [2026-11-21T01:36:29.531867923Z] RECURSOS | Nave EXP-1: combustible cargado (+70)
+  [2026-11-21T01:36:29.531986580Z] RECURSOS | Nave EXP-1: energía cargada (+45)
+  [2026-11-21T01:36:29.532121287Z] RECURSOS | Nave EXP-1: mantenimiento realizado (desgaste reiniciado)
+  [2026-11-21T01:36:29.532161825Z] MISION | M-03 - Retorno seguro finalizada: EXITOSA
+  [2026-11-21T01:36:29.532190871Z] COMANDO | Orden resuelta: misión finalizada
+  [OK]    M-03 exitosa
+  [OK]    M-03: la nave volvió al punto de partida
+  [OK]    M-03: consumos del informe (0 saltos) (esperado 4/0/4, obtenido 4/0/4)
+  [OK]    M-03: nave reabastecida y reparada (esperado 100/100/0, obtenido 100/100/0)
+  [OK]    Bitácora en orden temporal
+  [OK]    Bitácora registra el cierre de M-01, M-02 y M-03 en ese orden
 
 === ESCENARIO B - Recursos insuficientes ===
 Nave seleccionada: CAR-1
 CAR-1 | combustible 100 | energia 60 | desgaste 0 | motor Disponible | tripulantes 5
-Recolecciones completadas antes del rechazo: 12
-Mision rechazada: No se puede iniciar M-02 - Recolección: Energía insuficiente
-CAR-1 | combustible 52 | energia 0 | desgaste 48 | motor Disponible | tripulantes 5
+Recolecciones completadas antes del rechazo: 5
+CAR-1 | combustible 32 | energia 10 | desgaste 20 | motor Disponible | tripulantes 5
 Bitacora:
-  [2026-10-09T20:27:47.270664955Z] COMANDO | Orden recibida: ejecutar MisionRecoleccion
-  [2026-10-09T20:27:47.270811138Z] MISION | M-02 - Recolección: preparación rechazada: Energía insuficiente
-  [2026-10-09T20:27:47.270925804Z] ERROR | Orden no completada: No se puede iniciar M-02 - Recolección: Energía insuficiente
-Recursos sin cambios parciales: SI
+  [2026-11-21T01:36:29.536731645Z] COMANDO | Orden recibida: ejecutar MisionRecoleccion
+  [2026-11-21T01:36:29.536916966Z] MISION | M-02 - Recolección: preparación rechazada: el despegue dejaría a la nave sin recursos
+  [2026-11-21T01:36:29.537095829Z] ERROR | Orden no completada: No se puede iniciar M-02 - Recolección: el despegue dejaría a la nave sin recursos
+  [OK]    Misión sin recursos suficientes -> MisionNoViableException: No se puede iniciar M-02 - Recolección: el despegue dejaría a la nave sin recursos
+  [OK]    Recursos sin cambios parciales tras el rechazo (esperado 32/10/20, obtenido 32/10/20)
+  [OK]    La bitácora registra el motivo del rechazo
+  [OK]    Último evento de la orden rechazada (esperado ERROR, obtenido ERROR)
+  [OK]    Recolecciones completadas antes del rechazo (esperado 5, obtenido 5)
+  [OK]    Energía de CAR-1 tras el escenario B (esperado 10, obtenido 10)
+  [OK]    Desgaste de CAR-1 tras el escenario B (esperado 20, obtenido 20)
+  [OK]    Motor de CAR-1 tras el rechazo (esperado Disponible, obtenido Disponible)
 
-=== ESCENARIO C - Motor Warp ===
+=== ESCENARIO C - Motor Warp (patron State, Anexo) ===
 Nave seleccionada: COM-1
-Secuencia valida:
-  estado inicial        -> Disponible
-  prepararSalto         -> Preparando salto
-  iniciarSalto          -> En warp
-  finalizarSalto        -> Enfriamiento
-  completarEnfriamiento -> Disponible
-Transiciones invalidas:
-  iniciarSalto desde Disponible -> rechazada: No se puede iniciar el salto desde Disponible
-  estado despues del rechazo: Disponible
-  finalizarSalto desde Disponible -> rechazada: No se puede finalizar salto desde Disponible
-  estado despues del rechazo: Disponible
+COM-1 | combustible 80 | energia 100 | desgaste 0 | motor Disponible | tripulantes 5
+Salto simple: 2 de combustible, avanza 1 casillero:
+  [OK]    Estado inicial (esperado Disponible, obtenido Disponible)
+  [OK]    saltar() avanza (esperado 1, obtenido 1)
+  [OK]    Tras el salto simple (esperado 78/100/0, obtenido 78/100/0)
+  [OK]    Sigue Disponible (esperado Disponible, obtenido Disponible)
+Salto warp: 2 turnos de preparacion, salto de 2 casilleros y 1 de enfriamiento:
+  [OK]    Turno 1 de preparación: no avanza (esperado 0, obtenido 0)
+  [OK]    Estado (esperado Preparando salto, obtenido Preparando salto)
+  [OK]    Turno 2 de preparación: no avanza (esperado 0, obtenido 0)
+  [OK]    Estado (esperado En warp, obtenido En warp)
+  [OK]    Salto warp: avanza 2 (esperado 2, obtenido 2)
+  [OK]    El salto consume 5 de energía (esperado 78/95/0, obtenido 78/95/0)
+  [OK]    Estado (esperado Enfriamiento, obtenido Enfriamiento)
+  [OK]    Turno de enfriamiento: no avanza (esperado 0, obtenido 0)
+  [OK]    El enfriamiento genera 3 de desgaste (esperado 78/95/3, obtenido 78/95/3)
+  [OK]    Vuelve a Disponible (esperado Disponible, obtenido Disponible)
+  [OK]    La bitácora registra los 4 cambios del motor (esperado 4, obtenido 4)
+Preparacion sin energia y salto abortado (motor sobre recursos de prueba):
+  [OK]    Sin 5 de energía se queda preparando (esperado Preparando salto, obtenido Preparando salto)
+  [OK]    Con energía completa los 2 turnos (esperado En warp, obtenido En warp)
+  [OK]    Sin energía al saltar: se aborta y no avanza (esperado 0, obtenido 0)
+  [OK]    Vuelve a preparación (esperado Preparando salto, obtenido Preparando salto)
+  [OK]    saltar() cancela la preparación y avanza 1 (esperado 1, obtenido 1)
+  [OK]    Queda Disponible (esperado Disponible, obtenido Disponible)
+  [OK]    El salto simple costó 2 de combustible (esperado 48, obtenido 48)
+Salto sin combustible: se rechaza sin cambios:
+  [OK]    saltar() con 1 de combustible -> RecursoInsuficienteException: No hay combustible suficiente para consumir
+  [OK]    El combustible no cambió (esperado 1, obtenido 1)
+  [OK]    El motor no cambió (esperado Disponible, obtenido Disponible)
 Bitacora:
-  [2026-10-09T20:27:47.271476474Z] COMANDO | Orden recibida: preparar salto
-  [2026-10-09T20:27:47.271481488Z] MOTOR | Motor Warp en Preparando salto
-  [2026-10-09T20:27:47.271555179Z] COMANDO | Orden recibida: iniciar salto
-  [2026-10-09T20:27:47.271560312Z] MOTOR | Motor Warp en En warp
-  [2026-10-09T20:27:47.271619068Z] COMANDO | Orden recibida: finalizar salto
-  [2026-10-09T20:27:47.271624902Z] MOTOR | Motor Warp en Enfriamiento
-  [2026-10-09T20:27:47.271674048Z] COMANDO | Orden recibida: completar enfriamiento
-  [2026-10-09T20:27:47.271709129Z] MOTOR | Motor Warp en Disponible
-  [2026-10-09T20:27:47.271782389Z] COMANDO | Orden recibida: iniciar salto
-  [2026-10-09T20:27:47.271825731Z] ERROR | Motor Warp: No se puede iniciar el salto desde Disponible
-  [2026-10-09T20:27:47.272017813Z] COMANDO | Orden recibida: finalizar salto
-  [2026-10-09T20:27:47.272051888Z] ERROR | Motor Warp: No se puede finalizar salto desde Disponible
+  [2026-11-21T01:36:29.538310082Z] MOTOR | Motor Warp: Disponible -> Preparando salto
+  [2026-11-21T01:36:29.538751650Z] MOTOR | Motor Warp: Preparando salto -> En warp
+  [2026-11-21T01:36:29.539112687Z] MOTOR | Motor Warp: En warp -> Enfriamiento
+  [2026-11-21T01:36:29.539231707Z] MOTOR | Motor Warp: Enfriamiento -> Disponible
 
 === ESCENARIO D - Contrato invalido y mantenimiento ===
-Nave seleccionada: CAR-1 (quedo sin energia en el escenario B)
-CAR-1 | combustible 52 | energia 0 | desgaste 48 | motor Disponible | tripulantes 5
+Nave seleccionada: CAR-1 (quedo con poca energia en el escenario B)
+CAR-1 | combustible 32 | energia 10 | desgaste 20 | motor Disponible | tripulantes 5
 Cargas validas:
-  cargarEnergia(60)     -> energia 60
-  cargarCombustible(40) -> combustible 92
-Carga invalida:
-  cargarCombustible(20) con 92 -> rechazada: La carga de combustible supera la capacidad máxima de 100
-  combustible despues del rechazo: 92 (sin cambios)
+  [OK]    cargarEnergia(55) sobre 10 (esperado 65, obtenido 65)
+  [OK]    cargarCombustible(64) hasta 96 (esperado 96, obtenido 96)
+Cargas que exceden la capacidad maxima:
+  [OK]    cargarCombustible(20) con 96 -> LimiteRecursoExcedidoException: La carga de combustible supera la capacidad máxima de 100
+  [OK]    Recursos sin cambios tras el rechazo (esperado 96/65/20, obtenido 96/65/20)
+  [OK]    cargarEnergia(36) con 65 -> LimiteRecursoExcedidoException: La carga de energía supera la capacidad máxima de 100
+  [OK]    Recursos sin cambios tras el rechazo (esperado 96/65/20, obtenido 96/65/20)
+  [OK]    La bitácora registra los rechazos de carga
 Mantenimiento:
-  desgaste antes:   48
-  desgaste despues: 0
-CAR-1 | combustible 92 | energia 60 | desgaste 0 | motor Disponible | tripulantes 5
+  [OK]    Mantenimiento: desgaste a 0 sin tocar combustible ni energía (esperado 96/65/0, obtenido 96/65/0)
+  [OK]    Ya no requiere mantenimiento
+  [OK]    Desgaste 80 requiere mantenimiento
+  [OK]    Desgaste 79 no requiere mantenimiento
 Bitacora:
-  [2026-10-09T20:27:47.274834574Z] RECURSOS | Nave CAR-1: energía cargada (+60)
-  [2026-10-09T20:27:47.275131182Z] RECURSOS | Nave CAR-1: combustible cargado (+40)
-  [2026-10-09T20:27:47.275371364Z] ERROR | Nave CAR-1: no se pudo cargar combustible: La carga de combustible supera la capacidad máxima de 100
-  [2026-10-09T20:27:47.279762915Z] RECURSOS | Nave CAR-1: mantenimiento realizado (desgaste reiniciado)
+  [2026-11-21T01:36:29.540342560Z] RECURSOS | Nave CAR-1: energía cargada (+55)
+  [2026-11-21T01:36:29.540429819Z] RECURSOS | Nave CAR-1: combustible cargado (+64)
+  [2026-11-21T01:36:29.540668684Z] ERROR | Nave CAR-1: no se pudo cargar combustible: La carga de combustible supera la capacidad máxima de 100
+  [2026-11-21T01:36:29.540879164Z] ERROR | Nave CAR-1: no se pudo cargar energía: La carga de energía supera la capacidad máxima de 100
+  [2026-11-21T01:36:29.540996268Z] RECURSOS | Nave CAR-1: mantenimiento realizado (desgaste reiniciado)
+
+=== ESCENARIO E - Contratos: precondiciones (assert) y rechazos de dominio ===
+Precondiciones incumplidas (se detectan con assert):
+  [OK]    cargarCombustible(0) -> AssertionError: La cantidad de combustible debe ser positiva
+  [OK]    cargarEnergia(-5) -> AssertionError: La cantidad de energía debe ser positiva
+  [OK]    Recursos intactos tras las precondiciones incumplidas (esperado 60/80/0, obtenido 60/80/0)
+  [OK]    asignarTripulante(null) -> AssertionError: El tripulante no puede ser nulo
+  [OK]    Tripulante con antigüedad negativa -> AssertionError: La antiguedad no puede ser negativa
+  [OK]    NaveFactory con tipo desconocido -> AssertionError: Tipo de nave desconocido: crucero
+  [OK]    Evento de bitácora vacío -> AssertionError: La descripción del evento no puede ser nula ni vacía
+  [OK]    La bitácora no aceptó el evento vacío (esperado 1, obtenido 1)
+  [OK]    Misión encomendada a otro asistente -> AssertionError: La misión fue encomendada a otro asistente
+Rechazos de dominio (excepciones que el programa gestiona):
+  [OK]    Sin tripulantes, la tripulación no está lista
+  [OK]    Misión con la tripulación incompleta -> MisionNoViableException: No se puede iniciar M-02 - Recolección: la tripulación no está lista: se requiere un capitán y cuatro tripulantes adicionales
+  [OK]    Recursos intactos tras el rechazo (esperado 60/80/0, obtenido 60/80/0)
+  [OK]    Con capitán y 4 tripulantes, la tripulación está lista
+  [OK]    Tripulante con id repetido -> TripulacionInvalidaException: Ya existe un tripulante con id PRB-1-T1 en la nave PRB-1
+  [OK]    La tripulación no cambió (esperado 5, obtenido 5)
+  [OK]    Misión con el Motor Warp ocupado -> MisionNoViableException: No se puede iniciar M-02 - Recolección: el Motor Warp no está disponible (estado: Preparando salto)
+  [OK]    Recursos intactos tras el rechazo (esperado 60/80/0, obtenido 60/80/0)
+  [OK]    El salto simple canceló la preparación (esperado Disponible, obtenido Disponible)
+  [OK]    Ejecutar dos veces la misma misión -> MisionNoViableException: M-02 - Recolección ya fue realizada; para repetirla hay que crear otra misión
+  [OK]    Registrar en el universo una nave con id repetido -> NaveYaRegistradaException: Ya hay una nave registrada con id EXP-1
+  [OK]    La excepción guarda el id repetido (esperado EXP-1, obtenido EXP-1)
+  [OK]    El universo no cambió (esperado 3, obtenido 3)
+  [OK]    Pedir al universo una nave que no existe -> NaveNoRegistradaException: No hay una nave registrada con id ZZZ-9
+  [OK]    La excepción guarda el id buscado (esperado ZZZ-9, obtenido ZZZ-9)
+
+=== NAVEGACION - Travesia por un tablero con asteroides (radar corto, salto simple y warp) ===
+M-02 - Recolección - EXITOSA - nave NAV-1: 3 saltos simples, 0 saltos warp, 0 impactos
+  [OK]    Misión 1: combustible de navegación = 2 por salto simple (esperado 6, obtenido 6)
+  [OK]    Misión 1: energía de navegación = 5 por salto warp (esperado 0, obtenido 0)
+  [OK]    Misión 1: desgaste de navegación = 3 por enfriamiento (esperado 0, obtenido 0)
+  [OK]    Misión 1: energía perdida = 10 por impacto (esperado 0, obtenido 0)
+  [OK]    Misión 1: el motor termina Disponible (esperado Disponible, obtenido Disponible)
+M-03 - Retorno seguro - EXITOSA - nave NAV-1: 3 saltos simples, 0 saltos warp, 0 impactos
+  [OK]    Misión 2: combustible de navegación = 2 por salto simple (esperado 6, obtenido 6)
+  [OK]    Misión 2: energía de navegación = 5 por salto warp (esperado 0, obtenido 0)
+  [OK]    Misión 2: desgaste de navegación = 3 por enfriamiento (esperado 0, obtenido 0)
+  [OK]    Misión 2: energía perdida = 10 por impacto (esperado 0, obtenido 0)
+  [OK]    Misión 2: el motor termina Disponible (esperado Disponible, obtenido Disponible)
+M-02 - Recolección - EXITOSA - nave NAV-1: 3 saltos simples, 0 saltos warp, 0 impactos
+  [OK]    Misión 3: combustible de navegación = 2 por salto simple (esperado 6, obtenido 6)
+  [OK]    Misión 3: energía de navegación = 5 por salto warp (esperado 0, obtenido 0)
+  [OK]    Misión 3: desgaste de navegación = 3 por enfriamiento (esperado 0, obtenido 0)
+  [OK]    Misión 3: energía perdida = 10 por impacto (esperado 0, obtenido 0)
+  [OK]    Misión 3: el motor termina Disponible (esperado Disponible, obtenido Disponible)
+M-03 - Retorno seguro - EXITOSA - nave NAV-1: 3 saltos simples, 0 saltos warp, 0 impactos
+  [OK]    Misión 4: combustible de navegación = 2 por salto simple (esperado 6, obtenido 6)
+  [OK]    Misión 4: energía de navegación = 5 por salto warp (esperado 0, obtenido 0)
+  [OK]    Misión 4: desgaste de navegación = 3 por enfriamiento (esperado 0, obtenido 0)
+  [OK]    Misión 4: energía perdida = 10 por impacto (esperado 0, obtenido 0)
+  [OK]    Misión 4: el motor termina Disponible (esperado Disponible, obtenido Disponible)
+M-02 - Recolección - EXITOSA - nave NAV-1: 2 saltos simples, 0 saltos warp, 0 impactos
+  [OK]    Misión 5: combustible de navegación = 2 por salto simple (esperado 4, obtenido 4)
+  [OK]    Misión 5: energía de navegación = 5 por salto warp (esperado 0, obtenido 0)
+  [OK]    Misión 5: desgaste de navegación = 3 por enfriamiento (esperado 0, obtenido 0)
+  [OK]    Misión 5: energía perdida = 10 por impacto (esperado 0, obtenido 0)
+  [OK]    Misión 5: el motor termina Disponible (esperado Disponible, obtenido Disponible)
+M-03 - Retorno seguro - EXITOSA - nave NAV-1: 2 saltos simples, 0 saltos warp, 0 impactos
+  [OK]    Misión 6: combustible de navegación = 2 por salto simple (esperado 4, obtenido 4)
+  [OK]    Misión 6: energía de navegación = 5 por salto warp (esperado 0, obtenido 0)
+  [OK]    Misión 6: desgaste de navegación = 3 por enfriamiento (esperado 0, obtenido 0)
+  [OK]    Misión 6: energía perdida = 10 por impacto (esperado 0, obtenido 0)
+  [OK]    Misión 6: el motor termina Disponible (esperado Disponible, obtenido Disponible)
+Saltos warp en total: 0
+NAV-1 | combustible 100 | energia 100 | desgaste 0 | motor Disponible | tripulantes 5
 
 === HABERES - Liquidacion de octubre 2026 ===
 Nave seleccionada: COM-1
@@ -173,6 +298,11 @@ Ines Garcia - Capitán, TERRICOLA, 10 anios
   Antigüedad (10 años)                 2000.00 PG
   Subsidio por origen TERRICOLA          20.00 PG
   TOTAL                                3020.00 PG
+  [OK]    Capitán: cantidad de conceptos (decoradores) (esperado 3, obtenido 3)
+  [OK]    Capitán: Sueldo base de Capitán (esperado 1000.00, obtenido 1000.00)
+  [OK]    Capitán: Antigüedad (10 años) (esperado 2000.00, obtenido 2000.00)
+  [OK]    Capitán: Subsidio por origen TERRICOLA (esperado 20.00, obtenido 20.00)
+  [OK]    Capitán: total (esperado 3020.00, obtenido 3020.00)
 
 Tuvok Vulc - Consejero, VULCANO, 5 anios
   Sueldo base de Consejero              600.00 PG
@@ -180,15 +310,37 @@ Tuvok Vulc - Consejero, VULCANO, 5 anios
   Subsidio por origen VULCANO            30.00 PG
   Consejos de 2026-10 (3)                 6.00 PG
   TOTAL                                 786.00 PG
+  [OK]    Consejero: cantidad de conceptos (decoradores) (esperado 4, obtenido 4)
+  [OK]    Consejero: Sueldo base de Consejero (esperado 600.00, obtenido 600.00)
+  [OK]    Consejero: Antigüedad (5 años) (esperado 150.00, obtenido 150.00)
+  [OK]    Consejero: Subsidio por origen VULCANO (esperado 30.00, obtenido 30.00)
+  [OK]    Consejero: Consejos de 2026-10 (3) (esperado 6.00, obtenido 6.00)
+  [OK]    Consejero: total (esperado 786.00, obtenido 786.00)
 
 Rex Olimpo - Teniente, MARCIANO, 3 anios
   Sueldo base de Teniente               400.00 PG
   Antigüedad (3 años)                    36.00 PG
   Subsidio por origen MARCIANO           18.00 PG
   TOTAL                                 454.00 PG
+  [OK]    Teniente: cantidad de conceptos (decoradores) (esperado 3, obtenido 3)
+  [OK]    Teniente: Sueldo base de Teniente (esperado 400.00, obtenido 400.00)
+  [OK]    Teniente: Antigüedad (3 años) (esperado 36.00, obtenido 36.00)
+  [OK]    Teniente: Subsidio por origen MARCIANO (esperado 18.00, obtenido 18.00)
+  [OK]    Teniente: total (esperado 454.00, obtenido 454.00)
 
 Luz Perez - Alférez, TERRICOLA, 1 anios
   Sueldo base de Alférez                200.00 PG
   Antigüedad (1 años)                     1.00 PG
   Subsidio por origen TERRICOLA          20.00 PG
   TOTAL                                 221.00 PG
+  [OK]    Alférez: cantidad de conceptos (decoradores) (esperado 3, obtenido 3)
+  [OK]    Alférez: Sueldo base de Alférez (esperado 200.00, obtenido 200.00)
+  [OK]    Alférez: Antigüedad (1 años) (esperado 1.00, obtenido 1.00)
+  [OK]    Alférez: Subsidio por origen TERRICOLA (esperado 20.00, obtenido 20.00)
+  [OK]    Alférez: total (esperado 221.00, obtenido 221.00)
+  [OK]    Consejos del período (el de septiembre no cuenta) (esperado 3, obtenido 3)
+  [OK]    Consultar un concepto inexistente del haber -> AssertionError: El índice no corresponde a un concepto del haber: 99
+
+=== RESUMEN DE VERIFICACION ===
+Comprobaciones: 150 | correctas: 150 | fallidas: 0
+RESULTADO: TODOS LOS ESCENARIOS COINCIDEN CON LO ESPERADO
