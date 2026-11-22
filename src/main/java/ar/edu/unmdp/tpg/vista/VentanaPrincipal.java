@@ -23,6 +23,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         getContentPane().add(fichas, BorderLayout.CENTER);
         pack();
         setLocationRelativeTo(null);
+        setExtendedState(MAXIMIZED_BOTH);   // la pestaña de control necesita toda la pantalla
     }
 
     @Override

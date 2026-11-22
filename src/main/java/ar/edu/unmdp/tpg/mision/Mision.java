@@ -53,6 +53,7 @@ public abstract class Mision {
     private final BalanceDeRecursos balance = new BalanceDeRecursos();
     private final List<String> acciones = new ArrayList<>();
     private List<Posicion> ruta = new ArrayList<>();
+    private Posicion objetivo;
     private Fase fase = Fase.CREADA;
     private InformeMision informe;
     private static int pausaEntreTurnos = 400;  // milisegundos
@@ -194,7 +195,7 @@ public abstract class Mision {
                 throw new MisionNoViableException("el despegue dejaría a la nave sin recursos");
             }
             // Cálculo de ruta con el radar de largo alcance
-            Posicion objetivo = destinoDeLaMision();
+            objetivo = destinoDeLaMision();
             ruta = radarLargo.calcularRuta(tablero.getPosicionNave(), objetivo);
             registrarAccion("Ruta calculada hacia " + texto(objetivo) + " (" + ruta.size() + " casilleros): " + textoRuta());
             registrarAccion("Preparación completada");
@@ -453,6 +454,16 @@ public abstract class Mision {
     /** @return el balance de recursos, para que las misiones concretas anoten su acción final */
     protected final BalanceDeRecursos balance() {
         return balance;
+    }
+
+    /** @return hacia dónde va la misión, o null si todavía no se preparó */
+    public Posicion getObjetivo() {
+        return objetivo;
+    }
+
+    /** @return copia de los casilleros que faltan recorrer (para mostrarlos en el tablero) */
+    public List<Posicion> getRutaPendiente() {
+        return new ArrayList<>(ruta);
     }
 
     // ---------- Puntos de extensión del Template Method ----------

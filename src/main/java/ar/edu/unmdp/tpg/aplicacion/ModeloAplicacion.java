@@ -70,11 +70,13 @@ public class ModeloAplicacion extends Observable {
     private final ObservadorDeBitacora observadorDeBitacora = new ObservadorDeBitacora();
     private final ObservadorDeTablero observadorDeTablero = new ObservadorDeTablero();
     private boolean misionEnCurso = false;
+    private Mision misionActual;   // la que se está ejecutando, para mostrar su objetivo y su ruta
 
     // Foto del tablero de la nave activa, tomada en cada aviso del tablero
     private ElementoDelUniverso[][] fotoTablero;
     private Posicion fotoNave;
     private Posicion fotoObjetivo;
+    private List<Posicion> fotoRuta = new ArrayList<>();
 
     // ---------- Naves ----------
 
@@ -262,6 +264,7 @@ public class ModeloAplicacion extends Observable {
                 throw new MisionNoViableException("Ya hay una misión en curso");
             }
             misionEnCurso = true;
+            misionActual = mision;
         }
         notificarObservadores("Misión iniciada: " + mision.getNombre());
         Thread hilo = new Thread(new EjecucionDeMision(this, getNaveActiva(), mision), "Mision " + mision.getNombre());
@@ -273,6 +276,8 @@ public class ModeloAplicacion extends Observable {
         synchronized (this) {
             informes.add(informe);
             misionEnCurso = false;
+            misionActual = null;
+            tomarFotoDelTablero();
         }
         notificarObservadores("Misión finalizada: " + informe.resumen());
     }
@@ -281,6 +286,8 @@ public class ModeloAplicacion extends Observable {
     void misionRechazada(String motivo) {
         synchronized (this) {
             misionEnCurso = false;
+            misionActual = null;
+            tomarFotoDelTablero();
         }
         notificarObservadores("Misión rechazada: " + motivo);
     }
@@ -301,7 +308,13 @@ public class ModeloAplicacion extends Observable {
         Tablero tablero = getTablero();
         fotoTablero = tablero.verTablero();
         fotoNave = tablero.getPosicionNave();
-        fotoObjetivo = tablero.getObjetivo();
+        if (misionActual != null) {
+            fotoObjetivo = misionActual.getObjetivo();
+            fotoRuta = misionActual.getRutaPendiente();
+        } else {
+            fotoObjetivo = null;
+            fotoRuta = new ArrayList<>();
+        }
     }
 
     /** @return matriz de elementos de la última foto del tablero (filas x columnas) */
@@ -314,9 +327,14 @@ public class ModeloAplicacion extends Observable {
         return fotoNave;
     }
 
-    /** @return objetivo en la última foto del tablero, o null si todavía no hay */
+    /** @return objetivo de la misión en curso, o null si no hay misión */
     public synchronized Posicion getFotoObjetivo() {
         return fotoObjetivo;
+    }
+
+    /** @return casilleros que le faltan recorrer a la misión en curso (vacío si no hay misión) */
+    public synchronized List<Posicion> getFotoRuta() {
+        return fotoRuta;
     }
 
     /** @return base de origen de la nave: el centro del tablero, donde empieza */
@@ -330,6 +348,7 @@ public class ModeloAplicacion extends Observable {
     private class ObservadorDeBitacora implements Observador {
         @Override
         public void actualizar(String mensaje) {
+            tomarFotoDelTablero();   // la ruta calculada se anota en la bitácora antes del primer salto
             notificarObservadores(mensaje);
         }
     }

@@ -38,7 +38,12 @@ public class ControladorControl implements ActionListener {
             } else if (comando.equals(IVistaControl.INICIAR_M02)) {
                 modelo.iniciarRecoleccion();
             } else if (comando.equals(IVistaControl.INICIAR_M03)) {
-                modelo.iniciarRetorno();
+                if (modelo.naveEnLaBase()) {
+                    vista.mostrarError("La nave ya está en la base de origen: cargue recursos y haga "
+                        + "mantenimiento con los botones de abajo.");
+                } else {
+                    modelo.iniciarRetorno();
+                }
             } else if (!modelo.naveEnLaBase()) {
                 vista.mostrarError("La nave tiene que estar en la base de origen para cargar recursos "
                     + "o hacer mantenimiento. Para volver, iniciar M-03.");

@@ -11,6 +11,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.util.List;
 
 /**
  * Dibujo del tablero: una grilla (GridLayout) con una etiqueta por casilla.
@@ -26,6 +27,7 @@ public class PanelTablero extends JPanel {
     private static final Color OBSTACULO = new Color(150, 110, 80);
     private static final Color AYUDA = new Color(255, 220, 90);
     private static final Color OTRO = new Color(230, 90, 90);
+    private static final Color RUTA = new Color(200, 225, 255);
 
     private final JLabel[][] casillas;
 
@@ -33,14 +35,14 @@ public class PanelTablero extends JPanel {
         setLayout(new GridLayout(filas, columnas, 1, 1));
         setBackground(Color.LIGHT_GRAY);
         casillas = new JLabel[filas][columnas];
-        Font fuente = new Font(Font.MONOSPACED, Font.PLAIN, 10);
+        Font fuente = new Font(Font.MONOSPACED, Font.PLAIN, 9);
         for (int i = 0; i < filas; i++) {
             for (int j = 0; j < columnas; j++) {
                 JLabel casilla = new JLabel("", SwingConstants.CENTER);
                 casilla.setOpaque(true);
                 casilla.setBackground(VACIO);
                 casilla.setFont(fuente);
-                casilla.setPreferredSize(new Dimension(30, 24));
+                casilla.setPreferredSize(new Dimension(24, 17));
                 casillas[i][j] = casilla;
                 add(casilla);
             }
@@ -56,7 +58,8 @@ public class PanelTablero extends JPanel {
      * @param objetivo objetivo actual, o null
      * @param base base de origen
      */
-    public void dibujar(ElementoDelUniverso[][] elementos, Posicion nave, Posicion objetivo, Posicion base) {
+    public void dibujar(ElementoDelUniverso[][] elementos, Posicion nave, Posicion objetivo, Posicion base,
+                        List<Posicion> ruta) {
         for (int i = 0; i < casillas.length; i++) {
             for (int j = 0; j < casillas[i].length; j++) {
                 JLabel casilla = casillas[i][j];
@@ -76,6 +79,8 @@ public class PanelTablero extends JPanel {
                     pintar(casilla, "OBJ", OBJETIVO);
                 } else if (base != null && aqui.equals(base)) {
                     pintar(casilla, "BAS", BASE);
+                } else if (ruta != null && ruta.contains(aqui)) {
+                    pintar(casilla, "·", RUTA);   // casillero que la nave todavía tiene que recorrer
                 } else {
                     pintar(casilla, "", VACIO);
                 }

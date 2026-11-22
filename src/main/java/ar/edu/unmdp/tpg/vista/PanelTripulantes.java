@@ -11,6 +11,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionListener;
@@ -25,12 +26,13 @@ public class PanelTripulantes extends JPanel implements IVistaTripulantes {
 
     private final TablaTripulantesModel modeloTabla = new TablaTripulantesModel();
     private final JTable tabla = new JTable(modeloTabla);
-    private final JTextArea txtDetalle = new JTextArea(10, 60);
+    private final JTextArea txtDetalle = new JTextArea(8, 60);
     private final JButton btnActualizar = new JButton("Actualizar liquidación");
     private final JButton btnConsejo = new JButton("Registrar consejo del consejero seleccionado");
 
     public PanelTripulantes() {
         setLayout(new BorderLayout(5, 5));
+        tabla.setPreferredScrollableViewportSize(new Dimension(600, 160));
         JScrollPane scrollTabla = new JScrollPane(tabla);
         scrollTabla.setBorder(BorderFactory.createTitledBorder("Tripulación de la nave activa"));
 

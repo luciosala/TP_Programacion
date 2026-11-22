@@ -95,7 +95,7 @@ public class PanelControlNave extends JPanel implements IVistaControl, Observado
         JPanel registros = new JPanel(new GridLayout(2, 1, 5, 5));
         registros.add(scrollBitacora);
         registros.add(scrollInformes);
-        registros.setPreferredSize(new Dimension(520, 500));
+        registros.setPreferredSize(new Dimension(430, 380));
         add(registros, BorderLayout.EAST);
 
         JPanel misiones = new JPanel();
@@ -199,7 +199,8 @@ public class PanelControlNave extends JPanel implements IVistaControl, Observado
             lblEstado.setText("Operativa");
         }
 
-        panelTablero.dibujar(modelo.getFotoTablero(), modelo.getFotoNave(), modelo.getFotoObjetivo(), modelo.getBase());
+        panelTablero.dibujar(modelo.getFotoTablero(), modelo.getFotoNave(), modelo.getFotoObjetivo(), modelo.getBase(),
+            modelo.getFotoRuta());
         mostrarBitacora(nave);
         mostrarInformes();
         habilitar(!enMision && !nave.naveDestruida());
