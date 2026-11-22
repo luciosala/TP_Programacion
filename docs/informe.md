@@ -2,20 +2,20 @@ Informe de diseño - Entrega Final
 
 TPG 2026 - Programación C
 
-Este informe continua el de la Entrega 1. Las secciones de la E1 se actualizaron con lo que cambio en la E2 (y con las correcciones de la devolucion), y se agregaron las partes nuevas.
+Este informe continúa el de la Entrega 1. Las secciones de la E1 se actualizaron con lo que cambió en la E2 (y con las correcciones de la devolución), y se agregaron las partes nuevas.
 
 1. Idea general
 
 El sistema arranca con el acceso: el usuario se registra o inicia sesión, y recién ahí se abre la ventana principal. Desde ahí se crea la nave, se arma la tripulación, se lanzan las misiones y se mira el visor del universo paralelo.
 
-El punto de entrada al modelo sigue siendo el Universo, que guarda los asistentes de comando (no las naves), porque toda orden o consulta a una nave pasa por su asistente. En la E2 se agrego una clase por encima, ModeloAplicacion, que es la que usan los controladores de la interfaz.
+El punto de entrada al modelo sigue siendo el Universo, que guarda los asistentes de comando (no las naves), porque toda orden o consulta a una nave pasa por su asistente. En la E2 se agregó una clase por encima, ModeloAplicacion, que es la que usan los controladores de la interfaz.
 
 Una orden del usuario sigue este camino:
 Vista -> Controlador -> ModeloAplicacion -> Universo -> AsistenteDeComando -> Nave -> Recursos / MotorWarp
 
 y el asistente va anotando todo en la Bitácora.
 
-Las misiones se le encomiendan a un asistente y ahora se ejecutan sobre un Tablero de 20x20. En cada turno la nave mira donde está parada, escanea alrededor, decide si da un salto normal o un salto warp, y después el Destino (la clase que dio la cátedra) mueve los elementos del universo. Lo que va pasando llega a la pantalla por Observer, sin que el modelo conozca a la vista.
+Las misiones se le encomiendan a un asistente y ahora se ejecutan sobre un Tablero de 20x20. En cada turno la nave mira dónde está parada, escanea alrededor, decide si da un salto normal o un salto warp, y después el Destino (la clase que dio la cátedra) mueve los elementos del universo. Lo que va pasando llega a la pantalla por Observer, sin que el modelo conozca a la vista.
 
 Aparte, el visor del universo paralelo es un módulo independiente de productores y consumidores que comparten una plataforma de carga, resuelto con monitores.
 
@@ -29,29 +29,29 @@ Aparte, el visor del universo paralelo es un módulo independiente de productore
 
 -AsistenteDeComando: es la interfaz con todo lo que se le puede pedir a una nave. En la E2 se le agregaron saltar(), saltarWarp(), interactuarCon(elemento), naveDestruida() y la posibilidad de observar la bitácora.
 
--AsistenteDeComandoBasico: recibe las ordenes, se las pasa a la nave, atrapa los errores y deja todo anotado en la bitacora. No hace la logica interna de la nave. Conoce a la Nave y a la Bitacora.
+-AsistenteDeComandoBasico: recibe las órdenes, se las pasa a la nave, atrapa los errores y deja todo anotado en la bitácora. No hace la lógica interna de la nave. Conoce a la Nave y a la bitácora.
 
--Nave (abstracta): tiene id, tipo, tripulacion, recursos y gemas. Lo de recursos se lo delega a Recursos y lo del motor a MotorWarp.En la E2 también es un ElementoDelUniverso (las naves enemigas están en el tablero) y sabe si fue destruida.
+-Nave (abstracta): tiene id, tipo, tripulación, recursos, motor y gemas. Lo de recursos se lo delega a Recursos y lo del motor a MotorWarp.En la E2 también es un ElementoDelUniverso (las naves enemigas están en el tablero) y sabe si fue destruida.
 
 -Exploradora, Carguera y Combate: los tres tipos de nave. Cambian los recursos con los que arrancan y, desde la E2, cómo les va en una batalla contra cada tipo.
 
--NaveFactory: es el unico lugar donde se crean naves, tanto la del jugador como las enemigas.
+-NaveFactory: es el único lugar donde se crean naves, tanto la del jugador como las enemigas.
 
--Recursos: maneja combustible, energia y desgaste, y controla que nunca se salgan de 0 a 100. Dice si la nave quedó en nivel letal.
+-Recursos: maneja combustible, energía y desgaste, y controla que nunca se salgan de 0 a 100. Dice si la nave quedó en nivel letal.
 
--MotorWarp y sus estados: el motor y sus cuatro estados.Solo expone saltar() y saltarWarp()
+-MotorWarp y sus estados: el motor y sus cuatro estados. Solo expone saltar() y saltarWarp()
 
 -Mision (abstracta): define el ciclo preparar, ejecutar, evaluar y cerrar, con la travesía por el tablero adentro de ejecutar. Conoce al asistente y al tablero.
 
 -MisionIntercepcion, MisionRecoleccion y MisionRetornoSeguro: son M-01, M-02 y M-03. Solo completan lo que cambia en cada una (costos, destino, qué se entrega o se gana al final).
 
--InformeMision: el resumen que se arma al cerrar la mision. No se puede modificar.
+-InformeMision: el resumen que se arma al evaluar la misión. No se puede modificar.
 
 -BalanceDeRecursos: va sumando lo que se consumió, ganó, perdió y entregó durante la misión, separado por etapa (despegue, navegación, encuentros, cierre). Es lo que usa el informe para el balance detallado.
 
--Bitacora y EventoBitacora: guardan los eventos en orden. Cada evento tiene fecha y hora, categoria y descripcion, y no se puede modificar. Desde la E2 la Bitacora es observable, para que la pantalla muestre los eventos en vivo.
+-Bitacora y EventoBitacora: guardan los eventos en orden. Cada evento tiene fecha y hora, categoría y descridescripciónpcion, y no se puede modificar. Desde la E2 la Bitacora es observable, para que la pantalla muestre los eventos en vivo.
 
--Tripulante, Cargo y Origen: los datos de la tripulacion. FabricaDeCargos arma el cargo a partir del nombre que elige el usuario en la pantalla.
+-Tripulante, Cargo y Origen: los datos de la tripulación. FabricaDeCargos arma el cargo a partir del nombre que elige el usuario en la pantalla.
 
 -Haber y los decoradores: calculan el sueldo mensual de cada tripulante.
 
@@ -119,7 +119,13 @@ El motor puede estar en Disponible, Preparando salto, En warp o Enfriamiento. Ca
 
 Cada llamada devuelve cuántos casilleros avanza la nave en ese turno (0, 1 o 2):
 
--Disponible: saltar() gasta 2 de combustible y avanza 1. saltarWarp() pasa a Preparando salto y cuenta como el primer turno de preparación. -Preparando salto: saltarWarp() comprueba que haya 5 de energía; si hay, suma un turno de preparación y al segundo pasa a En warp. Si no hay energía, se queda preparando. No avanza. -En warp: saltarWarp() consume los 5 de energía y avanza 2 casilleros, y el motor pasa a Enfriamiento. Si en ese momento ya no hay energía, el salto se aborta y vuelve a Preparando salto. -Enfriamiento: cualquier pedido se usa para enfriar. Suma 3 de desgaste y el motor vuelve a Disponible. No avanza.
+-Disponible: saltar() gasta 2 de combustible y avanza 1. saltarWarp() pasa a Preparando salto y cuenta como el primer turno de preparación.
+
+-Preparando salto: saltarWarp() comprueba que haya 5 de energía; si hay, suma un turno de preparación y al segundo pasa a En warp. Si no hay energía, se queda preparando. No avanza. 
+
+-En warp: saltarWarp() consume los 5 de energía y avanza 2 casilleros, y el motor pasa a Enfriamiento. Si en ese momento ya no hay energía, el salto se aborta y vuelve a Preparando salto. 
+
+-Enfriamiento: cualquier pedido se usa para enfriar. Suma 3 de desgaste y el motor vuelve a Disponible. No avanza.
 
 Si estando en Preparando salto o En warp se pide un saltar() normal, el motor cancela el warp, vuelve a Disponible y hace el salto normal. Preferimos eso a rechazar el pedido, porque un salto normal siempre es una acción posible para la nave.
 
@@ -129,9 +135,9 @@ Lo elegimos porque cada regla del Anexo queda en el estado al que pertenece, y l
 
 El motor recibe en su constructor los mismos Recursos que la nave (se los pasa NaveFactory), porque los costos del salto salen de ahí. Después de cada salto la nave controla si quedó en nivel letal.
 
---Factory: creacion de naves--
+--Factory: creación de naves--
 
-NaveFactory.createNave(id, tipo) arma la nave con los recursos iniciales de la ficha de inicio y con un motor nuevo en Disponible. Los constructores de Exploradora, Carguera y Combate son package private, asi que desde Main no se pueden crear a mano.
+NaveFactory.createNave(id, tipo) arma la nave con los recursos iniciales de la ficha de inicio y con un motor nuevo en Disponible. Los constructores de Exploradora, Carguera y Combate son package private, así que desde Main no se pueden crear a mano.
 
 En la E2 la usamos también para las naves enemigas del tablero, a través de FabricaDeElementos, y agregamos FabricaDeCargos para que la vista elija el cargo por nombre sin conocer las clases Capitan, Consejero, etc.
 
@@ -139,7 +145,7 @@ Lo elegimos para que el que usa el sistema no tenga que saber con qué valores a
 
 --Template Method: misiones--
 
-El metodo realizarMision() de Mision es final y siempre hace los cuatro pasos en el mismo orden. Los cuatro pasos también son final, así que las subclases no pueden cambiar el ciclo:
+El método realizarMision() de Mision es final y siempre hace los cuatro pasos en el mismo orden. Los cuatro pasos también son final, así que las subclases no pueden cambiar el ciclo:
 
 1) Preparar: verifica que la nave no esté destruida, que el motor esté disponible, que la tripulación esté lista y que alcancen los recursos del despegue sin dejar la nave en nivel letal. Después calcula la ruta con el radar de largo alcance y la guarda.
 2) Ejecutar: descuenta el despegue, hace el ciclo de travesía por turnos (sección 4) y, si la nave llegó viva, verifica en el destino que todavía tenga lo que tiene que entregar.
@@ -148,19 +154,19 @@ El metodo realizarMision() de Mision es final y siempre hace los cuatro pasos en
 
 Lo que cambia en cada misión son métodos que las subclases redefinen: energiaDespegue(), destinoDeLaMision(), combustibleAEntregar(), energiaAEntregar(), alLlegar() e impactarAlCerrar().
 
-M-01-Intercepción: Despegue(combustible/energia,desgaste)-> 4/5/4. Destino, Objetivo del tablero(la nave aliada). Al cerrar entrega entre 0 y 50 de energia y de combustible.
+M-01-Intercepción: Despegue(combustible/energía,desgaste)-> 4/5/4. Destino: objetivo del tablero (la nave aliada). Al cerrar entrega entre 0 y 50 de energía y de combustible.
 
-M-02-Recolección: Despegue(combustible/energia,desgaste)-> 4/10/4. Destino, Objetivo del tablero. Al cerrar gana entre 10 y 100 gemas.
+M-02-Recolección: Despegue(combustible/energía,desgaste)-> 4/10/4. Destino, Objetivo del tablero. Al cerrar gana entre 20 y 100 gemas.
 
-M-03-Retorno seguro: Despegue(combustible/energia,desgaste)-> 4/0/4. Destino, base de origen (la posición inicial, el centro del tablero). Al cerrar recarga al 100 % y desgaste a 0.
+M-03-Retorno seguro: Despegue(combustible/energía,desgaste)-> 4/0/4. Destino, base de origen (la posición inicial, el centro del tablero). Al cerrar recarga al 100 % y desgaste a 0.
 
 El combustible y el desgaste del despegue son iguales para las tres, así que están en Mision con un valor por defecto; cada misión solo redefine lo suyo. Una misión nueva sigue siendo una subclase nueva, sin tocar las otras.
 
 --Decorator: haberes--
 
-HaberBase tiene el sueldo del cargo y encima se van "envolviendo" los adicionales: AdicionalAntiguedad, SubsidioPorOrigen y, solo para el consejero, AdicionalConsejos. Cada decorador suma su parte y se puede consultar cuanto aporta cada concepto por separado. En la E2 la pantalla de tripulantes muestra el total y el detalle concepto por concepto.
+HaberBase tiene el sueldo del cargo y encima se van "envolviendo" los adicionales: AdicionalAntiguedad, SubsidioPorOrigen y, solo para el consejero, AdicionalConsejos. Cada decorador suma su parte y se puede consultar cuánto aporta cada concepto por separado. En la E2 la pantalla de tripulantes muestra el total y el detalle concepto por concepto.
 
-Lo usamos para no tener una clase por cada combinacion de cargo, origen y antiguedad. La que arma la cadena es LiquidacionHaberes.
+Lo usamos para no tener una clase por cada combinación de cargo, origen y antiguedad. La que arma la cadena es LiquidacionHaberes.
 
 --Double Dispatch: batallas entre naves--
 
@@ -175,7 +181,7 @@ Nave propia          vs. Exploradora          vs. Carguera          vs. Combate
 
 Exploradora            pacto de paz                gana                pierde
 
-Cargura                  pierde               pacto de paz              gana
+Carguera                  pierde               pacto de paz              gana
 
 Combate                  gana                     pierde             pacto de paz
 
@@ -217,7 +223,7 @@ GeneradoraDeEnergia y NaveConsumidora implementan Runnable, y UniversoParalelo l
 
 Cada generadora produce 10 baterías y cada nave consume 10, y después terminan y avisan en el visor. Así se puede ver el caso en que quedan consumidoras esperando porque ya no hay quién produzca, y se sigue la ejecución sin que la consola crezca sin fin.
 
-4. ravesía por el tablero
+4. Travesía por el tablero
 
 Cada nave tiene su tablero de 20x20, cargado con 30 asteroides, 8 estaciones de carga (la mitad fijas y la mitad porcentuales) y 4 naves enemigas de tipo al azar. La nave arranca en el centro.
 
@@ -239,15 +245,15 @@ La nave se destruye (y la misión falla) cuando el desgaste llega a 100, o la en
 
 5. Principios SOLID
 
--S (responsabilidad unica): cada clase hace una sola cosa. Recursos cuida los recursos, MotorWarp el motor, los radares solo observan el tablero, Bitacora guarda eventos, BalanceDeRecursos lleva las cuentas del informe, y lo que se muestra está solo en las vistas.
+-S (responsabilidad única): cada clase hace una sola cosa. Recursos cuida los recursos, MotorWarp el motor, los radares solo observan el tablero, Bitacora guarda eventos, BalanceDeRecursos lleva las cuentas del informe, y lo que se muestra está solo en las vistas.
 
--O (abierto/cerrado): para agregar una mision, un estado del motor o un adicional de haberes se agrega una clase, sin tocar las que ya estan.
+-O (abierto/cerrado): para agregar una misión, un estado del motor o un adicional de haberes se agrega una clase, sin tocar las que ya están.
 
--L (sustitucion de Liskov): cualquier mision se puede ejecutar como Mision, cualquier nave se usa como Nave, cualquier elemento del tablero como ElementoDelUniverso y cualquier decorador como Haber, sin que el que los usa sepa cuál es.
+-L (sustitución de Liskov): cualquier misión se puede ejecutar como Mision, cualquier nave se usa como Nave, cualquier elemento del tablero como ElementoDelUniverso y cualquier decorador como Haber, sin que el que los usa sepa cuál es.
 
--I (segregacion de interfaces): sigue siendo lo más flojo. AsistenteDeComando creció en la E2 porque la usan la interfaz y las misiones. Lo compensamos con interfaces chicas en otros lugares: ElementoDelUniverso, UsuarioDAO, Observador y una interfaz por cada vista.
+-I (segregación de interfaces): sigue siendo lo más flojo. AsistenteDeComando creció en la E2 porque la usan la interfaz y las misiones. Lo compensamos con interfaces chicas en otros lugares: ElementoDelUniverso, UsuarioDAO, Observador y una interfaz por cada vista.
 
--D (inversion de dependencias): Universo y Mision dependen de AsistenteDeComando y no de AsistenteDeComandoBasico; ServicioDeAcceso depende de UsuarioDAO y no de UsuarioDAOJDBC; los controladores dependen de las interfaces IVista, y el modelo solo conoce Observador.
+-D (inversión de dependencias): Universo y Mision dependen de AsistenteDeComando y no de AsistenteDeComandoBasico; ServicioDeAcceso depende de UsuarioDAO y no de UsuarioDAOJDBC; los controladores dependen de las interfaces IVista, y el modelo solo conoce Observador.
 
 
 6. Pedidos de diseño de la consigna
@@ -256,9 +262,9 @@ La nave se destruye (y la misión falla) cuando el desgaste llega a 100, o la en
 
 -"Si aparece otra variante de asistente, debe poder registrarse sin cambiar el centro de control": Universo trabaja con la interfaz AsistenteDeComando.
 
--"Agregar un tipo de mision no debe modificar las existentes": con Template Method se agrega una subclase de Mision.
+-"Agregar un tipo de misión no debe modificar las existentes": con Template Method se agrega una subclase de Mision.
 
--"Agregar un estado no debe llenar la nave de condicionales": con State se agrega una subclase de Estado. La nave no tiene ningun if sobre el estado del motor.
+-"Agregar un estado no debe llenar la nave de condicionales": con State se agrega una clase que implementa Estado. La nave no tiene ningún if sobre el estado del motor.
 
 -"Reemplazar el programa principal por una pantalla no debe cambiar el modelo": en la E2 lo hicimos. El modelo no usa System.out, Scanner ni Swing; devuelve objetos (InformeMision, Haber, la lista de eventos) y avisa los cambios por Observer. Las mismas clases las usan la interfaz gráfica y los mains de prueba.
 
@@ -281,13 +287,9 @@ Reglas de la tripulación: no se admiten dos tripulantes con el mismo id (se rec
 
 -El universo guarda asistentes y no naves, porque la consigna dice que toda consulta a una nave pasa por su asistente.
 
--La mision no conoce a la nave, solo al asistente. Asi la mision no puede saltearse la bitacora ni tocar los recursos por su cuenta.
+-La mision no conoce a la nave, solo al asistente. Asi la mision no puede saltearse la bitácora ni tocar los recursos por su cuenta.
 
 -Una mision se hace una sola vez. Si se quiere repetir se crea otra, como dice la consigna (si dos naves hacen el mismo tipo de mision son dos misiones distintas).
-
--Los tipos de nave por ahora solo cambian los recursos iniciales, que el enunciado de E1 lo permite. Los dejamos como subclases para poder agregarles comportamiento en E2.
-
--requiereMantenimiento() avisa cuando el desgaste llega a 80 y realizarMantenimiento() lo vuelve a 0.
 
 -Cada nave tiene su propio tablero. Si se cambia de nave activa, se ve el universo de esa nave.
 
@@ -309,4 +311,4 @@ Reglas de la tripulación: no se admiten dos tripulantes con el mismo id (se rec
 
 9. Uso de IA
 
-Lo que usamos de IA esta en docs/uso-ia.md.
+Lo que usamos de IA está en docs/uso-ia.md.
