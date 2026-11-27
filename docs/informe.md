@@ -295,6 +295,8 @@ Reglas de la tripulación: no se admiten dos tripulantes con el mismo id (se rec
 
 -La carga de combustible y energía y el mantenimiento solo se pueden hacer en la base de origen (donde arrancó la nave): en el medio del universo no hay de dónde sacar combustible ni quién repare la nave. Si la nave quedó lejos, primero tiene que volver con M-03. Durante el viaje, la única forma de recargar son las estaciones de carga del tablero.
 
+-Como consecuencia de lo anterior, la nave puede quedar varada: si durante una misión no le alcanza el combustible para dar un salto, la misión falla y la nave queda donde está. Lejos de la base no puede recargar, y si tampoco le alcanzan los recursos para el despegue de M-03 (4 de combustible y 4 de desgaste), ya no puede volver. Varada no es lo mismo que destruida: la nave solo se destruye cuando un recurso llega a 0 o el desgaste a 100. Lo aceptamos como parte del juego: planificar los recursos antes de alejarse de la base es responsabilidad del usuario, y las estaciones de carga del tablero son la única ayuda en el camino. En ese caso, la opción es crear otra nave.
+
 -El motor ya no salta al cerrar la misión como en la E1: ahora los saltos son el movimiento real por el tablero durante la travesía.
 
 -Lo que se entrega o se gana al final se verifica al llegar, pero se aplica recién en cerrar, como pide el enunciado. Si en el camino la nave gastó lo que tenía que entregar, la misión falla.
